@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Album Lists</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Album Lists</h1>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="list.html">List</a></li>
+                    <li><a href="rankings.html">Rankings</a></li>
+                    <li><a href="search.html">Search</a></li>
+                </ul>
+                <div class="auth-section">
+                    <span id="userDisplay"></span> <!-- Username (if logged in) -->
+                    <div id="authButtons">
+                        <a href="signup.html">Sign Up</a>
+                        <a href="login.html">Login</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <button id="changeColorBtn">Style</button>
+        <div id="colorModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <h2>Choose a Background Color</h2>
+              <input type="color" id="colorPicker">
+            </div>
+          </div>
+        <table class="album-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Album Cover</th>
+                    <th>Name of Album</th>
+                    <th>Score</th> <!-- Score header -->
+                    <th>Release Date</th> <!-- Release Date header -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Albums will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </main>
+
+    <script src="script/auth.js"></script>
+    <script src="script/list.js"></script>
+    <script src="script/logout.js"></script> 
+</body>
+</html>
