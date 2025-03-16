@@ -1,3 +1,8 @@
+// Import Firebase modules from your firebase.js file
+import { auth, db } from "./firebase.js"; // Import initialized Firebase instances
+import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
 document.addEventListener("DOMContentLoaded", () => {
     const signupForm = document.getElementById("signupForm");
 
@@ -13,36 +18,39 @@ document.addEventListener("DOMContentLoaded", () => {
             if (username && email && password) {
                 try {
                     // Create user with Firebase Authentication
-                    const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     
                     // Update user profile with username
-                    await userCredential.user.updateProfile({
+                    await updateProfile(userCredential.user, {
                         displayName: username
                     });
 
-                    // Optional: Store additional user data in Firestore
-                    await firebase.firestore().collection("users").doc(userCredential.user.uid).set({
+                    // Store additional user data in Firestore
+                    const userRef = doc(db, "users", userCredential.user.uid);
+                    await setDoc(userRef, {
                         username: username,
                         email: email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        createdAt: serverTimestamp()
                     });
 
-                    // Redirect to homepage
+                    // Redirect to homepage after successful signup
                     window.location.href = "index.html";
 
                 } catch (error) {
                     // Handle errors
                     let errorMessage = "Signup failed. Please try again.";
-                    switch(error.code) {
+                    switch (error.code) {
                         case "auth/email-already-in-use":
-                            errorMessage = "Email is already registered";
+                            errorMessage = "Email is already registered.";
                             break;
                         case "auth/invalid-email":
-                            errorMessage = "Invalid email address";
+                            errorMessage = "Invalid email address.";
                             break;
                         case "auth/weak-password":
-                            errorMessage = "Password should be at least 6 characters";
+                            errorMessage = "Password should be at least 6 characters.";
                             break;
+                        default:
+                            errorMessage = error.message; // Show the default error message
                     }
                     alert(errorMessage);
                     console.error("Signup error:", error);
