@@ -1,5 +1,5 @@
 // Import Firebase instances from firebase.js
-import { auth, db } from "./firebase.js";
+import { auth, db } from "https://matiascw.github.io/AlbumLists/docs/script/firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
