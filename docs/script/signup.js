@@ -1,3 +1,7 @@
+// Import Firebase instances from firebase.js
+import { auth, db } from "./firebase.js";
+
+// Import Firebase Authentication and Firestore functions
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
