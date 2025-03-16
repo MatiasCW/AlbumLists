@@ -1,7 +1,8 @@
-import { auth, database } from './firebase';  // Import Firebase services
+import { auth, db } from './firebase.js';
+import { collection, addDoc, getDocs, query, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-const clientId = '2b46bd9e8aef47908b9b92deac88846b';  
-const clientSecret = '774c6a6cf06b4595ad2bb6f776d8ff23';  
+const clientId = '2b46bd9e8aef47908b9b92deac88846b';
+const clientSecret = '774c6a6cf06b4595ad2bb6f776d8ff23';
 let accessToken = '';
 
 // Fetch access token once and store it
@@ -102,61 +103,67 @@ function displayAlbums(albums) {
   output.innerHTML = ''; // Clear previous content
 
   if (albums.length === 0) {
-      output.textContent = 'No albums found.';
-      return;
+    output.textContent = 'No albums found.';
+    return;
   }
 
   albums.forEach(album => {
-      const albumElement = document.createElement('div');
-      albumElement.classList.add('album');
+    const albumElement = document.createElement('div');
+    albumElement.classList.add('album');
 
-      albumElement.innerHTML = ` 
-          <h3>${album.name}</h3>
-          <p><strong>Release Date:</strong> ${album.release_date}</p>
-          <img src="${album.images[0]?.url}" alt="${album.name}" width="100">
-          <button class="add-btn" data-album-id="${album.id}">+</button>
-      `;
-      output.appendChild(albumElement);
+    albumElement.innerHTML = ` 
+      <h3>${album.name}</h3>
+      <p><strong>Release Date:</strong> ${album.release_date}</p>
+      <img src="${album.images[0]?.url}" alt="${album.name}" width="100">
+      <button class="add-btn" data-album-id="${album.id}">+</button>
+    `;
+    output.appendChild(albumElement);
 
-      // Add event listener to "Add to List" buttons
-      const addButton = albumElement.querySelector('.add-btn');
-      addButton.addEventListener('click', function () {
-          const albumId = this.getAttribute('data-album-id');
-          const albumName = album.name;
-          const albumReleaseDate = album.release_date;
-          const albumImageUrl = album.images[0]?.url; // Get the image URL
-          addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl);
-      });
+    // Add event listener to "Add to List" buttons
+    const addButton = albumElement.querySelector('.add-btn');
+    addButton.addEventListener('click', function () {
+      const albumId = this.getAttribute('data-album-id');
+      const albumName = album.name;
+      const albumReleaseDate = album.release_date;
+      const albumImageUrl = album.images[0]?.url; // Get the image URL
+      addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl);
+    });
   });
 }
 
-// Function to add album to the user's list in Firebase
-function addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl) {
+// Function to add album to the user's list in Firestore
+async function addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl) {
   const user = auth.currentUser;
   if (!user) {
     alert("You must be logged in to add albums to your list.");
     return; // Avoid further code execution if not logged in
   }
 
-  const userAlbumsRef = database.ref(`users/${user.uid}/albums`);
+  try {
+    // Reference to the user's albums collection
+    const albumsRef = collection(db, 'users', user.uid, 'albums');
 
-  // Check if album is already in the list
-  userAlbumsRef.once('value', snapshot => {
-    const albums = snapshot.val() || [];
-    if (!albums.some(album => album.id === albumId)) {
-      const newAlbum = {
+    // Check if the album already exists
+    const q = query(albumsRef, where('id', '==', albumId));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      // Add the album if it doesn't exist
+      await addDoc(albumsRef, {
         id: albumId,
         name: albumName,
         release_date: albumReleaseDate,
-        image: albumImageUrl
-      };
-      
-      userAlbumsRef.push(newAlbum);  // Add album to the list
+        image: albumImageUrl,
+        createdAt: new Date() // Add a timestamp
+      });
       alert('Album added to your list.');
     } else {
       alert("This album is already in your list.");
     }
-  });
+  } catch (error) {
+    console.error("Error adding album: ", error);
+    alert("Error adding album to your list.");
+  }
 }
 
 // Initialize access token on page load
@@ -177,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Firebase Authentication (Simple Login/Logout)
+// Firebase Authentication state listener
 auth.onAuthStateChanged(user => {
   if (user) {
     console.log('User logged in:', user);
