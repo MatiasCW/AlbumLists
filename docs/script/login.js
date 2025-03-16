@@ -1,5 +1,5 @@
 // Import Firebase modules from your firebase.js file
-import { auth } from "./firebase.js"; // Import initialized Firebase auth instance
+import { auth, db } from "https://matiascw.github.io/AlbumLists/docs/script/firebase.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {

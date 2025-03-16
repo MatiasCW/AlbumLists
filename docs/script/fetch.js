@@ -1,4 +1,4 @@
-import { auth, db } from './firebase.js';
+import { auth, db } from "https://matiascw.github.io/AlbumLists/docs/script/firebase.js";
 import { collection, addDoc, getDocs, query, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 const clientId = '2b46bd9e8aef47908b9b92deac88846b';
