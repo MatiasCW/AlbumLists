@@ -1,35 +1,50 @@
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("loginForm");
 
-    if (loginForm) { // Check if the form exists
+    if (loginForm) {
         loginForm.addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent form submission
+            event.preventDefault();
 
-            // Get the username and password entered by the user
-            const usernameInput = document.getElementById("username");
+            const emailInput = document.getElementById("email");
             const passwordInput = document.getElementById("password");
 
-            if (usernameInput && passwordInput) { // Check if inputs exist
-                const username = usernameInput.value;
+            if (emailInput && passwordInput) {
+                const email = emailInput.value;
                 const password = passwordInput.value;
 
-                // Perform simple validation
-                if (username && password) {
-                    // Store login status and user information in localStorage
-                    localStorage.setItem("loggedIn", "true"); // Mark user as logged in
-                    localStorage.setItem("loggedInUser", username); // Store the username
-
-                    // Redirect to the homepage or dashboard after successful login
-                    window.location.href = "index.html"; // Replace with the URL of your homepage or dashboard
+                if (email && password) {
+                    firebase.auth().signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            window.location.href = "index.html";
+                        })
+                        .catch((error) => {
+                            let errorMessage = "Login failed. Please try again.";
+                            
+                            // More specific error handling
+                            switch (error.code) {
+                                case "auth/invalid-email":
+                                    errorMessage = "Invalid email format";
+                                    break;
+                                case "auth/user-disabled":
+                                    errorMessage = "Account disabled";
+                                    break;
+                                case "auth/user-not-found":
+                                case "auth/wrong-password":
+                                    errorMessage = "Invalid email or password";
+                                    break;
+                            }
+                            
+                            alert(errorMessage);
+                            console.error("Login error:", error);
+                        });
                 } else {
-                    // If validation fails, show an alert
-                    alert("Please enter both username and password.");
+                    alert("Please enter both email and password.");
                 }
             } else {
-                console.error("Username or password input not found!"); // Debugging
+                console.error("Email or password input not found!");
             }
         });
     } else {
-        console.error("Login form not found!"); // Debugging
+        console.error("Login form not found!");
     }
 });

@@ -1,15 +1,17 @@
-const clientId = '2b46bd9e8aef47908b9b92deac88846b';  // Replace with your Spotify Client ID
-const clientSecret = '774c6a6cf06b4595ad2bb6f776d8ff23';  // Replace with your Spotify Client Secret
+import { auth, database } from './firebase';  // Import Firebase services
+
+const clientId = '2b46bd9e8aef47908b9b92deac88846b';  
+const clientSecret = '774c6a6cf06b4595ad2bb6f776d8ff23';  
 let accessToken = '';
 
 // Fetch access token once and store it
 function fetchAccessToken() {
-  const auth = 'Basic ' + btoa(`${clientId}:${clientSecret}`);
+  const authHeader = 'Basic ' + btoa(`${clientId}:${clientSecret}`);
 
   return fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
-      'Authorization': auth,
+      'Authorization': authHeader,
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: 'grant_type=client_credentials'
@@ -108,7 +110,7 @@ function displayAlbums(albums) {
       const albumElement = document.createElement('div');
       albumElement.classList.add('album');
 
-      albumElement.innerHTML = `
+      albumElement.innerHTML = ` 
           <h3>${album.name}</h3>
           <p><strong>Release Date:</strong> ${album.release_date}</p>
           <img src="${album.images[0]?.url}" alt="${album.name}" width="100">
@@ -128,31 +130,33 @@ function displayAlbums(albums) {
   });
 }
 
-// Function to add album to the user's list
+// Function to add album to the user's list in Firebase
 function addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl) {
-  // Get the user ID from localStorage
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  if (!loggedInUser) {
-      alert("You must be logged in to add albums to your list.");
-      return; // Avoid further code execution if not logged in
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be logged in to add albums to your list.");
+    return; // Avoid further code execution if not logged in
   }
 
-  // Retrieve the user's list from localStorage or create an empty array if it doesn't exist
-  let userAlbums = JSON.parse(localStorage.getItem(`user_${loggedInUser}_albums`)) || [];
+  const userAlbumsRef = database.ref(`users/${user.uid}/albums`);
 
   // Check if album is already in the list
-  if (!userAlbums.some(album => album.id === albumId)) {
-      // Add the album to the list with all relevant data
-      userAlbums.push({
-          id: albumId,
-          name: albumName,
-          release_date: albumReleaseDate,
-          image: albumImageUrl
-      });
-      localStorage.setItem(`user_${loggedInUser}_albums`, JSON.stringify(userAlbums));
-  } else {
+  userAlbumsRef.once('value', snapshot => {
+    const albums = snapshot.val() || [];
+    if (!albums.some(album => album.id === albumId)) {
+      const newAlbum = {
+        id: albumId,
+        name: albumName,
+        release_date: albumReleaseDate,
+        image: albumImageUrl
+      };
+      
+      userAlbumsRef.push(newAlbum);  // Add album to the list
+      alert('Album added to your list.');
+    } else {
       alert("This album is already in your list.");
-  }
+    }
+  });
 }
 
 // Initialize access token on page load
@@ -170,5 +174,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
+  }
+});
+
+// Firebase Authentication (Simple Login/Logout)
+auth.onAuthStateChanged(user => {
+  if (user) {
+    console.log('User logged in:', user);
+  } else {
+    console.log('No user logged in');
   }
 });

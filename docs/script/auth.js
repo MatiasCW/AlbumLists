@@ -1,63 +1,71 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const loggedInUser = localStorage.getItem("loggedInUser");
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-    // Display username if logged in
+document.addEventListener("DOMContentLoaded", () => {
+    const auth = getAuth();
+    const db = getFirestore();
     const userDisplay = document.getElementById("userDisplay");
     const authButtons = document.getElementById("authButtons");
 
-    // Check if the elements exist before manipulating them
-    if (userDisplay && authButtons) {
-        if (loggedInUser) {
-            // Display user's name and switch to logout
-            userDisplay.innerHTML = `<span>${loggedInUser}</span>`;
-            authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
+    // Listen for changes in the authentication state (login/logout)
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // User is logged in
+            const loggedInUser = user.displayName || user.email;
+            const userEmail = user.email;
 
-            // Fetch and display selected albums for the logged-in user
-            displaySelectedAlbums(loggedInUser);
+            // Display username and email if logged in
+            if (userDisplay && authButtons) {
+                userDisplay.innerHTML = `<span>${loggedInUser} (${userEmail})</span>`;
+                authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
 
-            // Logout functionality
-            const logoutButton = document.getElementById("logoutBtn");
-            if (logoutButton) {
-                logoutButton.addEventListener("click", (event) => {
-                    event.preventDefault(); // Prevent default link behavior
+                // Fetch and display selected albums for the logged-in user
+                displaySelectedAlbums(user.uid); // Pass user ID to fetch data
 
-                    // Clear user info from localStorage
-                    localStorage.removeItem("loggedInUser");
+                // Logout functionality
+                const logoutButton = document.getElementById("logoutBtn");
+                if (logoutButton) {
+                    logoutButton.addEventListener("click", async (event) => {
+                        event.preventDefault(); // Prevent default link behavior
 
-                    // Clear username and show login/signup buttons
-                    userDisplay.innerHTML = '';
-                    authButtons.innerHTML = `
-                        <a href="signup.html">Sign Up</a>
-                        <a href="login.html">Login</a>
-                    `;
+                        // Sign out the user from Firebase Authentication
+                        await signOut(auth);
 
-                    // Redirect to the homepage after logout
-                    window.location.href = "index.html";
-                });
-            } else {
-                console.error("Logout button not found!"); // Debugging
+                        // Clear username and show login/signup buttons
+                        userDisplay.innerHTML = '';
+                        authButtons.innerHTML = `
+                            <a href="signup.html">Sign Up</a>
+                            <a href="login.html">Login</a>
+                        `;
+
+                        // Redirect to the homepage after logout
+                        window.location.href = "index.html";
+                    });
+                }
             }
         } else {
-            // Clear user info and show login/signup buttons
-            userDisplay.innerHTML = '';
-            authButtons.innerHTML = `
-                <a href="signup.html">Sign Up</a>
-                <a href="login.html">Login</a>
-            `;
+            // No user is logged in
+            if (userDisplay && authButtons) {
+                userDisplay.innerHTML = '';
+                authButtons.innerHTML = `
+                    <a href="signup.html">Sign Up</a>
+                    <a href="login.html">Login</a>
+                `;
+            }
         }
-    } else {
-        console.error("Auth elements (userDisplay or authButtons) not found!"); // Debugging
-    }
+    });
 });
 
 // Function to display selected albums in a table
-function displaySelectedAlbums(user) {
+async function displaySelectedAlbums(userId) {
     const albumTableBody = document.querySelector(".album-table tbody");
     const scoreHeader = document.querySelector(".album-table th:nth-child(4)"); // Score header (4th column)
 
     if (albumTableBody && scoreHeader) {
-        // Check if there are selected albums for the logged-in user (stored in localStorage)
-        let albums = JSON.parse(localStorage.getItem(`user_${user}_albums`)) || [];
+        // Fetch albums from Firestore based on the userId
+        const userAlbumsDocRef = doc(getFirestore(), "users", userId);
+        const userAlbumsDoc = await getDoc(userAlbumsDocRef);
+        let albums = userAlbumsDoc.exists() ? userAlbumsDoc.data().albums : [];
 
         // Variable to track the current sorting state
         let sortState = "default"; // Can be "default", "asc", or "desc"
@@ -80,7 +88,7 @@ function displaySelectedAlbums(user) {
                 });
             } else {
                 // Default sorting (original order)
-                albums = JSON.parse(localStorage.getItem(`user_${user}_albums`)) || [];
+                albums = userAlbumsDoc.exists() ? userAlbumsDoc.data().albums : [];
             }
         };
 
@@ -128,10 +136,15 @@ function displaySelectedAlbums(user) {
                 }
 
                 // Add event listener to save the score when changed
-                scoreDropdown.addEventListener("change", (event) => {
+                scoreDropdown.addEventListener("change", async (event) => {
                     const selectedScore = event.target.value;
                     album.score = selectedScore; // Update the album object
-                    localStorage.setItem(`user_${user}_albums`, JSON.stringify(albums)); // Save to localStorage
+
+                    // Update Firestore with the new album data
+                    await setDoc(userAlbumsDocRef, { albums }, { merge: true });
+
+                    // Refresh the table after update
+                    renderTable();
                 });
 
                 scoreCell.appendChild(scoreDropdown);
@@ -147,14 +160,18 @@ function displaySelectedAlbums(user) {
                 const removeButton = document.createElement("button");
                 removeButton.textContent = "-";
                 removeButton.className = "remove-btn";
-                removeButton.addEventListener("click", () => {
+                removeButton.addEventListener("click", async () => {
                     // Show confirmation alert
                     const confirmRemove = confirm("Are you sure you want to remove this album?");
                     if (confirmRemove) {
                         // Remove the album from the list
                         albums.splice(index, 1); // Remove 1 item at the current index
-                        localStorage.setItem(`user_${user}_albums`, JSON.stringify(albums)); // Update localStorage
-                        renderTable(); // Re-render the table
+
+                        // Update Firestore after removal
+                        await setDoc(userAlbumsDocRef, { albums }, { merge: true });
+
+                        // Re-render the table
+                        renderTable();
                     }
                 });
                 removeCell.appendChild(removeButton);
@@ -187,4 +204,3 @@ function displaySelectedAlbums(user) {
         console.error("Album table body or score header not found!"); // Debugging
     }
 }
-
