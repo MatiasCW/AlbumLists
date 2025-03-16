@@ -1,40 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Check if the current page is list.html
-    if (window.location.pathname.includes("list.html")) {
-        // Get the logged-in user from localStorage
-        const loggedInUser = localStorage.getItem("loggedInUser");
+  // Check if the current page is list.html
+  if (window.location.pathname.includes("list.html")) {
+    // Get the logged-in user from Firebase Authentication
+    const user = firebase.auth().currentUser;
 
-        if (!loggedInUser) {
-            // Redirect to the login page if the user is not logged in
-            alert("You need to log in to view your album list.");
-            window.location.href = "login.html";
-            return;
-        }
-
-        // Retrieve the user's albums from localStorage
-        const userAlbums = JSON.parse(localStorage.getItem(`user_${loggedInUser}_albums`)) || [];
-
-        // Get the container where albums will be displayed
-        const albumContainer = document.querySelector(".album-container");
-
-        if (userAlbums.length === 0) {
-            // If no albums are saved, display a message
-            albumContainer.innerHTML = "<p>No albums saved yet.</p>";
-        } else {
-            // Display each saved album with the same structure as albums.html
-            albumContainer.innerHTML = userAlbums
-                .map((album) => {
-                    return `
-                        <div class="album">
-                            <h3>${album.name}</h3>
-                            <p><strong>Release Date:</strong> ${album.release_date}</p>
-                            <img src="${album.image}" alt="${album.name}" width="100">
-                        </div>
-                    `;
-                })
-                .join("");
-        }
+    if (!user) {
+      // Redirect to the login page if the user is not logged in
+      alert("You need to log in to view your album list.");
+      window.location.href = "login.html";
+      return;
     }
+
+    // Reference to the user's albums in Firebase
+    const userAlbumsRef = firebase.database().ref(`users/${user.uid}/albums`);
+
+    // Get the container where albums will be displayed
+    const albumContainer = document.querySelector(".album-container");
+
+    // Fetch the albums from Firebase
+    userAlbumsRef.once("value", (snapshot) => {
+      const userAlbums = snapshot.val() || [];
+
+      if (Object.keys(userAlbums).length === 0) {
+        // If no albums are saved, display a message
+        albumContainer.innerHTML = "<p>No albums saved yet.</p>";
+      } else {
+        // Display each saved album with the same structure as albums.html
+        albumContainer.innerHTML = Object.values(userAlbums)
+          .map((album) => {
+            return `
+              <div class="album">
+                <h3>${album.name}</h3>
+                <p><strong>Release Date:</strong> ${album.release_date}</p>
+                <img src="${album.image}" alt="${album.name}" width="100">
+              </div>
+            `;
+          })
+          .join("");
+      }
+    });
+  }
 });
 
 // Get DOM elements
@@ -62,7 +67,7 @@ window.addEventListener("click", (event) => {
 
 // Change the background color when a color is picked
 colorPicker.addEventListener("input", (event) => {
-  const selectedColor = event.target.value; 
+  const selectedColor = event.target.value;
   document.body.style.backgroundColor = selectedColor;
 
   // Save the selected color to localStorage
@@ -73,7 +78,7 @@ colorPicker.addEventListener("input", (event) => {
 window.addEventListener("load", () => {
   const savedColor = localStorage.getItem("backgroundColor");
   if (savedColor) {
-    document.body.style.backgroundColor = savedColor; 
-    colorPicker.value = savedColor; 
+    document.body.style.backgroundColor = savedColor;
+    colorPicker.value = savedColor;
   }
 });
