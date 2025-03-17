@@ -19,29 +19,28 @@ const db = getFirestore(app);
 // Global variable to store the userId once authenticated (used for managing state)
 let userId = null;
 
-// Promise to handle user authentication state
-let authStatePromise = new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            userId = user.uid;  // Set userId when the user is logged in
-            resolve(); // Resolve the promise once the user is logged in
-        } else {
-            userId = null;  // Set userId to null if user logs out
-            reject("User is not logged in.");  // Reject if user logs out
-        }
-    });
+// Function to handle user authentication state
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        userId = user.uid;  // Set userId when the user is logged in
+        console.log("User logged in with UID:", userId);
+    } else {
+        userId = null;  // Set userId to null if user logs out
+        console.log("User logged out.");
+    }
 });
 
 // Function to get the combined score (sum of ratings) for a specific album
-export const getAlbumCombinedScore = async (albumID) => {
+const getAlbumCombinedScore = async (albumID) => {
     try {
         const ratingsRef = collection(db, "ratings", albumID, "users");  // Reference to the ratings collection for the album
         const ratingsSnapshot = await getDocs(ratingsRef);  // Fetch ratings
 
         let totalScore = 0;
 
+        // Sum all ratings for the album
         ratingsSnapshot.forEach((doc) => {
-            totalScore += doc.data().rating;  // Sum all ratings for the album
+            totalScore += doc.data().rating;  
         });
 
         return totalScore;  // Return the combined score
@@ -53,40 +52,37 @@ export const getAlbumCombinedScore = async (albumID) => {
 
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async () => {
-    // Wait for the user authentication state to be loaded
     try {
-        await authStatePromise;  // Wait until the user is authenticated
-        if (!userId) {
-            throw new Error("User is not logged in.");
-        }
-
         console.log("Fetching albums for all users");
-        const albumsRef = collection(db, "albums");  // Reference to the root-level 'albums' collection
+
+        // Reference to the root-level 'albums' collection
+        const albumsRef = collection(db, "albums");  
         console.log("Firestore Path:", albumsRef.path);
 
         const albumsSnapshot = await getDocs(albumsRef);
-        console.log("Fetched snapshot from albums:", albumsSnapshot);  // Log snapshot to check
-
         let albumData = [];
-        albumsSnapshot.forEach((doc) => {
-            console.log("Fetched album doc:", doc.data());  // Log each album document
-            const albumID = doc.id;
-            const album = { id: albumID, ...doc.data() };
 
+        // Iterate through the albums and fetch ratings for each one
+        for (const albumDoc of albumsSnapshot.docs) {
+            const albumID = albumDoc.id;
+            const album = { id: albumID, ...albumDoc.data() };
+
+            // Fetch the combined score (sum of ratings) for this album
             const combinedScore = await getAlbumCombinedScore(albumID);
+
             album.combinedScore = combinedScore;
             albumData.push(album);  // Add the album to the data array
-        });
+        }
 
+        // Sort the albums based on the combined score in descending order
         albumData.sort((a, b) => b.combinedScore - a.combinedScore);
 
-        // Return top 100 albums based on combined score
+        // Return the top 100 albums based on combined score
         return albumData.slice(0, 100);
     } catch (error) {
         console.error("Error fetching albums: ", error);
-        return [];
+        return [];  // Return empty array if there’s an error
     }
 };
-
 
 export { auth, db };
