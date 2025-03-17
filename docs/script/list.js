@@ -43,9 +43,8 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
     let albums = [];
     querySnapshot.forEach((docSnap) => {
       const album = docSnap.data();
-      album.id = docSnap.id;
-      // Ensure album score is either a valid value or null (no score yet)
-      album.score = album.score || null;  // null means no rating yet
+      album.id = docSnap.id; // Firestore document ID
+      album.score = album.score || null;  // Ensure score is either a valid value or null
       albums.push(album);
     });
 
@@ -66,17 +65,17 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
       row.innerHTML = `
         <td>${rank++}</td>
         <td><img src="${album.image}" alt="${album.name}" width="100"></td>
-  <td>${album.name}</td>
-  <td>
-    <select class="score-dropdown" data-album-id="${album.spotifyId}"> <!-- Use spotifyId -->
-      ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-          .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
-          .join('')}
-    </select>
-  </td>
-  <td>${album.release_date}</td>
-  <td><button class="remove-btn" data-album-id="${album.id}">×</button></td>
-`;
+        <td>${album.name}</td>
+        <td>
+          <select class="score-dropdown" data-album-id="${album.id}"> <!-- Use Firestore document ID -->
+            ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
+              .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
+              .join('')}
+          </select>
+        </td>
+        <td>${album.release_date}</td>
+        <td><button class="remove-btn" data-album-id="${album.id}">×</button></td>
+      `;
 
       tbody.appendChild(row);
     });
@@ -92,36 +91,41 @@ function addAlbumInteractions(userId) {
   // Update score in the Firestore when dropdown value is changed
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('score-dropdown')) {
-      console.log("Score dropdown changed. Updating score...");
-      const albumId = e.target.dataset.albumId;
+      const userAlbumId = e.target.dataset.albumId; // Firestore document ID of the user's album
       const selectedScore = e.target.value === '-' ? null : e.target.value;
 
       // Update the user's album score
-      const userAlbumRef = doc(db, 'users', userId, 'albums', albumId);
+      const userAlbumRef = doc(db, 'users', userId, 'albums', userAlbumId);
       updateDoc(userAlbumRef, { score: selectedScore })
         .then(() => console.log("User's score updated!"))
         .catch((error) => console.error("Error updating user's score:", error));
 
-      // Update the global ratings collection
-      const globalAlbumRef = doc(db, 'albums', albumId);
-      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
+      // Fetch the Spotify ID from the user's album document
+      getDoc(userAlbumRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const spotifyId = docSnap.data().spotifyId; // Spotify ID of the album
 
-      if (selectedScore !== null) {
-        // Add/update the user's rating in the global collection
-        setDoc(userRatingRef, { rating: parseInt(selectedScore) }, { merge: true })
-          .then(() => console.log("Global rating updated!"))
-          .catch((error) => console.error("Error updating global rating:", error));
-      } else {
-        // Remove the rating if "-" is selected
-        deleteDoc(userRatingRef)
-          .then(() => console.log("Global rating removed!"))
-          .catch((error) => console.error("Error removing global rating:", error));
-      }
+          // Update the global ratings collection
+          const globalAlbumRef = doc(db, 'albums', spotifyId); // Use Spotify ID for global album
+          const userRatingRef = doc(globalAlbumRef, 'ratings', userId); // Use user ID for rating
+
+          if (selectedScore !== null) {
+            // Add/update the user's rating in the global collection
+            setDoc(userRatingRef, { rating: parseInt(selectedScore) }, { merge: true })
+              .then(() => console.log("Global rating updated!"))
+              .catch((error) => console.error("Error updating global rating:", error));
+          } else {
+            // Remove the rating if "-" is selected
+            deleteDoc(userRatingRef)
+              .then(() => console.log("Global rating removed!"))
+              .catch((error) => console.error("Error removing global rating:", error));
+          }
+        }
+      }).catch((error) => console.error("Error fetching album:", error));
     }
   });
 
   // Remove album from Firestore when the remove button is clicked
-  // Update the remove event listener to retrieve Spotify ID
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure you want to remove this album?")) {
       const userAlbumId = e.target.dataset.albumId;
