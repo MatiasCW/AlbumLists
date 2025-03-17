@@ -53,37 +53,40 @@ export const getAlbumCombinedScore = async (albumID) => {
 
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async () => {
-    // Wait for the user authentication state to be loaded (we don't need to use userId for fetching all albums)
+    // Wait for the user authentication state to be loaded
     try {
         await authStatePromise;  // Wait until the user is authenticated
+        if (!userId) {
+            throw new Error("User is not logged in.");
+        }
 
         console.log("Fetching albums for all users");
         const albumsRef = collection(db, "albums");  // Reference to the root-level 'albums' collection
         console.log("Firestore Path:", albumsRef.path);
 
         const albumsSnapshot = await getDocs(albumsRef);
+        console.log("Fetched snapshot from albums:", albumsSnapshot);  // Log snapshot to check
+
         let albumData = [];
+        albumsSnapshot.forEach((doc) => {
+            console.log("Fetched album doc:", doc.data());  // Log each album document
+            const albumID = doc.id;
+            const album = { id: albumID, ...doc.data() };
 
-        for (const albumDoc of albumsSnapshot.docs) {
-            const albumID = albumDoc.id;
-            const album = { id: albumID, ...albumDoc.data() };
-
-            // Fetch the combined score (sum of ratings) for this album
             const combinedScore = await getAlbumCombinedScore(albumID);
-
             album.combinedScore = combinedScore;
             albumData.push(album);  // Add the album to the data array
-        }
+        });
 
-        // Sort the albums based on the combined score in descending order
         albumData.sort((a, b) => b.combinedScore - a.combinedScore);
 
-        // Return the top 100 albums based on combined score
+        // Return top 100 albums based on combined score
         return albumData.slice(0, 100);
     } catch (error) {
         console.error("Error fetching albums: ", error);
-        return [];  // Return empty array if there’s an error
+        return [];
     }
 };
+
 
 export { auth, db };
