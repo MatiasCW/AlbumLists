@@ -1,9 +1,7 @@
-// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Your Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyD9FcGo-KMXdK9RwT2dJIHETmclikJPRr8",
     authDomain: "thealbumlists.firebaseapp.com",
@@ -14,12 +12,8 @@ const firebaseConfig = {
     measurementId: "G-V5FYJL6YQM"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase services
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Export Firebase instances
 export { auth, db };
