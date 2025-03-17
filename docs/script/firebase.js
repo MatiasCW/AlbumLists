@@ -33,18 +33,22 @@ export const getTop100Albums = async () => {
         const albumsRef = collection(db, "albums");
         const albumsSnapshot = await getDocs(albumsRef);
 
+        console.log(`Total albums fetched: ${albumsSnapshot.size}`); // Debugging log
+
         // Array to store album data with average scores
         const albumData = [];
 
         // Iterate through each album in the global albums collection
         for (const albumDoc of albumsSnapshot.docs) {
-            const albumData = albumDoc.data();
             const albumId = albumDoc.id;
-            const albumName = albumData.name;
+
+            console.log(`Processing album with ID: ${albumId}`); // Debugging log
 
             // Fetch ratings from the global ratings subcollection for this album
             const ratingsRef = collection(db, "albums", albumId, "ratings");
             const ratingsSnapshot = await getDocs(ratingsRef);
+
+            console.log(`Total ratings for album ${albumId}: ${ratingsSnapshot.size}`); // Debugging log
 
             let totalScore = 0;
             let numberOfRatings = 0;
@@ -52,19 +56,21 @@ export const getTop100Albums = async () => {
             // Sum all ratings and count the number of ratings
             ratingsSnapshot.forEach((ratingDoc) => {
                 const ratingData = ratingDoc.data();
-                console.log("Rating Document:", ratingDoc.id, "Score:", ratingData.score); // Debugging log
-                if (ratingData.score !== undefined && ratingData.score !== null) {
-                    totalScore += ratingData.score; // Use 'score' field
+                console.log(`Rating Document ID: ${ratingDoc.id}, Rating: ${ratingData.rating}`); // Debugging log
+                if (ratingData.rating !== undefined && ratingData.rating !== null) {
+                    totalScore += ratingData.rating; // Use 'rating' field
                     numberOfRatings++;
                 }
             });
+
+            console.log(`Total Score for album ${albumId}: ${totalScore}, Number of Ratings: ${numberOfRatings}`); // Debugging log
 
             // Calculate the average score (avoid division by zero)
             const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
 
             // Add the album to the array with its average score
             albumData.push({
-                name: albumName,
+                id: albumId, // Use album ID since there's no name
                 averageScore: averageScore,
             });
         }
@@ -81,6 +87,5 @@ export const getTop100Albums = async () => {
         return [];
     }
 };
-
 
 export { auth, db };
