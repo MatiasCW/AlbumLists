@@ -24,7 +24,7 @@ onAuthStateChanged(auth, (user) => {
     console.log(user ? `User logged in: ${userId}` : "User logged out.");
 });
 
-// Function to fetch albums from all users
+// Function to fetch albums from all users and calculate combined scores
 export const getTop100Albums = async () => {
     try {
         console.log("Fetching albums from all users...");
@@ -32,7 +32,8 @@ export const getTop100Albums = async () => {
         const usersRef = collection(db, "users");
         const usersSnapshot = await getDocs(usersRef);
 
-        let albumData = [];
+        // Object to store combined scores for each album
+        const albumScores = {};
 
         // Iterate through all users
         for (const userDoc of usersSnapshot.docs) {
@@ -40,21 +41,32 @@ export const getTop100Albums = async () => {
             const albumsRef = collection(db, `users/${userId}/albums`);
             const albumsSnapshot = await getDocs(albumsRef);
 
+            // Iterate through the user's albums
             albumsSnapshot.forEach((albumDoc) => {
-                let album = {
-                    id: albumDoc.id,
-                    userId: userId, // Keep track of owner
-                    ...albumDoc.data(),
-                };
-                albumData.push(album);
+                const albumData = albumDoc.data();
+                const albumName = albumData.name; // Use album name as the key
+                const albumScore = albumData.score || 0; // Default to 0 if score is missing
+
+                // Add the score to the combined total for this album
+                if (!albumScores[albumName]) {
+                    albumScores[albumName] = 0;
+                }
+                albumScores[albumName] += albumScore;
             });
         }
 
+        // Convert the albumScores object to an array of { name, combinedScore } objects
+        const albumData = Object.keys(albumScores).map((albumName) => ({
+            name: albumName,
+            combinedScore: albumScores[albumName],
+        }));
+
         console.log(`Fetched ${albumData.length} albums.`);
 
-        // Sort albums by score in descending order
-        albumData.sort((a, b) => (b.score || 0) - (a.score || 0));
+        // Sort albums by combined score in descending order
+        albumData.sort((a, b) => b.combinedScore - a.combinedScore);
 
+        // Return the top 100 albums
         return albumData.slice(0, 100);
     } catch (error) {
         console.error("Error fetching albums:", error);
