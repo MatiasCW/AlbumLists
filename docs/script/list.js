@@ -10,12 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Use auth state listener to handle login status
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is logged in - fetch and display albums
         console.log("User is logged in. Fetching albums...");
         fetchAndDisplayAlbums(user.uid);
         addAlbumInteractions(user.uid);
       } else {
-        // User is not logged in - redirect to login
         alert("You need to log in to view your album list.");
         window.location.href = "login.html";
       }
@@ -23,14 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Fetch and display albums
+// Fetch and display albums without a container
 async function fetchAndDisplayAlbums(userId) {
-  const albumContainer = document.querySelector(".album-container");
-  if (!albumContainer) {
-    console.error("Album container not found!");
-    return;
-  }
-
   try {
     const albumsRef = collection(db, 'users', userId, 'albums');
     const querySnapshot = await getDocs(albumsRef);
@@ -38,40 +30,43 @@ async function fetchAndDisplayAlbums(userId) {
     console.log("Fetched Albums:", querySnapshot.docs.map(doc => doc.data())); // Debugging
 
     if (querySnapshot.empty) {
-      albumContainer.innerHTML = "<p>No albums saved yet.</p>";
+      const noAlbumsMessage = document.createElement("p");
+      noAlbumsMessage.textContent = "No albums saved yet.";
+      document.body.appendChild(noAlbumsMessage);
       return;
     }
 
-    // Display each saved album
-    albumContainer.innerHTML = querySnapshot.docs
-      .map(doc => {
-        const album = doc.data();
-        return `
-          <div class="album">
-            <h3>${album.name}</h3>
-            <p><strong>Release Date:</strong> ${album.release_date}</p>
-            <img src="${album.image}" alt="${album.name}" width="100">
-            <div class="album-actions">
-              <select class="score-dropdown" data-album-id="${doc.id}">
-                ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-                  .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
-                  .join('')}
-              </select>
-              <button class="remove-btn" data-album-id="${doc.id}">Remove</button>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
+    querySnapshot.docs.forEach((docSnap) => {
+      const album = docSnap.data();
+      const albumDiv = document.createElement("div");
+      albumDiv.classList.add("album");
+
+      albumDiv.innerHTML = `
+        <h3>${album.name}</h3>
+        <p><strong>Release Date:</strong> ${album.release_date}</p>
+        <img src="${album.image}" alt="${album.name}" width="100">
+        <div class="album-actions">
+          <select class="score-dropdown" data-album-id="${docSnap.id}">
+            ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
+              .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
+              .join('')}
+          </select>
+          <button class="remove-btn" data-album-id="${docSnap.id}">Remove</button>
+        </div>
+      `;
+
+      document.body.appendChild(albumDiv); // Append each album directly to the page
+    });
   } catch (error) {
     console.error("Error fetching albums:", error);
-    albumContainer.innerHTML = "<p>Error loading albums. Please try again.</p>";
+    const errorMessage = document.createElement("p");
+    errorMessage.textContent = "Error loading albums. Please try again.";
+    document.body.appendChild(errorMessage);
   }
 }
 
 // Add event listeners for interactions
 function addAlbumInteractions(userId) {
-  // Score updates
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('score-dropdown')) {
       console.log("Score dropdown changed. Updating score...");
@@ -82,7 +77,6 @@ function addAlbumInteractions(userId) {
     }
   });
 
-  // Album removal
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure?")) {
       console.log("Remove button clicked. Deleting album...");
@@ -106,14 +100,12 @@ function initializeColorPicker() {
 
   if (!changeColorBtn || !colorModal || !closeModal || !colorPicker) return;
 
-  // Load saved color
   const savedColor = localStorage.getItem("backgroundColor");
   if (savedColor) {
     document.body.style.backgroundColor = savedColor;
     colorPicker.value = savedColor;
   }
 
-  // Event listeners
   changeColorBtn.addEventListener("click", () => colorModal.style.display = "flex");
   closeModal.addEventListener("click", () => colorModal.style.display = "none");
   window.addEventListener("click", (e) => e.target === colorModal && (colorModal.style.display = "none"));
