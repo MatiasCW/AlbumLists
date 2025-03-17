@@ -161,7 +161,6 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
       const globalAlbumRef = doc(db, "albums", spotifyAlbumId); // Use Spotify ID as the document ID
       await setDoc(globalAlbumRef, {
         name: albumName,
-        // Do NOT include ratings: {} here
       }, { merge: true }); // Use merge to avoid overwriting existing data
 
       alert('Album added to your list.');
