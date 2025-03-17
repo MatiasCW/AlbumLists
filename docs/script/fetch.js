@@ -174,6 +174,24 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
   }
 }
 
+// Function to add a rating to the global album's ratings subcollection
+async function addRating(albumId, userId, rating) {
+  try {
+    // Reference to the ratings subcollection under the global album
+    const ratingRef = doc(db, "albums", albumId, "ratings", userId);
+
+    // Add the rating as a document in the subcollection
+    await setDoc(ratingRef, {
+      rating: rating, // The user's rating (e.g., 8)
+      createdAt: new Date() // Optional: Add a timestamp
+    });
+
+    console.log("Rating added successfully!");
+  } catch (error) {
+    console.error("Error adding rating:", error);
+  }
+}
+
 // Initialize access token on page load
 fetchAccessToken();
 
