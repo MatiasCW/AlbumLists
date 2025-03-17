@@ -26,14 +26,14 @@ export const getAlbumAverageRating = async (albumID) => {
         let count = 0;
 
         ratingsSnapshot.forEach((doc) => {
-            totalRatings += doc.data().rating;  // Assuming each rating document has a "rating" field
+            totalRatings += doc.data().rating;
             count++;
         });
 
-        return count > 0 ? totalRatings / count : 0;  // Return average rating, 0 if no ratings
+        return count > 0 ? totalRatings / count : 0;
     } catch (error) {
         console.error("Error fetching ratings: ", error);
-        return 0;  // Return 0 if there’s an error
+        return 0;
     }
 };
 
@@ -48,16 +48,11 @@ export const getTop100Albums = async () => {
             const album = { id: albumID, ...albumDoc.data() };
             const averageRating = await getAlbumAverageRating(albumID);
 
-            // Add average rating to album object
             album.averageRating = averageRating;
-
             albumData.push(album);
         }
 
-        // Sort albums by average rating in descending order
         albumData.sort((a, b) => b.averageRating - a.averageRating);
-
-        // Return the top 100 albums
         return albumData.slice(0, 100);
     } catch (error) {
         console.error("Error fetching albums: ", error);
@@ -66,3 +61,5 @@ export const getTop100Albums = async () => {
 };
 
 export { auth, db };
+
+
