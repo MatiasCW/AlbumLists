@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loginForm.addEventListener("submit", async function (event) {
             event.preventDefault();
 
-            const emailInput = document.getElementById("loginUsername");
+            const emailInput = document.getElementById("loginEmail"); 
             const passwordInput = document.getElementById("password");
 
             if (emailInput && passwordInput) {
