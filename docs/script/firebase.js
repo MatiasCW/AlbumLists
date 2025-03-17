@@ -56,7 +56,7 @@ export const getTop100Albums = async () => {
             // Sum all ratings and count the number of ratings
             ratingsSnapshot.forEach((ratingDoc) => {
                 const ratingData = ratingDoc.data();
-                console.log(`Rating Document ID: ${ratingDoc.id}, Rating: ${ratingData.rating}`); // Debugging log
+                console.log(`Rating Document ID: ${ratingDoc.id}, Data:`, ratingData); // Debugging log
                 if (ratingData.rating !== undefined && ratingData.rating !== null) {
                     totalScore += ratingData.rating; // Use 'rating' field
                     numberOfRatings++;
