@@ -39,18 +39,16 @@ export const getAlbumCombinedScore = async (albumID) => {
 };
 
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
-export const getTop100Albums = async (userId) => {  // Add userId to the function
+export const getTop100Albums = async () => {
     try {
-        // Fetch albums from the specific user's sub-collection
-        const albumsSnapshot = await getDocs(collection(db, "users", userId, "albums"));
+        const albumsSnapshot = await getDocs(collection(db, "albums"));  // Fetch all albums
         let albumData = [];
 
         for (const albumDoc of albumsSnapshot.docs) {
             const albumID = albumDoc.id;
             const album = { id: albumID, ...albumDoc.data() };  // Get album data
 
-            // Assuming getAlbumCombinedScore fetches the combined score based on ratings
-            const combinedScore = await getAlbumCombinedScore(albumID);
+            const combinedScore = await getAlbumCombinedScore(albumID);  // Get combined score for the album
 
             album.combinedScore = combinedScore;
             albumData.push(album);  // Add the album to the data array
@@ -66,7 +64,6 @@ export const getTop100Albums = async (userId) => {  // Add userId to the functio
         return [];
     }
 };
-
 
 export { auth, db };
 
