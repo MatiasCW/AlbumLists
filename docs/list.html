@@ -36,7 +36,13 @@
               <h2>Choose a Background Color</h2>
               <input type="color" id="colorPicker">
             </div>
-          </div>
+        </div>
+
+        <!-- Album container added for list.js -->
+        <div class="album-container">
+            <p>Loading albums...</p>
+        </div>
+
         <table class="album-table">
             <thead>
                 <tr>
@@ -52,6 +58,7 @@
             </tbody>
         </table>
     </main>
+
     <script type="module" src="script/firebase.js"></script>
     <script type="module" src="script/auth.js"></script>
     <script type="module" src="script/list.js"></script>
