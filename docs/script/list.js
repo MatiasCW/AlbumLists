@@ -56,7 +56,7 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
     let rank = 1;
     albums.forEach((album) => {
       const row = document.createElement("tr");
-      
+
       row.innerHTML = `
         <td>${rank++}</td>
         <td><img src="${album.image}" alt="${album.name}" width="100"></td>
@@ -83,6 +83,7 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
 
 // Add event listeners for interactions
 function addAlbumInteractions(userId) {
+  // Update score in the Firestore when dropdown value is changed
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('score-dropdown')) {
       console.log("Score dropdown changed. Updating score...");
@@ -93,6 +94,7 @@ function addAlbumInteractions(userId) {
     }
   });
 
+  // Remove album from Firestore when the remove button is clicked
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure?")) {
       console.log("Remove button clicked. Deleting album...");
@@ -121,7 +123,7 @@ function addScoreHeaderListener(userId) {
       } else {
         sortOrder = 'default';
       }
-      fetchAndDisplayAlbums(userId, sortOrder);
+      fetchAndDisplayAlbums(userId, sortOrder); // Fetch and display albums with updated sorting
     });
   }
 }
@@ -135,17 +137,25 @@ function initializeColorPicker() {
 
   if (!changeColorBtn || !colorModal || !closeModal || !colorPicker) return;
 
+  // Retrieve the saved color from localStorage and apply it if available
   const savedColor = localStorage.getItem("backgroundColor");
   if (savedColor) {
     document.body.style.backgroundColor = savedColor;
     colorPicker.value = savedColor;
   }
 
+  // Open the color picker modal
   changeColorBtn.addEventListener("click", () => colorModal.style.display = "flex");
+
+  // Close the modal when the close button is clicked
   closeModal.addEventListener("click", () => colorModal.style.display = "none");
+
+  // Close the modal when clicking outside the modal
   window.addEventListener("click", (e) => e.target === colorModal && (colorModal.style.display = "none"));
+
+  // Update the background color when the color picker input changes
   colorPicker.addEventListener("input", (e) => {
     document.body.style.backgroundColor = e.target.value;
-    localStorage.setItem("backgroundColor", e.target.value);
+    localStorage.setItem("backgroundColor", e.target.value); // Save color to localStorage
   });
 }
