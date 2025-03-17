@@ -23,7 +23,7 @@ const displayTopAlbums = async () => {
 
     listItem.innerHTML = `
       <strong>${index + 1}. ${album.title}</strong> by ${album.artist}
-      <br>Average Rating: ${album.averageRating.toFixed(2)}
+      <br>Combined Score: ${album.combinedScore}
     `;
 
     albumList.appendChild(listItem); // Append each album to the list
