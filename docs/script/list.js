@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is logged in - fetch and display albums
+        console.log("User is logged in. Fetching albums...");
         fetchAndDisplayAlbums(user.uid);
         addAlbumInteractions(user.uid);
       } else {
@@ -25,12 +26,23 @@ document.addEventListener("DOMContentLoaded", () => {
 // Fetch and display albums
 async function fetchAndDisplayAlbums(userId) {
   const albumContainer = document.querySelector(".album-container");
-  if (!albumContainer) return;
+  if (!albumContainer) {
+    console.error("Album container not found!");
+    return;
+  }
 
   try {
     const albumsRef = collection(db, 'users', userId, 'albums');
     const querySnapshot = await getDocs(albumsRef);
 
+    console.log("Fetched Albums:", querySnapshot.docs.map(doc => doc.data())); // Debugging
+
+    if (querySnapshot.empty) {
+      albumContainer.innerHTML = "<p>No albums saved yet.</p>";
+      return;
+    }
+
+    // Display each saved album
     albumContainer.innerHTML = querySnapshot.docs
       .map(doc => {
         const album = doc.data();
@@ -51,10 +63,6 @@ async function fetchAndDisplayAlbums(userId) {
         `;
       })
       .join("");
-
-    if (querySnapshot.empty) {
-      albumContainer.innerHTML = "<p>No albums saved yet.</p>";
-    }
   } catch (error) {
     console.error("Error fetching albums:", error);
     albumContainer.innerHTML = "<p>Error loading albums. Please try again.</p>";
@@ -66,6 +74,7 @@ function addAlbumInteractions(userId) {
   // Score updates
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('score-dropdown')) {
+      console.log("Score dropdown changed. Updating score...");
       const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
       updateDoc(albumRef, { score: e.target.value })
         .then(() => console.log("Score updated!"))
@@ -76,9 +85,13 @@ function addAlbumInteractions(userId) {
   // Album removal
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure?")) {
+      console.log("Remove button clicked. Deleting album...");
       const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
       deleteDoc(albumRef)
-        .then(() => e.target.closest('.album').remove())
+        .then(() => {
+          console.log("Album removed!");
+          e.target.closest('.album').remove();
+        })
         .catch((error) => console.error("Error removing album:", error));
     }
   });
