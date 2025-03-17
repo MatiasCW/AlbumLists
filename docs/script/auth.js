@@ -8,36 +8,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const userDisplay = document.getElementById("userDisplay");
     const authButtons = document.getElementById("authButtons");
 
+    if (!userDisplay || !authButtons) {
+        console.error("Required elements (userDisplay or authButtons) not found!");
+        return;
+    }
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // User is signed in
             const loggedInUser = user.displayName || user.email;
             const userEmail = user.email;
 
-            if (userDisplay && authButtons) {
-                userDisplay.innerHTML = `<span>${loggedInUser} (${userEmail})</span>`;
-                authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
+            userDisplay.innerHTML = `<span>${loggedInUser} (${userEmail})</span>`;
+            authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
 
-                // Fetch and display albums for the logged-in user
+            // Fetch and display albums for the logged-in user
+            try {
                 await displaySelectedAlbums(user.uid);
+            } catch (error) {
+                console.error("Error fetching albums:", error);
+                userDisplay.innerHTML += `<p style="color: red;">Error loading albums. Please try again.</p>`;
+            }
 
-                // Add logout event listener
-                const logoutButton = document.getElementById("logoutBtn");
-                if (logoutButton) {
-                    logoutButton.addEventListener("click", async (event) => {
-                        event.preventDefault();
+            // Add logout event listener
+            const logoutButton = document.getElementById("logoutBtn");
+            if (logoutButton) {
+                logoutButton.addEventListener("click", async (event) => {
+                    event.preventDefault();
+                    try {
                         await signOut(auth);
-                        window.location.href = "index.html";
-                    });
-                }
+                        window.location.href = "index.html"; // Redirect to home page after logout
+                    } catch (error) {
+                        console.error("Logout error:", error);
+                        alert("Error signing out. Please try again.");
+                    }
+                });
             }
         } else {
-            if (userDisplay && authButtons) {
-                userDisplay.innerHTML = '';
-                authButtons.innerHTML = `
-                    <a href="signup.html">Sign Up</a>
-                    <a href="login.html">Login</a>
-                `;
-            }
+            // User is signed out
+            userDisplay.innerHTML = '';
+            authButtons.innerHTML = `
+                <a href="signup.html">Sign Up</a>
+                <a href="login.html">Login</a>
+            `;
         }
     });
 });
@@ -47,7 +60,10 @@ async function displaySelectedAlbums(userId) {
     const albumTableBody = document.querySelector(".album-table tbody");
     const scoreHeader = document.querySelector(".album-table th:nth-child(4)");
 
-    if (!albumTableBody || !scoreHeader) return;
+    if (!albumTableBody || !scoreHeader) {
+        console.error("Album table body or score header not found!");
+        return;
+    }
 
     try {
         const albumsRef = collection(db, 'users', userId, 'albums');
@@ -64,7 +80,7 @@ async function displaySelectedAlbums(userId) {
         addEventListeners(userId);
     } catch (error) {
         console.error("Error loading albums:", error);
-        albumTableBody.innerHTML = `<tr><td colspan="6">Error loading albums</td></tr>`;
+        albumTableBody.innerHTML = `<tr><td colspan="6">Error loading albums. Please try again.</td></tr>`;
     }
 }
 
@@ -79,7 +95,7 @@ function renderTable(albums) {
             <td><img src="${album.image}" alt="${album.name}" width="100"></td>
             <td>${album.name}</td>
             <td>
-                <select class="score-dropdown" data-album-id="${album.id}" value="${album.score || '-'}">
+                <select class="score-dropdown" data-album-id="${album.id}">
                     ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
                         .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
                         .join('')}
@@ -102,17 +118,27 @@ function addEventListeners(userId) {
     document.querySelectorAll('.score-dropdown').forEach(dropdown => {
         dropdown.addEventListener('change', async (e) => {
             const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
-            await updateDoc(albumRef, { score: e.target.value });
+            try {
+                await updateDoc(albumRef, { score: e.target.value });
+            } catch (error) {
+                console.error("Error updating album score:", error);
+                alert("Error updating score. Please try again.");
+            }
         });
     });
 
     // Add event listeners for remove buttons
     document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            if (confirm("Are you sure?")) {
+            if (confirm("Are you sure you want to remove this album?")) {
                 const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
-                await deleteDoc(albumRef);
-                e.target.closest('tr').remove();
+                try {
+                    await deleteDoc(albumRef);
+                    e.target.closest('tr').remove();
+                } catch (error) {
+                    console.error("Error removing album:", error);
+                    alert("Error removing album. Please try again.");
+                }
             }
         });
     });
