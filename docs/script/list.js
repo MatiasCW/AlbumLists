@@ -10,10 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Use auth state listener to handle login status
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        // User is logged in - fetch and display albums
         console.log("User is logged in. Fetching albums...");
         fetchAndDisplayAlbums(user.uid);
         addAlbumInteractions(user.uid);
       } else {
+        // User is not logged in - redirect to login
         alert("You need to log in to view your album list.");
         window.location.href = "login.html";
       }
@@ -21,11 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Fetch and display albums in table
+// Fetch and display albums
 async function fetchAndDisplayAlbums(userId) {
-  const albumTableBody = document.querySelector(".album-table tbody");
-  if (!albumTableBody) {
-    console.error("Album table body not found!");
+  const albumContainer = document.querySelector(".album-container");
+  if (!albumContainer) {
+    console.error("Album container not found!");
     return;
   }
 
@@ -36,74 +38,61 @@ async function fetchAndDisplayAlbums(userId) {
     console.log("Fetched Albums:", querySnapshot.docs.map(doc => doc.data())); // Debugging
 
     if (querySnapshot.empty) {
-      albumTableBody.innerHTML = "<tr><td colspan='6'>No albums saved yet.</td></tr>";
+      albumContainer.innerHTML = "<p>No albums saved yet.</p>";
       return;
     }
 
-    // Insert albums as table rows
-    albumTableBody.innerHTML = querySnapshot.docs
-      .map((doc, index) => {
+    // Display each saved album
+    albumContainer.innerHTML = querySnapshot.docs
+      .map(doc => {
         const album = doc.data();
         return `
-          <tr data-album-id="${doc.id}">
-            <td>${index + 1}</td>
-            <td><img src="${album.image}" alt="${album.name}" width="50"></td>
-            <td>${album.name}</td>
-            <td>
-              <select class="score-dropdown">
+          <div class="album">
+            <h3>${album.name}</h3>
+            <p><strong>Release Date:</strong> ${album.release_date}</p>
+            <img src="${album.image}" alt="${album.name}" width="100">
+            <div class="album-actions">
+              <select class="score-dropdown" data-album-id="${doc.id}">
                 ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
                   .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
                   .join('')}
               </select>
-            </td>
-            <td>${album.release_date}</td>
-            <td>
-              <button class="remove-btn">Remove</button>
-            </td>
-          </tr>
+              <button class="remove-btn" data-album-id="${doc.id}">Remove</button>
+            </div>
+          </div>
         `;
       })
       .join("");
   } catch (error) {
     console.error("Error fetching albums:", error);
-    albumTableBody.innerHTML = "<tr><td colspan='6'>Error loading albums. Please try again.</td></tr>";
+    albumContainer.innerHTML = "<p>Error loading albums. Please try again.</p>";
   }
 }
 
 // Add event listeners for interactions
 function addAlbumInteractions(userId) {
-  const albumTableBody = document.querySelector(".album-table tbody");
-
   // Score updates
-  albumTableBody.addEventListener('change', async (e) => {
+  document.addEventListener('change', (e) => {
     if (e.target.classList.contains('score-dropdown')) {
       console.log("Score dropdown changed. Updating score...");
-      const row = e.target.closest("tr");
-      const albumId = row.dataset.albumId;
-
-      try {
-        await updateDoc(doc(db, 'users', userId, 'albums', albumId), { score: e.target.value });
-        console.log("Score updated!");
-      } catch (error) {
-        console.error("Error updating score:", error);
-      }
+      const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
+      updateDoc(albumRef, { score: e.target.value })
+        .then(() => console.log("Score updated!"))
+        .catch((error) => console.error("Error updating score:", error));
     }
   });
 
   // Album removal
-  albumTableBody.addEventListener('click', async (e) => {
+  document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure?")) {
       console.log("Remove button clicked. Deleting album...");
-      const row = e.target.closest("tr");
-      const albumId = row.dataset.albumId;
-
-      try {
-        await deleteDoc(doc(db, 'users', userId, 'albums', albumId));
-        console.log("Album removed!");
-        row.remove(); // Remove row from table
-      } catch (error) {
-        console.error("Error removing album:", error);
-      }
+      const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
+      deleteDoc(albumRef)
+        .then(() => {
+          console.log("Album removed!");
+          e.target.closest('.album').remove();
+        })
+        .catch((error) => console.error("Error removing album:", error));
     }
   });
 }
