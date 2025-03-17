@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Initialize the color picker on page load
 window.addEventListener("load", initializeColorPicker);
@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User is logged in. Fetching albums...");
-        
+
         // Retrieve the stored sort order from localStorage (default to 'default')
         const storedSortOrder = localStorage.getItem("sortOrder") || 'default';
 
@@ -66,23 +66,23 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
       row.innerHTML = `
         <td>${rank++}</td>
         <td><img src="${album.image}" alt="${album.name}" width="100"></td>
-        <td>${album.name}</td>
-        <td>
-          <select class="score-dropdown" data-album-id="${album.id}">
-            ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-              .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
-              .join('')}
-          </select>
-        </td>
-        <td>${album.release_date}</td>
-        <td><button class="remove-btn" data-album-id="${album.id}">×</button></td>
-      `;
+  <td>${album.name}</td>
+  <td>
+    <select class="score-dropdown" data-album-id="${album.spotifyId}"> <!-- Use spotifyId -->
+      ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
+          .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
+          .join('')}
+    </select>
+  </td>
+  <td>${album.release_date}</td>
+  <td><button class="remove-btn" data-album-id="${album.id}">×</button></td>
+`;
 
       tbody.appendChild(row);
     });
   } catch (error) {
     console.error("Error fetching albums:", error);
-    document.querySelector('.album-table tbody').innerHTML = 
+    document.querySelector('.album-table tbody').innerHTML =
       `<tr><td colspan="5" style="color:red;text-align:center">Error loading albums</td></tr>`;
   }
 }
@@ -121,26 +121,30 @@ function addAlbumInteractions(userId) {
   });
 
   // Remove album from Firestore when the remove button is clicked
+  // Update the remove event listener to retrieve Spotify ID
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure you want to remove this album?")) {
-      console.log("Remove button clicked. Deleting album...");
-      const albumId = e.target.dataset.albumId;
+      const userAlbumId = e.target.dataset.albumId;
+      const userAlbumRef = doc(db, 'users', userId, 'albums', userAlbumId);
 
-      // Remove from the user's collection
-      const userAlbumRef = doc(db, 'users', userId, 'albums', albumId);
-      deleteDoc(userAlbumRef)
-        .then(() => {
-          console.log("Album removed from user's list!");
-          e.target.closest('tr').remove();
-        })
-        .catch((error) => console.error("Error removing album from user's list:", error));
+      // Retrieve the Spotify ID from the user's album document
+      getDoc(userAlbumRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const spotifyId = docSnap.data().spotifyId;
 
-      // Remove the user's rating from the global collection
-      const globalAlbumRef = doc(db, 'albums', albumId);
-      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
-      deleteDoc(userRatingRef)
-        .then(() => console.log("User's rating removed from global collection!"))
-        .catch((error) => console.error("Error removing user's rating from global collection:", error));
+          // Delete from user's collection
+          deleteDoc(userAlbumRef)
+            .then(() => {
+              e.target.closest('tr').remove();
+              // Delete the global rating using Spotify ID
+              const globalAlbumRef = doc(db, 'albums', spotifyId);
+              const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
+              deleteDoc(userRatingRef)
+                .catch(error => console.error("Error removing global rating:", error));
+            })
+            .catch(error => console.error("Error removing user's album:", error));
+        }
+      }).catch(error => console.error("Error fetching album:", error));
     }
   });
 }
@@ -162,7 +166,7 @@ function addScoreHeaderListener(userId) {
 
       // Store the sort order in localStorage for persistence
       localStorage.setItem("sortOrder", sortOrder);
-      
+
       fetchAndDisplayAlbums(userId, sortOrder); // Fetch and display albums with updated sorting
     });
   }
