@@ -401,7 +401,6 @@ p {
   cursor: pointer;
 }
 
-/* style.css */
 #top-albums {
   margin: 20px;
 }
@@ -414,8 +413,40 @@ p {
 #top-albums li {
   margin: 10px 0;
   font-size: 1.2em;
+  background-color: #f9f9f9; /* Light background for each album */
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
 #top-albums strong {
   color: #333;
+}
+
+/* New styles for album covers and details */
+.album-item {
+  display: flex;
+  align-items: center;
+}
+
+.album-item img {
+  margin-right: 15px;
+  border-radius: 5px;
+  width: 100px; /* Fixed width for album covers */
+  height: 100px; /* Fixed height for album covers */
+  object-fit: cover; /* Ensure the image covers the space without distortion */
+}
+
+.album-details {
+  flex-grow: 1;
+}
+
+.album-details strong {
+  display: block; /* Make the album name a block element */
+  margin-bottom: 5px; /* Space between album name and average score */
+}
+
+.album-details .average-score {
+  color: #666; /* Slightly lighter color for the average score */
+  font-size: 0.9em;
 }

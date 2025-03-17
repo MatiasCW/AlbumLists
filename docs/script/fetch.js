@@ -136,7 +136,7 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
   const user = auth.currentUser;
   if (!user) {
     alert("You must be logged in to add albums to your list.");
-    return; // Avoid further code execution if not logged in
+    return;
   }
 
   try {
@@ -153,7 +153,7 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
         spotifyId: spotifyAlbumId, // Store the Spotify ID for reference
         name: albumName,
         release_date: albumReleaseDate,
-        image: albumImageUrl,
+        image: albumImageUrl, // Store the album cover image URL
         createdAt: new Date()
       });
 
@@ -161,6 +161,7 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
       const globalAlbumRef = doc(db, "albums", spotifyAlbumId); // Use Spotify ID as the document ID
       await setDoc(globalAlbumRef, {
         name: albumName,
+        image: albumImageUrl, // Store the album cover image URL globally
       }, { merge: true }); // Use merge to avoid overwriting existing data
 
       alert('Album added to your list.');
