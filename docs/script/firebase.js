@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
+// Firebase initialization
 const firebaseConfig = {
     apiKey: "AIzaSyD9FcGo-KMXdK9RwT2dJIHETmclikJPRr8",
     authDomain: "thealbumlists.firebaseapp.com",
@@ -16,57 +17,49 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Function to get the combined score (sum of ratings) for a specific album
-const getAlbumCombinedScore = async (albumID) => {
-  try {
-    const ratingsRef = collection(db, 'albums', albumID, 'ratings'); // Reference to the ratings subcollection
-    const ratingsSnapshot = await getDocs(ratingsRef); // Fetch ratings
+// Global variable to track authentication state
+let userId = null;
+onAuthStateChanged(auth, (user) => {
+    userId = user ? user.uid : null;
+    console.log(user ? `User logged in: ${userId}` : "User logged out.");
+});
 
-    let totalScore = 0;
-
-    // Sum all ratings for the album
-    ratingsSnapshot.forEach((doc) => {
-      totalScore += doc.data().rating || 0; // Add the rating to the total score
-    });
-
-    return totalScore; // Return the combined score
-  } catch (error) {
-    console.error('Error fetching ratings: ', error);
-    return 0; // Return 0 if there’s an error
-  }
-};
-
-// Function to get the top 100 albums sorted by combined score (sum of ratings)
+// Function to fetch albums from all users
 export const getTop100Albums = async () => {
-  try {
-    console.log('Fetching albums for all users');
+    try {
+        console.log("Fetching albums from all users...");
 
-    // Reference to the root-level 'albums' collection
-    const albumsRef = collection(db, 'albums');
-    const albumsSnapshot = await getDocs(albumsRef);
-    let albumData = [];
+        const usersRef = collection(db, "users");
+        const usersSnapshot = await getDocs(usersRef);
 
-    // Iterate through the albums and fetch ratings for each one
-    for (const albumDoc of albumsSnapshot.docs) {
-      const albumID = albumDoc.id;
-      const album = { id: albumID, ...albumDoc.data() };
+        let albumData = [];
 
-      // Fetch the combined score (sum of ratings) for this album
-      const combinedScore = await getAlbumCombinedScore(albumID);
+        // Iterate through all users
+        for (const userDoc of usersSnapshot.docs) {
+            const userId = userDoc.id;
+            const albumsRef = collection(db, `users/${userId}/albums`);
+            const albumsSnapshot = await getDocs(albumsRef);
 
-      album.combinedScore = combinedScore;
-      albumData.push(album); // Add the album to the data array
+            albumsSnapshot.forEach((albumDoc) => {
+                let album = {
+                    id: albumDoc.id,
+                    userId: userId, // Keep track of owner
+                    ...albumDoc.data(),
+                };
+                albumData.push(album);
+            });
+        }
+
+        console.log(`Fetched ${albumData.length} albums.`);
+
+        // Sort albums by score in descending order
+        albumData.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+        return albumData.slice(0, 100);
+    } catch (error) {
+        console.error("Error fetching albums:", error);
+        return [];
     }
-
-    // Sort the albums based on the combined score in descending order
-    albumData.sort((a, b) => b.combinedScore - a.combinedScore);
-
-    // Return the top 100 albums based on combined score
-    return albumData.slice(0, 100);
-  } catch (error) {
-    console.error('Error fetching albums: ', error);
-    return []; // Return empty array if there’s an error
-  }
 };
 
 export { auth, db };
