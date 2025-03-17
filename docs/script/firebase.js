@@ -38,8 +38,13 @@ export const getAlbumCombinedScore = async (albumID) => {
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async (userId) => {  // Add userId to the function
     try {
+        // Log the userId and the Firestore path
+        console.log("Fetching albums for userId:", userId);
+        const albumsRef = collection(db, "users", userId, "albums");  // Reference to the user's albums subcollection
+        console.log("Firestore Path:", albumsRef.path);
+
         // Fetch albums from the specific user's sub-collection
-        const albumsSnapshot = await getDocs(collection(db, "users", userId, "albums"));
+        const albumsSnapshot = await getDocs(albumsRef);
         let albumData = [];
 
         for (const albumDoc of albumsSnapshot.docs) {
@@ -63,6 +68,7 @@ export const getTop100Albums = async (userId) => {  // Add userId to the functio
         return [];
     }
 };
+
 
 export { auth, db };
 
