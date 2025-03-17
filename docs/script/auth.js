@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const loggedInUser = user.displayName || user.email; // Use displayName or email if displayName is not available
 
             // Display username (or email) in the UI
-            userDisplay.innerHTML = `<span>Welcome, ${loggedInUser}</span>`;
+            userDisplay.innerHTML = `<span>${loggedInUser}</span>`;
             
             // Update the auth buttons to show the Logout option
             authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
