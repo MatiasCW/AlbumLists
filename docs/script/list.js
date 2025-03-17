@@ -11,7 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User is logged in. Fetching albums...");
-        fetchAndDisplayAlbums(user.uid);
+        
+        // Retrieve the stored sort order from localStorage (default to 'default')
+        const storedSortOrder = localStorage.getItem("sortOrder") || 'default';
+
+        fetchAndDisplayAlbums(user.uid, storedSortOrder);  // Fetch albums with the stored sort order
         addAlbumInteractions(user.uid);
         addScoreHeaderListener(user.uid); // Add listener for score header
       } else {
@@ -112,7 +116,7 @@ function addAlbumInteractions(userId) {
 // Add event listener to the score header for sorting
 function addScoreHeaderListener(userId) {
   const scoreHeader = document.querySelector('.album-table th:nth-child(4)'); // Assuming the score header is the 4th column
-  let sortOrder = 'default'; // 'default', 'desc', 'asc'
+  let sortOrder = localStorage.getItem("sortOrder") || 'default'; // Get the stored sort order
 
   if (scoreHeader) {
     scoreHeader.addEventListener('click', () => {
@@ -123,6 +127,10 @@ function addScoreHeaderListener(userId) {
       } else {
         sortOrder = 'default';
       }
+
+      // Store the sort order in localStorage for persistence
+      localStorage.setItem("sortOrder", sortOrder);
+      
       fetchAndDisplayAlbums(userId, sortOrder); // Fetch and display albums with updated sorting
     });
   }
