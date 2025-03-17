@@ -16,28 +16,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db };
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-
-// Firebase config
-const firebaseConfig = {
-    apiKey: "", 
-    authDomain: "",
-    projectId: "", 
-    storageBucket: "",
-    messagingSenderId: "", 
-    appId: "", 
-    measurementId: "G-V5FYJL6YQM"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 // Function to get the average rating for a specific album
 export const getAlbumAverageRating = async (albumID) => {
     try {
