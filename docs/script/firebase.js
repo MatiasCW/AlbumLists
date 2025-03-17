@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";  
 
 const firebaseConfig = {
@@ -15,6 +15,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Global variable to store the userId once authenticated
+let userId = null;
+
+// Listen for authentication state changes
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        userId = user.uid;  // Set userId when the user is logged in
+    } else {
+        userId = null;  // Set userId to null if user logs out
+    }
+});
 
 // Function to get the combined score (sum of ratings) for a specific album
 export const getAlbumCombinedScore = async (albumID) => {
@@ -38,8 +50,6 @@ export const getAlbumCombinedScore = async (albumID) => {
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async () => {
     // Ensure that user is authenticated and has a valid userId
-    const userId = auth.currentUser ? auth.currentUser.uid : null;
-    
     if (!userId) {
         console.error("User is not logged in.");
         return [];  // Return empty array if user is not logged in
