@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";  
 
 const firebaseConfig = {
     apiKey: "AIzaSyD9FcGo-KMXdK9RwT2dJIHETmclikJPRr8",
@@ -20,7 +20,7 @@ const db = getFirestore(app);
 export const getAlbumAverageRating = async (albumID) => {
     try {
         const ratingsRef = collection(db, "ratings", albumID, "users");
-        const ratingsSnapshot = await getDocs(ratingsRef);  // Ensure getDocs is used here
+        const ratingsSnapshot = await getDocs(ratingsRef);  
         
         let totalRatings = 0;
         let count = 0;
