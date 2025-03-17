@@ -5,13 +5,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const userDisplay = document.getElementById("userDisplay");
     const authButtons = document.getElementById("authButtons");
 
-    if (!userDisplay || !authButtons) return;
+    if (!userDisplay || !authButtons) {
+        console.error("Required elements (userDisplay or authButtons) not found!");
+        return;
+    }
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             // User is signed in
-            const loggedInUser = user.displayName;
-            userDisplay.innerHTML = `<span>${loggedInUser}</span>`;
+            const loggedInUser = user.displayName; // Only use displayName (username)
+            userDisplay.innerHTML = `<span>${loggedInUser}</span>`; // Display only the username
             authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
 
             // Logout handler
@@ -19,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
                 try {
                     await signOut(auth);
-                    window.location.href = "login.html"; // ✅ Redirect to login page
+                    window.location.href = "login.html"; // Redirect to login page
                 } catch (error) {
                     alert("Error signing out: " + error.message);
                 }
