@@ -53,36 +53,35 @@ const getAlbumCombinedScore = async (albumID) => {
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async () => {
     try {
-        console.log("Fetching albums for all users");
-
-        // Reference to the root-level 'albums' collection
-        const albumsRef = collection(db, "albums");  
-        console.log("Firestore Path:", albumsRef.path);
-
-        const albumsSnapshot = await getDocs(albumsRef);
-        let albumData = [];
-
-        // Iterate through the albums and fetch ratings for each one
-        for (const albumDoc of albumsSnapshot.docs) {
-            const albumID = albumDoc.id;
-            const album = { id: albumID, ...albumDoc.data() };
-
-            // Fetch the combined score (sum of ratings) for this album
-            const combinedScore = await getAlbumCombinedScore(albumID);
-
-            album.combinedScore = combinedScore;
-            albumData.push(album);  // Add the album to the data array
-        }
-
-        // Sort the albums based on the combined score in descending order
-        albumData.sort((a, b) => b.combinedScore - a.combinedScore);
-
-        // Return the top 100 albums based on combined score
-        return albumData.slice(0, 100);
+      const albumsRef = collection(db, "albums");
+      const albumsSnapshot = await getDocs(albumsRef);
+      let albumData = [];
+  
+      for (const albumDoc of albumsSnapshot.docs) {
+        const albumID = albumDoc.id;
+        const album = { id: albumID, ...albumDoc.data() };
+  
+        // Get all ratings for this album
+        const ratingsRef = collection(db, "albums", albumID, "ratings");
+        const ratingsSnapshot = await getDocs(ratingsRef);
+        
+        // Calculate combined score
+        let combinedScore = 0;
+        ratingsSnapshot.forEach((doc) => {
+          combinedScore += doc.data().rating || 0;
+        });
+  
+        album.combinedScore = combinedScore;
+        albumData.push(album);
+      }
+  
+      // Sort and return top 100
+      albumData.sort((a, b) => b.combinedScore - a.combinedScore);
+      return albumData.slice(0, 100);
     } catch (error) {
-        console.error("Error fetching albums: ", error);
-        return [];  // Return empty array if there’s an error
+      console.error("Error fetching albums: ", error);
+      return [];
     }
-};
+  };
 
 export { auth, db };

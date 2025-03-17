@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Initialize the color picker on page load
 window.addEventListener("load", initializeColorPicker);
@@ -93,10 +93,30 @@ function addAlbumInteractions(userId) {
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('score-dropdown')) {
       console.log("Score dropdown changed. Updating score...");
-      const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
-      updateDoc(albumRef, { score: e.target.value === '-' ? null : e.target.value })  // Save null if "-" is selected
-        .then(() => console.log("Score updated!"))
-        .catch((error) => console.error("Error updating score:", error));
+      const albumId = e.target.dataset.albumId;
+      const selectedScore = e.target.value === '-' ? null : e.target.value;
+
+      // Update the user's album score
+      const userAlbumRef = doc(db, 'users', userId, 'albums', albumId);
+      updateDoc(userAlbumRef, { score: selectedScore })
+        .then(() => console.log("User's score updated!"))
+        .catch((error) => console.error("Error updating user's score:", error));
+
+      // Update the global ratings collection
+      const globalAlbumRef = doc(db, 'albums', albumId);
+      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
+
+      if (selectedScore !== null) {
+        // Add/update the user's rating in the global collection
+        setDoc(userRatingRef, { rating: parseInt(selectedScore) }, { merge: true })
+          .then(() => console.log("Global rating updated!"))
+          .catch((error) => console.error("Error updating global rating:", error));
+      } else {
+        // Remove the rating if "-" is selected
+        deleteDoc(userRatingRef)
+          .then(() => console.log("Global rating removed!"))
+          .catch((error) => console.error("Error removing global rating:", error));
+      }
     }
   });
 
@@ -104,13 +124,23 @@ function addAlbumInteractions(userId) {
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure you want to remove this album?")) {
       console.log("Remove button clicked. Deleting album...");
-      const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
-      deleteDoc(albumRef)
+      const albumId = e.target.dataset.albumId;
+
+      // Remove from the user's collection
+      const userAlbumRef = doc(db, 'users', userId, 'albums', albumId);
+      deleteDoc(userAlbumRef)
         .then(() => {
-          console.log("Album removed!");
+          console.log("Album removed from user's list!");
           e.target.closest('tr').remove();
         })
-        .catch((error) => console.error("Error removing album:", error));
+        .catch((error) => console.error("Error removing album from user's list:", error));
+
+      // Remove the user's rating from the global collection
+      const globalAlbumRef = doc(db, 'albums', albumId);
+      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
+      deleteDoc(userRatingRef)
+        .then(() => console.log("User's rating removed from global collection!"))
+        .catch((error) => console.error("Error removing user's rating from global collection:", error));
     }
   });
 }
