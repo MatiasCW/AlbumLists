@@ -36,7 +36,15 @@ export const getAlbumCombinedScore = async (albumID) => {
 };
 
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
-export const getTop100Albums = async (userId) => {  // Add userId to the function
+export const getTop100Albums = async () => {
+    // Ensure that user is authenticated and has a valid userId
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
+    
+    if (!userId) {
+        console.error("User is not logged in.");
+        return [];  // Return empty array if user is not logged in
+    }
+
     try {
         // Log the userId and the Firestore path
         console.log("Fetching albums for userId:", userId);
@@ -69,6 +77,4 @@ export const getTop100Albums = async (userId) => {  // Add userId to the functio
     }
 };
 
-
 export { auth, db };
-
