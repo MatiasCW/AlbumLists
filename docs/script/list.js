@@ -44,6 +44,8 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
     querySnapshot.forEach((docSnap) => {
       const album = docSnap.data();
       album.id = docSnap.id;
+      // Ensure album score is either a valid value or null (no score yet)
+      album.score = album.score || null;  // null means no rating yet
       albums.push(album);
     });
 
@@ -68,7 +70,7 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
         <td>
           <select class="score-dropdown" data-album-id="${album.id}">
             ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-              .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
+              .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
               .join('')}
           </select>
         </td>
@@ -92,7 +94,7 @@ function addAlbumInteractions(userId) {
     if (e.target.classList.contains('score-dropdown')) {
       console.log("Score dropdown changed. Updating score...");
       const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
-      updateDoc(albumRef, { score: e.target.value })
+      updateDoc(albumRef, { score: e.target.value === '-' ? null : e.target.value })  // Save null if "-" is selected
         .then(() => console.log("Score updated!"))
         .catch((error) => console.error("Error updating score:", error));
     }
