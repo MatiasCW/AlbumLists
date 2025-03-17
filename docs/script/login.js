@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
         loginForm.addEventListener("submit", async function (event) {
             event.preventDefault();
 
-            const emailInput = document.getElementById("loginEmail"); 
-            const passwordInput = document.getElementById("password");
+            const emailInput = document.getElementById("loginEmail");
+            const passwordInput = document.getElementById("loginPassword");
 
             if (emailInput && passwordInput) {
                 const email = emailInput.value;
@@ -18,14 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (email && password) {
                     try {
-                        // Sign in with Firebase Authentication
                         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                        
-                        // Redirect to homepage after successful login
                         window.location.href = "index.html";
-
                     } catch (error) {
-                        // Handle errors
                         let errorMessage = "Login failed. Please try again.";
                         switch (error.code) {
                             case "auth/invalid-email":
@@ -39,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 errorMessage = "Invalid email or password";
                                 break;
                             default:
-                                errorMessage = error.message; // Show the default error message
+                                errorMessage = error.message;
                         }
                         alert(errorMessage);
                         console.error("Login error:", error);
