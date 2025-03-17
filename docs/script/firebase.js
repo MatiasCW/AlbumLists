@@ -27,36 +27,39 @@ onAuthStateChanged(auth, (user) => {
 // Function to fetch albums from all users and calculate combined scores
 export const getTop100Albums = async () => {
     try {
-        console.log("Fetching albums from all users...");
+        console.log("Fetching albums and ratings from the global albums collection...");
 
-        // Get the global albums collection
+        // Fetch all albums from the global albums collection
         const albumsRef = collection(db, "albums");
         const albumsSnapshot = await getDocs(albumsRef);
 
-        // Object to store combined scores for each album
-        const albumScores = {};
+        // Array to store album data with combined scores
+        const albumData = [];
 
-        // Iterate through each global album
+        // Iterate through each album in the global albums collection
         for (const albumDoc of albumsSnapshot.docs) {
             const albumData = albumDoc.data();
             const albumId = albumDoc.id;
-            const albumName = albumData.name; // Use album name as the key for each album
+            const albumName = albumData.name;
 
-            // Initialize score if it doesn't exist
-            if (!albumScores[albumName]) {
-                albumScores[albumName] = 0;
-            }
+            // Fetch ratings from the global ratings subcollection for this album
+            const ratingsRef = collection(db, "albums", albumId, "ratings");
+            const ratingsSnapshot = await getDocs(ratingsRef);
 
-            // Add the album's global score (if it exists)
-            const albumScore = albumData.score || 0;
-            albumScores[albumName] += albumScore;
+            let combinedScore = 0;
+
+            // Sum all ratings from the global ratings subcollection
+            ratingsSnapshot.forEach((ratingDoc) => {
+                const ratingData = ratingDoc.data();
+                combinedScore += ratingData.score || 0; // Add each user's score
+            });
+
+            // Add the album to the array with its combined score
+            albumData.push({
+                name: albumName,
+                combinedScore: combinedScore,
+            });
         }
-
-        // Convert to an array of { name, combinedScore }
-        const albumData = Object.keys(albumScores).map((albumName) => ({
-            name: albumName,
-            combinedScore: albumScores[albumName],
-        }));
 
         console.log(`Fetched ${albumData.length} albums.`);
 
