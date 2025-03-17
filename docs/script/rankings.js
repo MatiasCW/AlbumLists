@@ -5,6 +5,8 @@ const displayTopAlbums = async () => {
   const topAlbumsDiv = document.getElementById("top-albums");
   const top100Albums = await getTop100Albums(); // Fetch the top 100 albums from Firebase
 
+  console.log(`Fetched ${top100Albums.length} albums`);  // Debugging log
+
   // Clear any existing content before displaying the new list
   topAlbumsDiv.innerHTML = "<h2>Top 100 Albums</h2>";
 
