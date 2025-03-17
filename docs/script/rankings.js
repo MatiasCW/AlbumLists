@@ -25,7 +25,7 @@ const displayTopAlbums = async () => {
         top100Albums.forEach((album, index) => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
-                <strong>${index + 1}. ${album.name}</strong>
+                <strong>${index + 1}. Album ID: ${album.id}</strong>
                 <br>Average Score: ${album.averageScore.toFixed(2)}
             `;
             albumList.appendChild(listItem); // Append each album to the list
