@@ -20,7 +20,7 @@ const db = getFirestore(app);
 export const getAlbumAverageRating = async (albumID) => {
     try {
         const ratingsRef = collection(db, "ratings", albumID, "users");
-        const ratingsSnapshot = await getDocs(ratingsRef);
+        const ratingsSnapshot = await getDocs(ratingsRef);  // Ensure getDocs is used here
         
         let totalRatings = 0;
         let count = 0;
@@ -30,10 +30,10 @@ export const getAlbumAverageRating = async (albumID) => {
             count++;
         });
 
-        return count > 0 ? totalRatings / count : 0;
+        return count > 0 ? totalRatings / count : 0;  // Return average rating
     } catch (error) {
         console.error("Error fetching ratings: ", error);
-        return 0;
+        return 0;  // Return 0 if there’s an error
     }
 };
 
@@ -52,8 +52,9 @@ export const getTop100Albums = async () => {
             albumData.push(album);
         }
 
-        albumData.sort((a, b) => b.averageRating - a.averageRating);
-        return albumData.slice(0, 100);
+        albumData.sort((a, b) => b.averageRating - a.averageRating);  // Sort albums by rating
+
+        return albumData.slice(0, 100);  // Return the top 100 albums
     } catch (error) {
         console.error("Error fetching albums: ", error);
         return [];
