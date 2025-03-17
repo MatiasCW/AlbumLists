@@ -100,7 +100,7 @@ function addAlbumInteractions(userId) {
 
   // Remove album from Firestore when the remove button is clicked
   document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('remove-btn') && confirm("Are you sure?")) {
+    if (e.target.classList.contains('remove-btn') && confirm("Are you sure you want to remove this album?")) {
       console.log("Remove button clicked. Deleting album...");
       const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
       deleteDoc(albumRef)
