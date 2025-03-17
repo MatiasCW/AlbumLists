@@ -42,20 +42,22 @@ export const getTop100Albums = async () => {
             const albumsSnapshot = await getDocs(albumsRef);
 
             // Iterate through the user's albums
-            albumsSnapshot.forEach((albumDoc) => {
+            for (const albumDoc of albumsSnapshot.docs) {
                 const albumData = albumDoc.data();
                 const albumName = albumData.name; // Use album name as the key
-                const albumScore = albumData.score || 0; // Default to 0 if score is missing
 
-                // Add the score to the combined total for this album
+                // Initialize score if it doesn't exist
                 if (!albumScores[albumName]) {
                     albumScores[albumName] = 0;
                 }
+
+                // ✅ Add the album's score (if it exists)
+                const albumScore = albumData.score || 0;
                 albumScores[albumName] += albumScore;
-            });
+            }
         }
 
-        // Convert the albumScores object to an array of { name, combinedScore } objects
+        // Convert to an array of { name, combinedScore }
         const albumData = Object.keys(albumScores).map((albumName) => ({
             name: albumName,
             combinedScore: albumScores[albumName],
@@ -63,7 +65,7 @@ export const getTop100Albums = async () => {
 
         console.log(`Fetched ${albumData.length} albums.`);
 
-        // Sort albums by combined score in descending order
+        // Sort albums by combined score (highest first)
         albumData.sort((a, b) => b.combinedScore - a.combinedScore);
 
         // Return the top 100 albums
