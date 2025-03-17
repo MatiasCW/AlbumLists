@@ -161,7 +161,7 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
       const globalAlbumRef = doc(db, "albums", spotifyAlbumId); // Use Spotify ID as the document ID
       await setDoc(globalAlbumRef, {
         name: albumName,
-        image: albumImageUrl, // Store the album cover image URL globally
+        image: albumImageUrl, // Ensure the image URL is saved globally
       }, { merge: true }); // Use merge to avoid overwriting existing data
 
       alert('Album added to your list.');
