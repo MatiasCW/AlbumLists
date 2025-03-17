@@ -148,14 +148,20 @@ async function addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUr
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      // Add the album if it doesn't exist
       await addDoc(albumsRef, {
         id: albumId,
         name: albumName,
         release_date: albumReleaseDate,
         image: albumImageUrl,
-        createdAt: new Date() // Add a timestamp
+        createdAt: new Date()
       });
+
+      const globalAlbumRef = doc(db, "albums", albumId);
+      await setDoc(globalAlbumRef, {
+        name: albumName, 
+        ratings: {}      
+      }, { merge: true }); 
+       
       alert('Album added to your list.');
     } else {
       alert("This album is already in your list.");
