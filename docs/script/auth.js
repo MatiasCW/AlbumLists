@@ -5,6 +5,8 @@ import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gsta
 
 // Handle authentication state changes
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded"); // Debugging
+
     const userDisplay = document.getElementById("userDisplay");
     const authButtons = document.getElementById("authButtons");
 
@@ -14,10 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     onAuthStateChanged(auth, async (user) => {
+        console.log("Auth state changed. User:", user); // Debugging
+
         if (user) {
             // User is signed in
             const loggedInUser = user.displayName || user.email;
             const userEmail = user.email;
+
+            console.log("User is signed in:", loggedInUser, userEmail); // Debugging
 
             userDisplay.innerHTML = `<span>${loggedInUser} (${userEmail})</span>`;
             authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
@@ -46,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } else {
             // User is signed out
+            console.log("User is signed out"); // Debugging
             userDisplay.innerHTML = '';
             authButtons.innerHTML = `
                 <a href="signup.html">Sign Up</a>
