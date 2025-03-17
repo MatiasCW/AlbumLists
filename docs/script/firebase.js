@@ -33,7 +33,7 @@ export const getTop100Albums = async () => {
         const albumsRef = collection(db, "albums");
         const albumsSnapshot = await getDocs(albumsRef);
 
-        // Array to store album data with combined scores
+        // Array to store album data with average scores
         const albumData = [];
 
         // Iterate through each album in the global albums collection
@@ -46,25 +46,32 @@ export const getTop100Albums = async () => {
             const ratingsRef = collection(db, "albums", albumId, "ratings");
             const ratingsSnapshot = await getDocs(ratingsRef);
 
-            let combinedScore = 0;
+            let totalScore = 0;
+            let numberOfRatings = 0;
 
-            // Sum all ratings from the global ratings subcollection
+            // Sum all ratings and count the number of ratings
             ratingsSnapshot.forEach((ratingDoc) => {
                 const ratingData = ratingDoc.data();
-                combinedScore += ratingData.score || 0; // Add each user's score
+                if (ratingData.score !== undefined && ratingData.score !== null) {
+                    totalScore += ratingData.score;
+                    numberOfRatings++;
+                }
             });
 
-            // Add the album to the array with its combined score
+            // Calculate the average score (avoid division by zero)
+            const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
+
+            // Add the album to the array with its average score
             albumData.push({
                 name: albumName,
-                combinedScore: combinedScore,
+                averageScore: averageScore,
             });
         }
 
         console.log(`Fetched ${albumData.length} albums.`);
 
-        // Sort albums by combined score (highest first)
-        albumData.sort((a, b) => b.combinedScore - a.combinedScore);
+        // Sort albums by average score (highest first)
+        albumData.sort((a, b) => b.averageScore - a.averageScore);
 
         // Return the top 100 albums
         return albumData.slice(0, 100);
