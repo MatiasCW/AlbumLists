@@ -24,44 +24,43 @@ document.addEventListener("DOMContentLoaded", () => {
 // Fetch and display albums without a container
 async function fetchAndDisplayAlbums(userId) {
   try {
+    const tbody = document.querySelector('.album-table tbody');
+    tbody.innerHTML = ''; // Clear existing content
+
     const albumsRef = collection(db, 'users', userId, 'albums');
     const querySnapshot = await getDocs(albumsRef);
 
-    console.log("Fetched Albums:", querySnapshot.docs.map(doc => doc.data())); // Debugging
-
     if (querySnapshot.empty) {
-      const noAlbumsMessage = document.createElement("p");
-      noAlbumsMessage.textContent = "No albums saved yet.";
-      document.body.appendChild(noAlbumsMessage);
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center">No albums saved yet.</td></tr>`;
       return;
     }
 
-    querySnapshot.docs.forEach((docSnap) => {
+    let rank = 1;
+    querySnapshot.forEach((docSnap) => {
       const album = docSnap.data();
-      const albumDiv = document.createElement("div");
-      albumDiv.classList.add("album");
-
-      albumDiv.innerHTML = `
-        <h3>${album.name}</h3>
-        <p><strong>Release Date:</strong> ${album.release_date}</p>
-        <img src="${album.image}" alt="${album.name}" width="100">
-        <div class="album-actions">
+      const row = document.createElement("tr");
+      
+      row.innerHTML = `
+        <td>${rank++}</td>
+        <td><img src="${album.image}" alt="${album.name}" width="100"></td>
+        <td>${album.name}</td>
+        <td>
           <select class="score-dropdown" data-album-id="${docSnap.id}">
             ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
               .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
               .join('')}
           </select>
-          <button class="remove-btn" data-album-id="${docSnap.id}">Remove</button>
-        </div>
+        </td>
+        <td>${album.release_date}</td>
+        <td><button class="remove-btn" data-album-id="${docSnap.id}">×</button></td>
       `;
 
-      document.body.appendChild(albumDiv); // Append each album directly to the page
+      tbody.appendChild(row);
     });
   } catch (error) {
     console.error("Error fetching albums:", error);
-    const errorMessage = document.createElement("p");
-    errorMessage.textContent = "Error loading albums. Please try again.";
-    document.body.appendChild(errorMessage);
+    document.querySelector('.album-table tbody').innerHTML = 
+      `<tr><td colspan="5" style="color:red;text-align:center">Error loading albums</td></tr>`;
   }
 }
 
