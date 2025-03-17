@@ -1,5 +1,5 @@
 import { auth, db } from './firebase.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Check if the current page is list.html
@@ -35,10 +35,21 @@ document.addEventListener("DOMContentLoaded", async () => {
               <h3>${album.name}</h3>
               <p><strong>Release Date:</strong> ${album.release_date}</p>
               <img src="${album.image}" alt="${album.name}" width="100">
+              <div class="album-actions">
+                <select class="score-dropdown" data-album-id="${doc.id}">
+                  ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
+                    .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
+                    .join('')}
+                </select>
+                <button class="remove-btn" data-album-id="${doc.id}">Remove</button>
+              </div>
             </div>
           `;
         })
         .join("");
+
+      // Add event listeners for score dropdowns and remove buttons
+      addAlbumInteractions(user.uid);
         
     } catch (error) {
       console.error("Error fetching albums:", error);
@@ -46,6 +57,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 });
+
+// Add event listeners for score dropdowns and remove buttons
+function addAlbumInteractions(userId) {
+  // Score updates
+  document.querySelectorAll('.score-dropdown').forEach(dropdown => {
+    dropdown.addEventListener('change', async (e) => {
+      const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
+      try {
+        await updateDoc(albumRef, { score: e.target.value });
+        alert("Score updated successfully!");
+      } catch (error) {
+        console.error("Error updating album score:", error);
+        alert("Error updating score. Please try again.");
+      }
+    });
+  });
+
+  // Album removal
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      if (confirm("Are you sure you want to remove this album?")) {
+        const albumRef = doc(db, 'users', userId, 'albums', e.target.dataset.albumId);
+        try {
+          await deleteDoc(albumRef);
+          e.target.closest('.album').remove(); // Remove the album from the DOM
+          alert("Album removed successfully!");
+        } catch (error) {
+          console.error("Error removing album:", error);
+          alert("Error removing album. Please try again.");
+        }
+      }
+    });
+  });
+}
 
 // Rest of your color picker code remains the same
 const changeColorBtn = document.getElementById("changeColorBtn");
