@@ -132,7 +132,7 @@ function displayAlbums(albums) {
 }
 
 // Function to add album to the user's list in Firestore
-async function addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl) {
+async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, albumImageUrl) {
   const user = auth.currentUser;
   if (!user) {
     alert("You must be logged in to add albums to your list.");
@@ -143,25 +143,27 @@ async function addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUr
     // Reference to the user's albums collection
     const albumsRef = collection(db, 'users', user.uid, 'albums');
 
-    // Check if the album already exists
-    const q = query(albumsRef, where('id', '==', albumId));
+    // Check if the album already exists in the user's collection
+    const q = query(albumsRef, where('spotifyId', '==', spotifyAlbumId));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
+      // Add the album to the user's collection with a random ID
       await addDoc(albumsRef, {
-        id: albumId,
+        spotifyId: spotifyAlbumId, // Store the Spotify ID for reference
         name: albumName,
         release_date: albumReleaseDate,
         image: albumImageUrl,
         createdAt: new Date()
       });
 
-      const globalAlbumRef = doc(db, "albums", albumId);
+      // Add a placeholder to the global albums collection using the Spotify ID
+      const globalAlbumRef = doc(db, "albums", spotifyAlbumId); // Use Spotify ID as the document ID
       await setDoc(globalAlbumRef, {
-        name: albumName, 
-        ratings: {}      
-      }, { merge: true }); 
-       
+        name: albumName,
+        ratings: {} // Initialize ratings subcollection
+      }, { merge: true }); // Use merge to avoid overwriting existing data
+
       alert('Album added to your list.');
     } else {
       alert("This album is already in your list.");
