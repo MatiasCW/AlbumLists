@@ -16,45 +16,49 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Function to get the average rating for a specific album
-export const getAlbumAverageRating = async (albumID) => {
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";  
+import { auth, db } from './firebase';  // Assuming 'auth' and 'db' are defined
+
+// Function to get the combined score (sum of ratings) for a specific album
+export const getAlbumCombinedScore = async (albumID) => {
     try {
-        const ratingsRef = collection(db, "ratings", albumID, "users");
-        const ratingsSnapshot = await getDocs(ratingsRef);  
-        
-        let totalRatings = 0;
-        let count = 0;
+        const ratingsRef = collection(db, "ratings", albumID, "users");  // Ref to ratings collection for the album
+        const ratingsSnapshot = await getDocs(ratingsRef);  // Fetch ratings
+
+        let totalScore = 0;
 
         ratingsSnapshot.forEach((doc) => {
-            totalRatings += doc.data().rating;
-            count++;
+            totalScore += doc.data().rating;  // Sum all ratings for the album
         });
 
-        return count > 0 ? totalRatings / count : 0;  // Return average rating
+        return totalScore;  // Return the combined score
     } catch (error) {
         console.error("Error fetching ratings: ", error);
         return 0;  // Return 0 if there’s an error
     }
 };
 
-// Function to get the top 100 albums sorted by average rating
+// Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async () => {
     try {
-        const albumsSnapshot = await getDocs(collection(db, "albums"));
+        const albumsSnapshot = await getDocs(collection(db, "albums"));  // Fetch all albums
         let albumData = [];
 
         for (const albumDoc of albumsSnapshot.docs) {
             const albumID = albumDoc.id;
-            const album = { id: albumID, ...albumDoc.data() };
-            const averageRating = await getAlbumAverageRating(albumID);
+            const album = { id: albumID, ...albumDoc.data() };  // Get album data
 
-            album.averageRating = averageRating;
-            albumData.push(album);
+            const combinedScore = await getAlbumCombinedScore(albumID);  // Get combined score for the album
+
+            album.combinedScore = combinedScore;
+            albumData.push(album);  // Add the album to the data array
         }
 
-        albumData.sort((a, b) => b.averageRating - a.averageRating);  // Sort albums by rating
+        // Sort albums by combined score in descending order
+        albumData.sort((a, b) => b.combinedScore - a.combinedScore);
 
-        return albumData.slice(0, 100);  // Return the top 100 albums
+        // Return top 100 albums based on combined score
+        return albumData.slice(0, 100);  
     } catch (error) {
         console.error("Error fetching albums: ", error);
         return [];
@@ -62,5 +66,4 @@ export const getTop100Albums = async () => {
 };
 
 export { auth, db };
-
 
