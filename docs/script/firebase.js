@@ -53,34 +53,38 @@ export const getAlbumCombinedScore = async (albumID) => {
 
 // Function to get the top 100 albums sorted by combined score (sum of ratings)
 export const getTop100Albums = async () => {
-    // Wait for the user authentication state to be loaded
-    try {
-        await authStatePromise;  // Wait until the user is authenticated
-        if (!userId) {
-            throw new Error("User is not logged in.");
-        }
+    // Ensure the user is authenticated, but fetch albums for all users
+    if (!userId) {
+        console.error("User is not logged in.");
+        return [];  // Return empty array if the user is not logged in
+    }
 
+    try {
+        // Log the userId and the Firestore path
         console.log("Fetching albums for userId:", userId);
-        const albumsRef = collection(db, "users", userId, "albums");  // Reference to the user's albums subcollection
+        const albumsRef = collection(db, "albums");  // Reference to the root-level 'albums' collection
         console.log("Firestore Path:", albumsRef.path);
 
+        // Fetch albums from the 'albums' collection
         const albumsSnapshot = await getDocs(albumsRef);
         let albumData = [];
 
         for (const albumDoc of albumsSnapshot.docs) {
             const albumID = albumDoc.id;
-            const album = { id: albumID, ...albumDoc.data() };
+            const album = { id: albumID, ...albumDoc.data() };  // Get album data
 
+            // Assuming getAlbumCombinedScore fetches the combined score based on ratings
             const combinedScore = await getAlbumCombinedScore(albumID);
 
             album.combinedScore = combinedScore;
             albumData.push(album);  // Add the album to the data array
         }
 
+        // Sort albums by combined score in descending order
         albumData.sort((a, b) => b.combinedScore - a.combinedScore);
 
         // Return top 100 albums based on combined score
-        return albumData.slice(0, 100);
+        return albumData.slice(0, 100);  
     } catch (error) {
         console.error("Error fetching albums: ", error);
         return [];
