@@ -52,8 +52,9 @@ export const getTop100Albums = async () => {
             // Sum all ratings and count the number of ratings
             ratingsSnapshot.forEach((ratingDoc) => {
                 const ratingData = ratingDoc.data();
-                if (ratingData.rating !== undefined && ratingData.rating !== null) {
-                    totalScore += ratingData.rating; // Use 'rating' field, not 'score'
+                console.log("Rating Document:", ratingDoc.id, "Score:", ratingData.score); // Debugging log
+                if (ratingData.score !== undefined && ratingData.score !== null) {
+                    totalScore += ratingData.score; // Use 'score' field
                     numberOfRatings++;
                 }
             });
