@@ -29,32 +29,27 @@ export const getTop100Albums = async () => {
     try {
         console.log("Fetching albums from all users...");
 
-        const usersRef = collection(db, "users");
-        const usersSnapshot = await getDocs(usersRef);
+        // Get the global albums collection
+        const albumsRef = collection(db, "albums");
+        const albumsSnapshot = await getDocs(albumsRef);
 
         // Object to store combined scores for each album
         const albumScores = {};
 
-        // Iterate through all users
-        for (const userDoc of usersSnapshot.docs) {
-            const userId = userDoc.id;
-            const albumsRef = collection(db, `users/${userId}/albums`);
-            const albumsSnapshot = await getDocs(albumsRef);
+        // Iterate through each global album
+        for (const albumDoc of albumsSnapshot.docs) {
+            const albumData = albumDoc.data();
+            const albumId = albumDoc.id;
+            const albumName = albumData.name; // Use album name as the key for each album
 
-            // Iterate through the user's albums
-            for (const albumDoc of albumsSnapshot.docs) {
-                const albumData = albumDoc.data();
-                const albumName = albumData.name; // Use album name as the key
-
-                // Initialize score if it doesn't exist
-                if (!albumScores[albumName]) {
-                    albumScores[albumName] = 0;
-                }
-
-                // ✅ Add the album's score (if it exists)
-                const albumScore = albumData.score || 0;
-                albumScores[albumName] += albumScore;
+            // Initialize score if it doesn't exist
+            if (!albumScores[albumName]) {
+                albumScores[albumName] = 0;
             }
+
+            // Add the album's global score (if it exists)
+            const albumScore = albumData.score || 0;
+            albumScores[albumName] += albumScore;
         }
 
         // Convert to an array of { name, combinedScore }
@@ -75,5 +70,6 @@ export const getTop100Albums = async () => {
         return [];
     }
 };
+
 
 export { auth, db };
