@@ -4,12 +4,12 @@ import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gsta
 
 // Firebase config
 const firebaseConfig = {
-    apiKey: "", 
-    authDomain: "",
-    projectId: "", 
-    storageBucket: "",
-    messagingSenderId: "", 
-    appId: "", 
+    apiKey: "AIzaSyD9FcGo-KMXdK9RwT2dJIHETmclikJPRr8",
+    authDomain: "thealbumlists.firebaseapp.com",
+    projectId: "thealbumlists",
+    storageBucket: "thealbumlists.firebasestorage.app",
+    messagingSenderId: "534900243533",
+    appId: "1:534900243533:web:b4220d85c1d947f4f33004",
     measurementId: "G-V5FYJL6YQM"
 };
 
