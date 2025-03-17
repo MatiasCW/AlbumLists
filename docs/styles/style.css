@@ -400,3 +400,22 @@ p {
   border: none;
   cursor: pointer;
 }
+
+/* style.css */
+#top-albums {
+  margin: 20px;
+}
+
+#top-albums ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#top-albums li {
+  margin: 10px 0;
+  font-size: 1.2em;
+}
+
+#top-albums strong {
+  color: #333;
+}
