@@ -5,16 +5,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const userDisplay = document.getElementById("userDisplay");
     const authButtons = document.getElementById("authButtons");
 
+    // Check if the required elements exist
     if (!userDisplay || !authButtons) {
         console.error("Required elements (userDisplay or authButtons) not found!");
         return;
     }
 
+    // Set up the authentication state listener
     onAuthStateChanged(auth, (user) => {
         if (user) {
             // User is signed in
-            const loggedInUser = user.displayName; // Only use displayName (username)
-            userDisplay.innerHTML = `<span>${loggedInUser}</span>`; // Display only the username
+            const loggedInUser = user.displayName || user.email; // Use displayName or email if displayName is not available
+
+            // Display username (or email) in the UI
+            userDisplay.innerHTML = `<span>Welcome, ${loggedInUser}</span>`;
+            
+            // Update the auth buttons to show the Logout option
             authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
 
             // Logout handler
