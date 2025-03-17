@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("User is logged in. Fetching albums...");
         fetchAndDisplayAlbums(user.uid);
         addAlbumInteractions(user.uid);
+        addScoreHeaderListener(user.uid); // Add listener for score header
       } else {
         alert("You need to log in to view your album list.");
         window.location.href = "login.html";
@@ -22,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Fetch and display albums without a container
-async function fetchAndDisplayAlbums(userId) {
+async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
   try {
     const tbody = document.querySelector('.album-table tbody');
     tbody.innerHTML = ''; // Clear existing content
@@ -35,9 +36,25 @@ async function fetchAndDisplayAlbums(userId) {
       return;
     }
 
-    let rank = 1;
+    let albums = [];
     querySnapshot.forEach((docSnap) => {
       const album = docSnap.data();
+      album.id = docSnap.id;
+      albums.push(album);
+    });
+
+    // Sort albums based on the sortOrder
+    if (sortOrder === 'desc') {
+      albums.sort((a, b) => (b.score || 0) - (a.score || 0));
+    } else if (sortOrder === 'asc') {
+      albums.sort((a, b) => (a.score || 0) - (b.score || 0));
+    } else {
+      // Default sorting (by rank)
+      albums.sort((a, b) => a.rank - b.rank);
+    }
+
+    let rank = 1;
+    albums.forEach((album) => {
       const row = document.createElement("tr");
       
       row.innerHTML = `
@@ -45,14 +62,14 @@ async function fetchAndDisplayAlbums(userId) {
         <td><img src="${album.image}" alt="${album.name}" width="100"></td>
         <td>${album.name}</td>
         <td>
-          <select class="score-dropdown" data-album-id="${docSnap.id}">
+          <select class="score-dropdown" data-album-id="${album.id}">
             ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
               .map(opt => `<option ${album.score === opt ? 'selected' : ''}>${opt}</option>`)
               .join('')}
           </select>
         </td>
         <td>${album.release_date}</td>
-        <td><button class="remove-btn" data-album-id="${docSnap.id}">×</button></td>
+        <td><button class="remove-btn" data-album-id="${album.id}">×</button></td>
       `;
 
       tbody.appendChild(row);
@@ -83,11 +100,30 @@ function addAlbumInteractions(userId) {
       deleteDoc(albumRef)
         .then(() => {
           console.log("Album removed!");
-          e.target.closest('.album').remove();
+          e.target.closest('tr').remove();
         })
         .catch((error) => console.error("Error removing album:", error));
     }
   });
+}
+
+// Add event listener to the score header for sorting
+function addScoreHeaderListener(userId) {
+  const scoreHeader = document.querySelector('.album-table th:nth-child(4)'); // Assuming the score header is the 4th column
+  let sortOrder = 'default'; // 'default', 'desc', 'asc'
+
+  if (scoreHeader) {
+    scoreHeader.addEventListener('click', () => {
+      if (sortOrder === 'default') {
+        sortOrder = 'desc';
+      } else if (sortOrder === 'desc') {
+        sortOrder = 'asc';
+      } else {
+        sortOrder = 'default';
+      }
+      fetchAndDisplayAlbums(userId, sortOrder);
+    });
+  }
 }
 
 // Color picker logic
