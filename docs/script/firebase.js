@@ -35,13 +35,14 @@ export const getTop100Albums = async () => {
   
       console.log(`Total albums fetched: ${albumsSnapshot.size}`); // Debugging log
   
-      // Array to store album data with average scores and names
+      // Array to store album data with average scores, names, and image URLs
       const albumData = [];
   
       // Iterate through each album in the global albums collection
       for (const albumDoc of albumsSnapshot.docs) {
         const albumId = albumDoc.id;
         const albumName = albumDoc.data().name; // Fetch the album name
+        const albumImageUrl = albumDoc.data().image; // Fetch the album cover image URL
   
         console.log(`Processing album with ID: ${albumId}`); // Debugging log
   
@@ -69,10 +70,11 @@ export const getTop100Albums = async () => {
         // Calculate the average score (avoid division by zero)
         const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
   
-        // Add the album to the array with its average score and name
+        // Add the album to the array with its average score, name, and image URL
         albumData.push({
           id: albumId, // Album ID
           name: albumName, // Album name
+          image: albumImageUrl, // Album cover image URL
           averageScore: averageScore, // Average score
         });
       }
