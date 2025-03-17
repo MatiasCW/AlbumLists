@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
                 try {
                     await signOut(auth);
-                    window.location.href = "login.html"; // Redirect to login page
+                    window.location.href = "index.html"; // Redirect to login page
                 } catch (error) {
                     alert("Error signing out: " + error.message);
                 }
