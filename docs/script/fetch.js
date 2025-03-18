@@ -2,7 +2,7 @@ import { auth, db } from "./firebase.js";
 import { collection, addDoc, getDocs, query, where, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 const clientId = '2b46bd9e8aef47908b9b92deac88846b';
-const clientSecret = '774c6a6cf06b4595ad2bb6f776d8ff23';
+const clientSecret = '681a685c75e542c49f101ae8909f3be8';
 let accessToken = '';
 
 // Fetch access token once and store it
