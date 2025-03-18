@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { 
-  getFirestore, collection, query, orderBy, limit, onSnapshot 
+  getFirestore, collection, query, orderBy, limit, onSnapshot, where 
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Initialize Firebase
@@ -31,7 +31,8 @@ export const listenToTop100Albums = (callback) => {
   try {
     const albumsRef = collection(db, "albums");
     const q = query(
-      albumsRef, 
+      albumsRef,
+      where("numberOfRatings", ">", 0), // Only include albums with ratings
       orderBy("averageScore", "desc"), 
       limit(100)
     );
