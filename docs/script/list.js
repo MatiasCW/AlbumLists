@@ -69,8 +69,8 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
         <td>
           <select class="score-dropdown" data-album-id="${album.id}"> <!-- Use Firestore document ID -->
             ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-              .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
-              .join('')}
+          .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
+          .join('')}
           </select>
         </td>
         <td>${album.release_date}</td>
@@ -180,12 +180,15 @@ function addAlbumInteractions(userId) {
       const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
 
       // Use transaction to update global album stats
+      // Inside the remove event listener's transaction
       try {
         await runTransaction(db, async (transaction) => {
           const albumSnap = await transaction.get(globalAlbumRef);
           if (albumSnap.exists()) {
             const albumData = albumSnap.data();
-            let { totalScore, numberOfRatings } = albumData;
+            // Ensure totalScore and numberOfRatings are numbers, defaulting to 0 if missing
+            let totalScore = albumData.totalScore || 0;
+            let numberOfRatings = albumData.numberOfRatings || 0;
 
             // Subtract old rating if exists
             if (oldRating !== null) {
@@ -198,14 +201,14 @@ function addAlbumInteractions(userId) {
 
             // Update the album document
             transaction.set(globalAlbumRef, {
-              ...albumData,
+              ...albumData, // Preserve existing fields
               totalScore,
               numberOfRatings,
               averageScore
             }, { merge: true });
           }
 
-          // Delete the user's rating
+          // Delete the user's rating regardless of album existence
           transaction.delete(userRatingRef);
         });
 
