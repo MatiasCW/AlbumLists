@@ -4,14 +4,14 @@ import { getFirestore, collection, getDocs, query, orderBy, limit } from "https:
 
 // Firebase initialization
 const firebaseConfig = {
-    apiKey: "AIzaSyD9FcGo-KMXdK9RwT2dJIHETmclikJPRr8",
+    apiKey: "AIzaSyBx8UEWD05g3kiPROxWegNmD67LnV1wOuA",
     authDomain: "thealbumlists.firebaseapp.com",
     projectId: "thealbumlists",
     storageBucket: "thealbumlists.firebasestorage.app",
     messagingSenderId: "534900243533",
-    appId: "1:534900243533:web:b4220d85c1d947f4f33004",
-    measurementId: "G-V5FYJL6YQM"
-};
+    appId: "1:534900243533:web:9c1142a4ac0ae0d6f33004",
+    measurementId: "G-FVH6R53D5R"
+  };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
