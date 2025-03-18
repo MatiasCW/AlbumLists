@@ -1,8 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { 
+  getFirestore, collection, query, orderBy, limit, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Firebase initialization
+// Initialize Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBx8UEWD05g3kiPROxWegNmD67LnV1wOuA",
     authDomain: "thealbumlists.firebaseapp.com",
@@ -12,58 +14,42 @@ const firebaseConfig = {
     appId: "1:534900243533:web:9c1142a4ac0ae0d6f33004",
     measurementId: "G-FVH6R53D5R"
   };
-
+  
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Global variable to track authentication state
+// Track authentication state
 let userId = null;
 onAuthStateChanged(auth, (user) => {
   userId = user ? user.uid : null;
   console.log(user ? `User logged in: ${userId}` : "User logged out.");
 });
 
-// Function to fetch the top 100 albums based on precomputed average scores
-export const getTop100Albums = async () => {
+// Real-time listener for top 100 albums
+export const listenToTop100Albums = (callback) => {
   try {
-    console.log("Fetching top 100 albums from the global albums collection...");
-
-    // Query the albums collection, ordered by averageScore in descending order, and limit to 100
     const albumsRef = collection(db, "albums");
-    const q = query(albumsRef, orderBy("averageScore", "desc"), limit(100));
-    const albumsSnapshot = await getDocs(q);
+    const q = query(
+      albumsRef, 
+      orderBy("averageScore", "desc"), 
+      limit(100)
+    );
 
-    console.log(`Total albums fetched: ${albumsSnapshot.size}`); // Debugging log
-
-    // Array to store album data with average scores, names, and image URLs
-    const albumData = [];
-
-    // Iterate through each album in the query result
-    albumsSnapshot.forEach((albumDoc) => {
-      const albumId = albumDoc.id;
-      const albumName = albumDoc.data().name; // Fetch the album name
-      const albumImageUrl = albumDoc.data().image; // Fetch the album cover image URL
-      const averageScore = albumDoc.data().averageScore; // Fetch the precomputed average score
-
-      console.log(`Processing album with ID: ${albumId}`); // Debugging log
-
-      // Add the album to the array with its average score, name, and image URL
-      albumData.push({
-        id: albumId, // Album ID
-        name: albumName, // Album name
-        image: albumImageUrl, // Album cover image URL
-        averageScore: averageScore, // Precomputed average score
-      });
+    // Real-time updates
+    return onSnapshot(q, (snapshot) => {
+      const albums = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name,
+        image: doc.data().image,
+        averageScore: doc.data().averageScore?.toFixed(1) || 0
+      }));
+      callback(albums);
     });
 
-    console.log(`Fetched ${albumData.length} albums.`);
-
-    // Return the top 100 albums (already sorted by Firestore query)
-    return albumData;
   } catch (error) {
-    console.error("Error fetching top albums:", error);
-    return [];
+    console.error("Error setting up listener:", error);
+    return () => {}; // Return empty unsubscribe function
   }
 };
 
