@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrate Albums</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    // Firebase initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyD9FcGo-KMXdK9RwT2dJIHETmclikJPRr8",
+      authDomain: "thealbumlists.firebaseapp.com",
+      projectId: "thealbumlists",
+      storageBucket: "thealbumlists.firebasestorage.app",
+      messagingSenderId: "534900243533",
+      appId: "1:534900243533:web:b4220d85c1d947f4f33004",
+      measurementId: "G-V5FYJL6YQM"
+  };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Migration script
+    const migrateAlbums = async () => {
+      const albumsRef = collection(db, "albums");
+      const snapshot = await getDocs(albumsRef);
+
+      for (const albumDoc of snapshot.docs) {
+        const ratingsRef = collection(db, "albums", albumDoc.id, "ratings");
+        const ratingsSnap = await getDocs(ratingsRef);
+        
+        let totalScore = 0;
+        ratingsSnap.forEach(ratingDoc => {
+          totalScore += ratingDoc.data().rating;
+        });
+
+        const numberOfRatings = ratingsSnap.size;
+        const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
+
+        await setDoc(albumDoc.ref, { 
+          totalScore, 
+          numberOfRatings, 
+          averageScore 
+        }, { merge: true });
+
+        console.log(`Updated album ${albumDoc.id} with totalScore: ${totalScore}, numberOfRatings: ${numberOfRatings}, averageScore: ${averageScore}`);
+      }
+
+      console.log("Migration complete!");
+    };
+
+    // Run the migration
+    migrateAlbums().catch(error => console.error("Migration failed:", error));
+  </script>
+</head>
+<body>
+  <h1>Running Album Migration...</h1>
+  <p>Check the browser console for progress.</p>
+</body>
+</html>
