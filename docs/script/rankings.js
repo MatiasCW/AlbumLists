@@ -1,26 +1,4 @@
-import { db } from './firebase.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-
-// Function to fetch the top 100 albums from the cached 'topAlbums' collection
-export const getTop100Albums = async () => {
-  try {
-    // Fetch the top 100 albums from the 'topAlbums' collection
-    const topAlbumsRef = collection(db, "topAlbums");
-    const snapshot = await getDocs(topAlbumsRef);
-
-    // Map the documents to an array of album data
-    const top100Albums = snapshot.docs.map(doc => doc.data());
-
-    // Sort the albums by rank (optional, but ensures correct order)
-    top100Albums.sort((a, b) => a.rank - b.rank);
-
-    console.log(`Fetched ${top100Albums.length} albums from cache`); // Debugging log
-    return top100Albums;
-  } catch (error) {
-    console.error("Error fetching top albums from cache:", error);
-    return [];
-  }
-};
+import { getTop100Albums } from './firebase.js';
 
 // Function to display the top albums in the HTML
 const displayTopAlbums = async () => {
