@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Initialize the color picker on page load
 window.addEventListener("load", initializeColorPicker);
@@ -89,66 +89,133 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
 // Add event listeners for interactions
 function addAlbumInteractions(userId) {
   // Update score in the Firestore when dropdown value is changed
-  document.addEventListener('change', (e) => {
+  document.addEventListener('change', async (e) => {
     if (e.target.classList.contains('score-dropdown')) {
       const userAlbumId = e.target.dataset.albumId; // Firestore document ID of the user's album
       const selectedScore = e.target.value === '-' ? null : e.target.value;
 
       // Update the user's album score
       const userAlbumRef = doc(db, 'users', userId, 'albums', userAlbumId);
-      updateDoc(userAlbumRef, { score: selectedScore })
-        .then(() => console.log("User's score updated!"))
-        .catch((error) => console.error("Error updating user's score:", error));
+      await updateDoc(userAlbumRef, { score: selectedScore });
 
       // Fetch the Spotify ID from the user's album document
-      getDoc(userAlbumRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          const spotifyId = docSnap.data().spotifyId; // Spotify ID of the album
+      const userAlbumSnap = await getDoc(userAlbumRef);
+      if (!userAlbumSnap.exists()) return;
 
-          // Update the global ratings collection
-          const globalAlbumRef = doc(db, 'albums', spotifyId); // Use Spotify ID for global album
-          const userRatingRef = doc(globalAlbumRef, 'ratings', userId); // Use user ID for rating
+      const spotifyId = userAlbumSnap.data().spotifyId; // Spotify ID of the album
+      const globalAlbumRef = doc(db, 'albums', spotifyId);
+      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
 
+      // Get previous rating (if exists)
+      const userRatingSnap = await getDoc(userRatingRef);
+      const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
+
+      // Use transaction to update global album stats
+      try {
+        await runTransaction(db, async (transaction) => {
+          const albumSnap = await transaction.get(globalAlbumRef);
+          const albumData = albumSnap.exists() ? albumSnap.data() : {
+            totalScore: 0,
+            numberOfRatings: 0,
+            averageScore: 0,
+            name: userAlbumSnap.data().name, // Fallback to user's album data
+            image: userAlbumSnap.data().image
+          };
+
+          let { totalScore, numberOfRatings } = albumData;
+
+          // Subtract old rating if exists
+          if (oldRating !== null) totalScore -= oldRating;
+
+          // Add new rating
           if (selectedScore !== null) {
-            // Add/update the user's rating in the global collection
-            setDoc(userRatingRef, { rating: parseInt(selectedScore) }, { merge: true })
-              .then(() => console.log("Global rating updated!"))
-              .catch((error) => console.error("Error updating global rating:", error));
+            const newRating = parseInt(selectedScore);
+            totalScore += newRating;
+            if (oldRating === null) numberOfRatings += 1; // New rating
           } else {
-            // Remove the rating if "-" is selected
-            deleteDoc(userRatingRef)
-              .then(() => console.log("Global rating removed!"))
-              .catch((error) => console.error("Error removing global rating:", error));
+            numberOfRatings = Math.max(numberOfRatings - 1, 0); // Prevent negatives
           }
-        }
-      }).catch((error) => console.error("Error fetching album:", error));
+
+          // Calculate new average
+          const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
+
+          // Update or create the album document
+          transaction.set(globalAlbumRef, {
+            ...albumData,
+            totalScore,
+            numberOfRatings,
+            averageScore
+          }, { merge: true });
+
+          // Update/delete the rating subcollection
+          if (selectedScore !== null) {
+            transaction.set(userRatingRef, { rating: parseInt(selectedScore) });
+          } else {
+            transaction.delete(userRatingRef);
+          }
+        });
+        console.log("Global stats updated!");
+      } catch (error) {
+        console.error("Transaction failed:", error);
+      }
     }
   });
 
   // Remove album from Firestore when the remove button is clicked
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure you want to remove this album?")) {
       const userAlbumId = e.target.dataset.albumId;
       const userAlbumRef = doc(db, 'users', userId, 'albums', userAlbumId);
 
       // Retrieve the Spotify ID from the user's album document
-      getDoc(userAlbumRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          const spotifyId = docSnap.data().spotifyId;
+      const userAlbumSnap = await getDoc(userAlbumRef);
+      if (!userAlbumSnap.exists()) return;
 
-          // Delete from user's collection
-          deleteDoc(userAlbumRef)
-            .then(() => {
-              e.target.closest('tr').remove();
-              // Delete the global rating using Spotify ID
-              const globalAlbumRef = doc(db, 'albums', spotifyId);
-              const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
-              deleteDoc(userRatingRef)
-                .catch(error => console.error("Error removing global rating:", error));
-            })
-            .catch(error => console.error("Error removing user's album:", error));
-        }
-      }).catch(error => console.error("Error fetching album:", error));
+      const spotifyId = userAlbumSnap.data().spotifyId;
+      const globalAlbumRef = doc(db, 'albums', spotifyId);
+      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
+
+      // Get previous rating (if exists)
+      const userRatingSnap = await getDoc(userRatingRef);
+      const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
+
+      // Use transaction to update global album stats
+      try {
+        await runTransaction(db, async (transaction) => {
+          const albumSnap = await transaction.get(globalAlbumRef);
+          if (albumSnap.exists()) {
+            const albumData = albumSnap.data();
+            let { totalScore, numberOfRatings } = albumData;
+
+            // Subtract old rating if exists
+            if (oldRating !== null) {
+              totalScore -= oldRating;
+              numberOfRatings = Math.max(numberOfRatings - 1, 0); // Prevent negatives
+            }
+
+            // Calculate new average
+            const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
+
+            // Update the album document
+            transaction.set(globalAlbumRef, {
+              ...albumData,
+              totalScore,
+              numberOfRatings,
+              averageScore
+            }, { merge: true });
+          }
+
+          // Delete the user's rating
+          transaction.delete(userRatingRef);
+        });
+
+        // Delete the user's album
+        await deleteDoc(userAlbumRef);
+        e.target.closest('tr').remove();
+        console.log("Album removed and global stats updated!");
+      } catch (error) {
+        console.error("Transaction failed:", error);
+      }
     }
   });
 }
