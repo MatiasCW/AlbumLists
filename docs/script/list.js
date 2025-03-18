@@ -69,8 +69,8 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
         <td>
           <select class="score-dropdown" data-album-id="${album.id}"> <!-- Use Firestore document ID -->
             ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-          .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
-          .join('')}
+              .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
+              .join('')}
           </select>
         </td>
         <td>${album.release_date}</td>
@@ -122,19 +122,27 @@ function addAlbumInteractions(userId) {
             image: userAlbumSnap.data().image
           };
 
-          let { totalScore, numberOfRatings } = albumData;
+          // Ensure totalScore and numberOfRatings are numbers
+          let totalScore = Number(albumData.totalScore) || 0;
+          let numberOfRatings = Number(albumData.numberOfRatings) || 0;
 
           // Subtract old rating if exists
-          if (oldRating !== null) totalScore -= oldRating;
+          if (oldRating !== null) {
+            totalScore -= Number(oldRating) || 0;
+          }
 
           // Add new rating
           if (selectedScore !== null) {
-            const newRating = parseInt(selectedScore);
+            const newRating = Number(selectedScore) || 0;
             totalScore += newRating;
             if (oldRating === null) numberOfRatings += 1; // New rating
           } else {
             numberOfRatings = Math.max(numberOfRatings - 1, 0); // Prevent negatives
           }
+
+          // Clamp values to prevent invalid numbers
+          totalScore = Math.max(totalScore, 0); // Ensure totalScore >= 0
+          numberOfRatings = Math.max(numberOfRatings, 0); // Ensure numberOfRatings >= 0
 
           // Calculate new average
           const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
@@ -149,7 +157,7 @@ function addAlbumInteractions(userId) {
 
           // Update/delete the rating subcollection
           if (selectedScore !== null) {
-            transaction.set(userRatingRef, { rating: parseInt(selectedScore) });
+            transaction.set(userRatingRef, { rating: Number(selectedScore) || 0 });
           } else {
             transaction.delete(userRatingRef);
           }
@@ -180,19 +188,18 @@ function addAlbumInteractions(userId) {
       const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
 
       // Use transaction to update global album stats
-      // Inside the remove event listener's transaction
       try {
         await runTransaction(db, async (transaction) => {
           const albumSnap = await transaction.get(globalAlbumRef);
           if (albumSnap.exists()) {
             const albumData = albumSnap.data();
-            // Ensure totalScore and numberOfRatings are numbers, defaulting to 0 if missing
-            let totalScore = albumData.totalScore || 0;
-            let numberOfRatings = albumData.numberOfRatings || 0;
+            // Ensure totalScore and numberOfRatings are numbers
+            let totalScore = Number(albumData.totalScore) || 0;
+            let numberOfRatings = Number(albumData.numberOfRatings) || 0;
 
             // Subtract old rating if exists
             if (oldRating !== null) {
-              totalScore -= oldRating;
+              totalScore -= Number(oldRating) || 0;
               numberOfRatings = Math.max(numberOfRatings - 1, 0); // Prevent negatives
             }
 
@@ -201,14 +208,14 @@ function addAlbumInteractions(userId) {
 
             // Update the album document
             transaction.set(globalAlbumRef, {
-              ...albumData, // Preserve existing fields
+              ...albumData,
               totalScore,
               numberOfRatings,
               averageScore
             }, { merge: true });
           }
 
-          // Delete the user's rating regardless of album existence
+          // Delete the user's rating
           transaction.delete(userRatingRef);
         });
 
