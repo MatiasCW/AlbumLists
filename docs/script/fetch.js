@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase.js";
-import { collection, addDoc, getDocs, query, where, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, addDoc, getDocs, query, where, doc, deleteDoc, setDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 const clientId = '2b46bd9e8aef47908b9b92deac88846b';
 const clientSecret = '681a685c75e542c49f101ae8909f3be8';
@@ -98,41 +98,64 @@ function fetchAlbums(artistId) {
 }
 
 // Display albums in HTML
-function displayAlbums(albums) {
+async function displayAlbums(albums) {
   const output = document.querySelector(".album-container");
   output.innerHTML = ''; // Clear previous content
 
-  if (albums.length === 0) {
-    output.textContent = 'No albums found.';
-    return;
+  const user = auth.currentUser;
+  let userAlbumIds = new Set();
+
+  if (user) {
+    // Fetch user's albums to determine added status
+    const albumsRef = collection(db, 'users', user.uid, 'albums');
+    const querySnapshot = await getDocs(albumsRef);
+    querySnapshot.forEach(doc => {
+      userAlbumIds.add(doc.data().spotifyId);
+    });
   }
 
   albums.forEach(album => {
     const albumElement = document.createElement('div');
     albumElement.classList.add('album');
 
+    const isAdded = userAlbumIds.has(album.id);
+    const buttonText = isAdded ? '-' : '+';
+    const buttonClass = isAdded ? 'remove-btn' : 'add-btn';
+
     albumElement.innerHTML = ` 
       <h3>${album.name}</h3>
       <p><strong>Release Date:</strong> ${album.release_date}</p>
       <img src="${album.images[0]?.url}" alt="${album.name}" width="100">
-      <button class="add-btn" data-album-id="${album.id}">+</button>
+      <button class="${buttonClass}" 
+              data-album-id="${album.id}"
+              data-album-name="${album.name}"
+              data-release-date="${album.release_date}"
+              data-image-url="${album.images[0]?.url}">
+        ${buttonText}
+      </button>
     `;
-    output.appendChild(albumElement);
 
-    // Add event listener to "Add to List" buttons
-    const addButton = albumElement.querySelector('.add-btn');
-    addButton.addEventListener('click', function () {
-      const albumId = this.getAttribute('data-album-id');
-      const albumName = album.name;
-      const albumReleaseDate = album.release_date;
-      const albumImageUrl = album.images[0]?.url; // Get the image URL
-      addAlbumToList(albumId, albumName, albumReleaseDate, albumImageUrl);
+    const button = albumElement.querySelector('button');
+    button.addEventListener('click', async function() {
+      if (this.classList.contains('add-btn')) {
+        await addAlbumToList(
+          album.id,
+          album.name,
+          album.release_date,
+          album.images[0]?.url,
+          this
+        );
+      } else {
+        await removeAlbumFromList(album.id, this);
+      }
     });
+
+    output.appendChild(albumElement);
   });
 }
 
 // Function to add album to the user's list in Firestore
-async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, albumImageUrl) {
+async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, albumImageUrl, buttonElement) {
   const user = auth.currentUser;
   if (!user) {
     alert("You must be logged in to add albums to your list.");
@@ -140,55 +163,84 @@ async function addAlbumToList(spotifyAlbumId, albumName, albumReleaseDate, album
   }
 
   try {
-    // Reference to the user's albums collection
     const albumsRef = collection(db, 'users', user.uid, 'albums');
-
-    // Check if the album already exists in the user's collection
     const q = query(albumsRef, where('spotifyId', '==', spotifyAlbumId));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      // Add the album to the user's collection with a random ID
       await addDoc(albumsRef, {
-        spotifyId: spotifyAlbumId, // Store the Spotify ID for reference
+        spotifyId: spotifyAlbumId,
         name: albumName,
         release_date: albumReleaseDate,
-        image: albumImageUrl, // Store the album cover image URL
+        image: albumImageUrl,
         createdAt: new Date()
       });
 
-      // Add a placeholder to the global albums collection using the Spotify ID
-      const globalAlbumRef = doc(db, "albums", spotifyAlbumId); // Use Spotify ID as the document ID
+      const globalAlbumRef = doc(db, "albums", spotifyAlbumId);
       await setDoc(globalAlbumRef, {
         name: albumName,
-        image: albumImageUrl, // Ensure the image URL is saved globally
-      }, { merge: true }); // Use merge to avoid overwriting existing data
+        image: albumImageUrl,
+      }, { merge: true });
 
-      alert('Album added to your list.');
-    } else {
-      alert("This album is already in your list.");
+      // Update button to remove state
+      buttonElement.textContent = '-';
+      buttonElement.classList.replace('add-btn', 'remove-btn');
     }
   } catch (error) {
     console.error("Error adding album: ", error);
-    alert("Error adding album to your list.");
   }
 }
 
-// Function to add a rating to the global album's ratings subcollection
-async function addRating(albumId, userId, rating) {
-  try {
-    // Reference to the ratings subcollection under the global album
-    const ratingRef = doc(db, "albums", albumId, "ratings", userId);
+// Function to remove album from the user's list in Firestore
+async function removeAlbumFromList(spotifyAlbumId, buttonElement) {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be logged in to remove albums.");
+    return;
+  }
 
-    // Add the rating as a document in the subcollection
-    await setDoc(ratingRef, {
-      rating: rating, // The user's rating (e.g., 8)
-      createdAt: new Date() // Optional: Add a timestamp
+  try {
+    // Delete user's album
+    const albumsRef = collection(db, 'users', user.uid, 'albums');
+    const q = query(albumsRef, where('spotifyId', '==', spotifyAlbumId));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const docRef = doc(db, 'users', user.uid, 'albums', querySnapshot.docs[0].id);
+      await deleteDoc(docRef);
+    }
+
+    // Update global stats (similar to list.js)
+    const globalAlbumRef = doc(db, 'albums', spotifyAlbumId);
+    const userRatingRef = doc(globalAlbumRef, 'ratings', user.uid);
+
+    await runTransaction(db, async (transaction) => {
+      const albumSnap = await transaction.get(globalAlbumRef);
+      if (!albumSnap.exists()) return;
+
+      const albumData = albumSnap.data();
+      let totalScore = Number(albumData.totalScore) || 0;
+      let numberOfRatings = Number(albumData.numberOfRatings) || 0;
+
+      const ratingSnap = await transaction.get(userRatingRef);
+      if (ratingSnap.exists()) {
+        totalScore -= Number(ratingSnap.data().rating);
+        numberOfRatings = Math.max(numberOfRatings - 1, 0);
+      }
+
+      transaction.update(globalAlbumRef, {
+        totalScore,
+        numberOfRatings,
+        averageScore: numberOfRatings > 0 ? totalScore / numberOfRatings : 0
+      });
+      transaction.delete(userRatingRef);
     });
 
-    console.log("Rating added successfully!");
+    // Update button to add state
+    buttonElement.textContent = '+';
+    buttonElement.classList.replace('remove-btn', 'add-btn');
   } catch (error) {
-    console.error("Error adding rating:", error);
+    console.error("Error removing album: ", error);
   }
 }
 
