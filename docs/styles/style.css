@@ -89,7 +89,7 @@ header {
   padding: 10px 0; /* Reduced padding to make the navbar shorter */
   position: relative;
   z-index: 1; /* Ensure header is above the slideshow */
-  height: 100px; /* Fixed height for the navbar */
+  height: 80px; /* Fixed height for the navbar */
   display: flex;
   align-items: center; /* Vertically center items */
 }
