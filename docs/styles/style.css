@@ -3,7 +3,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  
 }
 
 /* Set the font and background color for the entire page */
@@ -11,7 +10,7 @@ body {
   font-family: Arial, sans-serif;
   color: #333;
   background-color: #ffffff;
-  transition: background-color 0.3s ease; 
+  transition: background-color 0.3s ease;
 }
 
 /* Slideshow Background */
@@ -24,7 +23,7 @@ body {
   z-index: -1; /* Ensure it stays in the background */
   background-size: cover;
   background-position: center;
-  animation: slideshow 50s infinite; 
+  animation: slideshow 50s infinite;
 }
 
 @keyframes slideshow {
@@ -62,11 +61,26 @@ body {
     background-image: url('../media/snoop.jpg'); /* Loop back to the first image */
   }
 }
+
 /* Container for content centering */
 .container {
   width: 90%;
   max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
+/* Logo styling */
+.logo {
+  margin-right: 20px; /* Space between logo and title */
+}
+
+.logo img {
+  height: 50px; /* Adjust the height as needed */
+  width: auto; /* Maintain aspect ratio */
 }
 
 /* Header styles */
@@ -81,22 +95,23 @@ header {
 /* Header title */
 header h1 {
   font-size: 2rem;
+  margin: 0;
+  flex-grow: 1; /* Allow title to take up remaining space */
   text-align: center;
-  margin-bottom: 20px;
 }
 
 /* Flexbox for navigation */
 header nav {
   display: flex;
-  justify-content: space-between; /* Distribute space between the nav items and the auth buttons */
   align-items: center;
+  justify-content: space-between;
   width: 100%;
 }
 
 /* Center nav links */
 header nav .nav-links {
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   list-style: none;
   flex: 1; /* Allow the nav links to take up available space */
 }
@@ -126,17 +141,17 @@ header nav .auth-section {
 }
 
 header nav .auth-section a {
-  margin-left: 10px; 
-  padding: 5px 10px; 
+  margin-left: 10px;
+  padding: 5px 10px;
   background-color: #555;
   border-radius: 5px;
-  color: white; 
-  text-decoration: none; 
+  color: white;
+  text-decoration: none;
 }
 
 /* Add hover effect for login/signup links */
 header nav .auth-section a:hover {
-  background-color: #444; 
+  background-color: #444;
 }
 
 header nav .auth-section #userDisplay {
@@ -160,11 +175,11 @@ header nav .auth-section #logoutBtn:hover {
   opacity: 0.9;
   border-radius: 10vh;
   position: relative;
-  z-index: 1; 
+  z-index: 1;
 }
 
 .search-input {
-  background: rgba(255, 255, 255, 0.8); 
+  background: rgba(255, 255, 255, 0.8);
   width: 100%;
   position: relative;
   border-radius: 2vh;
@@ -173,18 +188,19 @@ header nav .auth-section #logoutBtn:hover {
 .search-input input {
   height: 55px;
   width: 100%;
-  outline: none; 
-  border: 1px solid #ccc; 
+  outline: none;
+  border: 1px solid #ccc;
   border-radius: 25vh;
   padding: 0 20px;
   font-size: 24px;
-  box-shadow: none; 
+  box-shadow: none;
 }
 
 .search-input input:focus {
-  border: 1px solid #007bff; 
+  border: 1px solid #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
+
 /* Form styles */
 .form-container {
   width: 300px;
@@ -245,17 +261,17 @@ p {
 
 /* Add button */
 .add-btn {
-  background-color: #4CAF50; 
-  color: white; 
-  border: none; 
-  border-radius: 50%; 
-  width: 30px; 
-  height: 30px; 
-  font-size: 20px; 
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
   display: inline-block;
   text-align: center;
   cursor: pointer;
-  padding: 0; 
+  padding: 0;
 }
 
 .add-btn:hover {
@@ -264,16 +280,16 @@ p {
 
 /* Style for individual album container */
 .album {
-  margin-bottom: 20px; 
-  padding: 10px; 
-  border: 1px solid #ddd; 
-  border-radius: 5px; 
-  background-color: #f9f9f9; 
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
 /* Optional: Add some space around the album container's button */
 .add-btn {
-  margin-top: 10px; 
+  margin-top: 10px;
 }
 
 /* Table Styles */
@@ -312,11 +328,11 @@ p {
 /* Score Header Styles */
 .album-table th:nth-child(3) {
   cursor: pointer;
-  user-select: none; 
+  user-select: none;
 }
 
 .album-table th:nth-child(3):hover {
-  background-color: #f4f4f4; 
+  background-color: #f4f4f4;
 }
 
 /* Remove button */
@@ -329,11 +345,11 @@ p {
   height: 25px;
   cursor: pointer;
   font-weight: bold;
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  padding: 0; 
-  line-height: 1; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
 }
 
 .remove-btn:hover {
@@ -342,14 +358,14 @@ p {
 
 /* Button Styles */
 #changeColorBtn {
-  padding: 8px 16px; 
-  font-size: 14px; 
+  padding: 8px 16px;
+  font-size: 14px;
   cursor: pointer;
   background-color: #808080;
   color: white;
   border: none;
   border-radius: 5px;
-  display: inline-block; 
+  display: inline-block;
   max-width: 10%;
   margin: 1%;
 }
@@ -357,15 +373,16 @@ p {
 #changeColorBtn:hover {
   background-color: #696969;
 }
+
 /* Modal Styles */
 .modal {
-  display: none; 
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); 
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
   z-index: 1000;
