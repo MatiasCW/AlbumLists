@@ -273,7 +273,8 @@ function initializeColorPicker() {
   // Retrieve the saved font color from localStorage and apply it if available
   const savedFontColor = localStorage.getItem("fontColor");
   if (savedFontColor) {
-    document.body.style.color = savedFontColor;
+    // Apply font color to all elements except the modal
+    applyFontColor(savedFontColor);
     fontColorPicker.value = savedFontColor;
   }
 
@@ -294,7 +295,16 @@ function initializeColorPicker() {
 
   // Update the font color when the font color picker input changes
   fontColorPicker.addEventListener("input", (e) => {
-    document.body.style.color = e.target.value;
-    localStorage.setItem("fontColor", e.target.value); // Save font color to localStorage
+    const selectedFontColor = e.target.value;
+    applyFontColor(selectedFontColor); // Apply font color to all elements except the modal
+    localStorage.setItem("fontColor", selectedFontColor); // Save font color to localStorage
+  });
+}
+
+// Helper function to apply font color to all elements except the modal
+function applyFontColor(color) {
+  const allElements = document.querySelectorAll("body *:not(.modal *)"); // Select all elements except those inside the modal
+  allElements.forEach(element => {
+    element.style.color = color;
   });
 }
