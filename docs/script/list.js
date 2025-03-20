@@ -74,7 +74,7 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
           </select>
         </td>
         <td>${album.release_date}</td>
-        <td><button class="remove-btn" data-album-id="${album.id}">×</button></td>
+        <td><button class="remove-btn" data-album-id="${album.id}">-</button></td>
       `;
 
       tbody.appendChild(row);
