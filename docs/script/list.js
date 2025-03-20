@@ -258,15 +258,23 @@ function initializeColorPicker() {
   const changeColorBtn = document.getElementById("changeColorBtn");
   const colorModal = document.getElementById("colorModal");
   const closeModal = document.querySelector(".close");
-  const colorPicker = document.getElementById("colorPicker");
+  const backgroundColorPicker = document.getElementById("backgroundColorPicker");
+  const fontColorPicker = document.getElementById("fontColorPicker");
 
-  if (!changeColorBtn || !colorModal || !closeModal || !colorPicker) return;
+  if (!changeColorBtn || !colorModal || !closeModal || !backgroundColorPicker || !fontColorPicker) return;
 
-  // Retrieve the saved color from localStorage and apply it if available
-  const savedColor = localStorage.getItem("backgroundColor");
-  if (savedColor) {
-    document.body.style.backgroundColor = savedColor;
-    colorPicker.value = savedColor;
+  // Retrieve the saved background color from localStorage and apply it if available
+  const savedBackgroundColor = localStorage.getItem("backgroundColor");
+  if (savedBackgroundColor) {
+    document.body.style.backgroundColor = savedBackgroundColor;
+    backgroundColorPicker.value = savedBackgroundColor;
+  }
+
+  // Retrieve the saved font color from localStorage and apply it if available
+  const savedFontColor = localStorage.getItem("fontColor");
+  if (savedFontColor) {
+    document.body.style.color = savedFontColor;
+    fontColorPicker.value = savedFontColor;
   }
 
   // Open the color picker modal
@@ -278,9 +286,15 @@ function initializeColorPicker() {
   // Close the modal when clicking outside the modal
   window.addEventListener("click", (e) => e.target === colorModal && (colorModal.style.display = "none"));
 
-  // Update the background color when the color picker input changes
-  colorPicker.addEventListener("input", (e) => {
+  // Update the background color when the background color picker input changes
+  backgroundColorPicker.addEventListener("input", (e) => {
     document.body.style.backgroundColor = e.target.value;
-    localStorage.setItem("backgroundColor", e.target.value); // Save color to localStorage
+    localStorage.setItem("backgroundColor", e.target.value); // Save background color to localStorage
+  });
+
+  // Update the font color when the font color picker input changes
+  fontColorPicker.addEventListener("input", (e) => {
+    document.body.style.color = e.target.value;
+    localStorage.setItem("fontColor", e.target.value); // Save font color to localStorage
   });
 }
