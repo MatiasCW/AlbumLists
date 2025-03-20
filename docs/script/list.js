@@ -254,6 +254,7 @@ function addScoreHeaderListener(userId) {
 }
 
 // Color picker logic
+// Color picker logic
 function initializeColorPicker() {
   const changeColorBtn = document.getElementById("changeColorBtn");
   const colorModal = document.getElementById("colorModal");
