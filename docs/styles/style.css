@@ -441,7 +441,7 @@ p {
 #top-albums li {
   margin: 10px 0;
   font-size: 1.2em;
-  background-color: linear-gradient(#f6ca61, #ad881d);
+  background-color: #f6ca61;
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
