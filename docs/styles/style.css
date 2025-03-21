@@ -93,16 +93,7 @@ header {
   display: flex;
   align-items: center; /* Vertically center items */
 }
-/* Header title */
-header h1 {
-  font-size: 1.5rem;
-  font-family: 'Pacifico', cursive;
-  margin: 0;
-  flex-grow: 1; /* Allow title to take up remaining space */
-  text-align: center;
-}
 
-/* Flexbox for navigation */
 header nav {
   display: flex;
   align-items: center;
@@ -120,6 +111,14 @@ header nav .nav-links {
 
 header nav .nav-links li {
   margin: 0 15px;
+}
+
+header nav .nav-links li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-family: 'Pacifico', cursive;
+  padding: 5px 10px;
 }
 
 header nav .nav-links li a:hover {
