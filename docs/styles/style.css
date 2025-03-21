@@ -78,6 +78,7 @@ body {
   margin-right: 20px; 
 }
 
+
 .logo img {
   height: 80px; 
   width: auto; 
@@ -100,6 +101,13 @@ header {
   height: 110px; 
   display: flex;
   align-items: center;
+}
+
+header h1 {
+  font-size: 2rem; /* Increase the size of the navbar title */
+  margin: 0;
+  flex-grow: 1; /* Allow title to take up remaining space */
+  text-align: center;
 }
 
 header nav {
