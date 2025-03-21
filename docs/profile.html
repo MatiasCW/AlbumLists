@@ -31,98 +31,6 @@
             </nav>
         </div>
     </header>
-    <style>
-        /* Full-page background */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-
-        /* Background image container */
-        #background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('https://via.placeholder.com/1920x1080'); /* Default background */
-            background-size: cover;
-            background-position: center;
-            z-index: -1; /* Place it behind everything */
-        }
-
-        /* Profile container */
-        .profile-container {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.3); /* Semi-transparent border */
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-            backdrop-filter: blur(10px); /* Blur effect */
-            position: relative;
-            z-index: 1; /* Place it above the background */
-        }
-
-        /* Profile picture section */
-        .profile-picture {
-            position: relative;
-            width: 150px;
-        }
-
-        #profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #007bff;
-        }
-
-        .upload-btn {
-            margin-top: 10px;
-            background-color: #007bff;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .upload-btn:hover {
-            background-color: #0056b3;
-        }
-
-        .username {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        #list-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 16px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        #file-input {
-            display: none;
-        }
-
-        #background-input {
-            display: none;
-        }
-    </style>
 </head>
 <body>
     <!-- Background container -->
@@ -135,11 +43,11 @@
             <div class="username"></div> 
             <img id="profile-image" src="https://via.placeholder.com/150" alt="Profile Picture">
             <input type="file" id="file-input" accept="image/*">
-            <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+            <button class="upload-btn" id="change-pfp-btn">
                 Change Avatar
             </button>
             <br>
-            <button class="upload-btn" onclick="document.getElementById('background-input').click()">
+            <button class="upload-btn" id="change-bg-btn">
                 Change Background
             </button>
         </div>
@@ -151,14 +59,32 @@
         </div>
     </div>
 
-    <!-- Hidden file inputs -->
-    <input type="file" id="background-input" accept="image/*">
+    <!-- Modal for selecting profile picture -->
+    <div id="pfp-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Choose a Profile Picture</h2>
+            <div id="pfp-options" class="image-options">
+                <!-- Predefined profile pictures will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for selecting background -->
+    <div id="bg-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Choose a Background</h2>
+            <div id="bg-options" class="image-options">
+                <!-- Predefined backgrounds will be added here dynamically -->
+            </div>
+        </div>
+    </div>
 
     <script type="module">
-        import { auth, db, storage } from "./script/firebase.js";
+        import { auth, db } from "./script/firebase.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
         import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
 
         // Get the UID from the query parameter
         const urlParams = new URLSearchParams(window.location.search);
@@ -168,8 +94,16 @@
         const usernameElement = document.querySelector('.username');
         const profileImage = document.getElementById('profile-image');
         const backgroundContainer = document.getElementById('background-container');
-        const fileInput = document.getElementById('file-input');
-        const backgroundInput = document.getElementById('background-input');
+        const pfpModal = document.getElementById('pfp-modal');
+        const bgModal = document.getElementById('bg-modal');
+        const pfpOptions = document.getElementById('pfp-options');
+        const bgOptions = document.getElementById('bg-options');
+        const changePfpBtn = document.getElementById('change-pfp-btn');
+        const changeBgBtn = document.getElementById('change-bg-btn');
+
+        // Predefined profile pictures and backgrounds
+        const profilePictures = Array.from({ length: 20 }, (_, i) => `/profile-pictures/pfp${i + 1}.jpg`);
+        const backgrounds = Array.from({ length: 20 }, (_, i) => `/backgrounds/bg${i + 1}.jpg`);
 
         // Load user data
         const loadUserData = async () => {
@@ -181,58 +115,75 @@
 
             const userDoc = await getDoc(doc(db, 'users', uid));
             if (userDoc.exists()) {
-                const { username, profileImageUrl, backgroundImageUrl } = userDoc.data();
+                const { username, profilePicture, backgroundImage } = userDoc.data();
                 usernameElement.textContent = username;
-                if (profileImageUrl) profileImage.src = profileImageUrl;
-                if (backgroundImageUrl) {
-                    backgroundContainer.style.backgroundImage = `url('${backgroundImageUrl}')`;
-                }
+                profileImage.src = profilePicture || "https://via.placeholder.com/150";
+                backgroundContainer.style.backgroundImage = `url('${backgroundImage || "https://via.placeholder.com/1920x1080"}')`;
             } else {
                 alert("User not found.");
                 window.location.href = "index.html";
             }
         };
 
-        // Upload profile image
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file || !auth.currentUser) return;
-
-            try {
-                const storageRef = ref(storage, `profilePictures/${auth.currentUser.uid}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-
-                await updateDoc(doc(db, 'users', auth.currentUser.uid), { profileImageUrl: url });
-                profileImage.src = url;
-                alert('Profile picture updated successfully!');
-            } catch (error) {
-                console.error('Failed to upload profile image:', error);
-                alert('Failed to upload profile image.');
-            }
+        // Open profile picture modal
+        changePfpBtn.addEventListener('click', () => {
+            pfpModal.style.display = "block";
+            loadPfpOptions();
         });
 
-        // Upload background image
-        backgroundInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file || !auth.currentUser) return;
-
-            try {
-                const storageRef = ref(storage, `backgrounds/${auth.currentUser.uid}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-
-                await updateDoc(doc(db, 'users', auth.currentUser.uid), { backgroundImageUrl: url });
-                backgroundContainer.style.backgroundImage = `url('${url}')`;
-                alert('Background image updated successfully!');
-            } catch (error) {
-                console.error('Failed to upload background image:', error);
-                alert('Failed to upload background image.');
-            }
+        // Open background modal
+        changeBgBtn.addEventListener('click', () => {
+            bgModal.style.display = "block";
+            loadBgOptions();
         });
 
-        // Click image to upload
-        profileImage.addEventListener('click', () => fileInput.click());
+        // Close modals
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', () => {
+                pfpModal.style.display = "none";
+                bgModal.style.display = "none";
+            });
+        });
+
+        // Load profile picture options
+        const loadPfpOptions = () => {
+            pfpOptions.innerHTML = profilePictures
+                .map((pfp, index) => `
+                    <div class="image-option" data-pfp="${pfp}">
+                        <img src="${pfp}" alt="Profile Picture ${index + 1}">
+                    </div>
+                `)
+                .join('');
+
+            document.querySelectorAll('#pfp-options .image-option').forEach(option => {
+                option.addEventListener('click', async () => {
+                    const selectedPfp = option.getAttribute('data-pfp');
+                    profileImage.src = selectedPfp;
+                    await updateDoc(doc(db, 'users', auth.currentUser.uid), { profilePicture: selectedPfp });
+                    pfpModal.style.display = "none";
+                });
+            });
+        };
+
+        // Load background options
+        const loadBgOptions = () => {
+            bgOptions.innerHTML = backgrounds
+                .map((bg, index) => `
+                    <div class="image-option" data-bg="${bg}">
+                        <img src="${bg}" alt="Background ${index + 1}">
+                    </div>
+                `)
+                .join('');
+
+            document.querySelectorAll('#bg-options .image-option').forEach(option => {
+                option.addEventListener('click', async () => {
+                    const selectedBg = option.getAttribute('data-bg');
+                    backgroundContainer.style.backgroundImage = `url('${selectedBg}')`;
+                    await updateDoc(doc(db, 'users', auth.currentUser.uid), { backgroundImage: selectedBg });
+                    bgModal.style.display = "none";
+                });
+            });
+        };
 
         // Initialize page
         onAuthStateChanged(auth, (user) => {
