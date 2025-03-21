@@ -104,9 +104,9 @@ header {
 }
 
 header h1 {
-  font-size: 2rem; /* Increase the size of the navbar title */
+  font-size: 2rem; 
   margin: 0;
-  flex-grow: 1; /* Allow title to take up remaining space */
+  flex-grow: 1; 
   text-align: center;
   font-family: 'Pacifico', cursive;
 }
@@ -333,7 +333,7 @@ p {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
-  width: 60px; /* Adjust width as needed */
+  width: 60px; 
 }
 
 /* Score Header Styles */
@@ -444,7 +444,7 @@ p {
   background-color: linear-gradient(#f6ca61, #ad881d);
   padding: 10px;
   border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
 }
 
 #top-albums strong {
@@ -460,9 +460,9 @@ p {
 .album-item img {
   margin-right: 15px;
   border-radius: 5px;
-  width: 100px; /* Fixed width for album covers */
-  height: 100px; /* Fixed height for album covers */
-  object-fit: cover; /* Ensure the image covers the space without distortion */
+  width: 100px; 
+  height: 100px;
+  object-fit: cover; /
 }
 
 .album-details {
@@ -470,11 +470,11 @@ p {
 }
 
 .album-details strong {
-  display: block; /* Make the album name a block element */
-  margin-bottom: 5px; /* Space between album name and average score */
+  display: block; 
+  margin-bottom: 5px;
 }
 
 .album-details .average-score {
-  color: #666; /* Slightly lighter color for the average score */
+  color: #666; 
   font-size: 0.9em;
 }
