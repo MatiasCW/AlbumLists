@@ -95,7 +95,8 @@ header {
 }
 /* Header title */
 header h1 {
-  font-size: 3rem;
+  font-size: 1.5rem;
+  font-family: 'Pacifico', cursive;
   margin: 0;
   flex-grow: 1; /* Allow title to take up remaining space */
   text-align: center;
@@ -124,7 +125,8 @@ header nav .nav-links li {
 header nav .nav-links li a {
   color: white;
   text-decoration: none;
-  font-size: 2rem;
+  font-size: 1.2rem;
+  font-family: 'Pacifico', cursive;
   padding: 5px 10px;
 }
 
