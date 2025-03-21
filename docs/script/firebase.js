@@ -3,21 +3,23 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { 
   getFirestore, collection, query, orderBy, limit, onSnapshot, where 
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js"; // Added Storage
 
 // Initialize Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyBx8UEWD05g3kiPROxWegNmD67LnV1wOuA",
-    authDomain: "thealbumlists.firebaseapp.com",
-    projectId: "thealbumlists",
-    storageBucket: "thealbumlists.firebasestorage.app",
-    messagingSenderId: "534900243533",
-    appId: "1:534900243533:web:9c1142a4ac0ae0d6f33004",
-    measurementId: "G-FVH6R53D5R"
-  };
-  
+  apiKey: "AIzaSyBx8UEWD05g3kiPROxWegNmD67LnV1wOuA",
+  authDomain: "thealbumlists.firebaseapp.com",
+  projectId: "thealbumlists",
+  storageBucket: "thealbumlists.firebasestorage.app",
+  messagingSenderId: "534900243533",
+  appId: "1:534900243533:web:9c1142a4ac0ae0d6f33004",
+  measurementId: "G-FVH6R53D5R"
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app); // Initialize Storage
 
 // Track authentication state
 let userId = null;
@@ -32,12 +34,11 @@ export const listenToTop100Albums = (callback) => {
     const albumsRef = collection(db, "albums");
     const q = query(
       albumsRef,
-      where("numberOfRatings", ">", 0), // Only include albums with ratings
+      where("numberOfRatings", ">", 0),
       orderBy("averageScore", "desc"), 
       limit(100)
     );
 
-    // Real-time updates
     return onSnapshot(q, (snapshot) => {
       const albums = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -50,8 +51,8 @@ export const listenToTop100Albums = (callback) => {
 
   } catch (error) {
     console.error("Error setting up listener:", error);
-    return () => {}; // Return empty unsubscribe function
+    return () => {};
   }
 };
 
-export { auth, db };
+export { auth, db, storage }; // Added storage to exports
