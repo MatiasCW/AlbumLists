@@ -108,6 +108,7 @@ header h1 {
   margin: 0;
   flex-grow: 1; /* Allow title to take up remaining space */
   text-align: center;
+  font-family: 'Pacifico', cursive;
 }
 
 header nav {
