@@ -441,7 +441,7 @@ p {
 #top-albums li {
   margin: 10px 0;
   font-size: 1.2em;
-  background-color: #f9f9f9; /* Light background for each album */
+  background-color: linear-gradient(#f6ca61, #ad881d);
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
@@ -467,7 +467,6 @@ p {
 
 .album-details {
   flex-grow: 1;
-  background-color: linear-gradient(#f6ca61, #ad881d);
 }
 
 .album-details strong {
