@@ -18,8 +18,8 @@ import { auth, db } from "./firebase.js";
         const changeBgBtn = document.getElementById('change-bg-btn');
 
         // Predefined profile pictures and backgrounds
-        const profilePictures = Array.from({ length: 20 }, (_, i) => `media/pfp${i + 1}.jpg`);
-        const backgrounds = Array.from({ length: 20 }, (_, i) => `media/bg${i + 1}.jpg`);
+        const profilePictures = Array.from({ length: 20 }, (_, i) => `media/pfp/pfp${i + 1}.jpg`);
+        const backgrounds = Array.from({ length: 20 }, (_, i) => `media/bg/bg${i + 1}.jpg`);
 
         // Load user data
         const loadUserData = async () => {
