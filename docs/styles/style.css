@@ -122,14 +122,6 @@ header nav .nav-links li {
   margin: 0 15px;
 }
 
-header nav .nav-links li a {
-  color: white;
-  text-decoration: none;
-  font-size: 1.2rem;
-  font-family: 'Pacifico', cursive;
-  padding: 5px 10px;
-}
-
 header nav .nav-links li a:hover {
   background-color: #555;
   border-radius: 5px;
