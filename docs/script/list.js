@@ -7,27 +7,46 @@ window.addEventListener("load", initializeColorPicker);
 
 document.addEventListener("DOMContentLoaded", () => {
   if (window.location.pathname.includes("list.html")) {
-    // Use auth state listener to handle login status
+    const urlParams = new URLSearchParams(window.location.search);
+    const uidParam = urlParams.get('uid'); // Get the UID from the URL parameter
+    let storedSortOrder = 'default'; // Default sorting order
+
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("User is logged in. Fetching albums...");
+      let targetUserId; // The user whose list is being displayed
+      let isOwner = false; // Whether the current user is the owner of the list
 
-        // Retrieve the stored sort order from localStorage (default to 'default')
-        const storedSortOrder = localStorage.getItem("sortOrder") || 'default';
-
-        fetchAndDisplayAlbums(user.uid, storedSortOrder);  // Fetch albums with the stored sort order
-        addAlbumInteractions(user.uid);
-        addScoreHeaderListener(user.uid); // Add listener for score header
+      if (uidParam) {
+        // If a UID parameter is provided, display that user's list
+        targetUserId = uidParam;
+        isOwner = user !== null && user.uid === targetUserId; // Check if the current user is the owner
+        // Use default sorting for others' lists
+        storedSortOrder = isOwner ? localStorage.getItem("sortOrder") || 'default' : 'default';
       } else {
-        alert("You need to log in to view your album list.");
-        window.location.href = "login.html";
+        // If no UID parameter is provided, display the current user's list
+        if (!user) {
+          alert("You need to log in to view your album list.");
+          window.location.href = "login.html";
+          return;
+        }
+        targetUserId = user.uid; // Use the current user's UID
+        isOwner = true; // The current user is the owner
+        storedSortOrder = localStorage.getItem("sortOrder") || 'default'; // Use stored sort order
+      }
+
+      // Fetch and display albums for the target user
+      fetchAndDisplayAlbums(targetUserId, storedSortOrder, isOwner);
+
+      // Add interactions (e.g., score dropdown, remove button) only if the current user is the owner
+      if (isOwner) {
+        addAlbumInteractions(targetUserId);
+        addScoreHeaderListener(targetUserId);
       }
     });
   }
 });
 
 // Fetch and display albums without a container
-async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
+async function fetchAndDisplayAlbums(userId, sortOrder = 'default', isOwner = true) {
   try {
     const tbody = document.querySelector('.album-table tbody');
     tbody.innerHTML = ''; // Clear existing content
@@ -67,14 +86,14 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
         <td><img src="${album.image}" alt="${album.name}" width="100"></td>
         <td>${album.name}</td>
         <td>
-          <select class="score-dropdown" data-album-id="${album.id}"> <!-- Use Firestore document ID -->
+          <select class="score-dropdown" data-album-id="${album.id}" ${isOwner ? '' : 'disabled'}>
             ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
               .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
               .join('')}
           </select>
         </td>
         <td>${album.release_date}</td>
-        <td><button class="remove-btn" data-album-id="${album.id}">-</button></td>
+        <td>${isOwner ? `<button class="remove-btn" data-album-id="${album.id}">-</button>` : ''}</td>
       `;
 
       tbody.appendChild(row);
@@ -86,7 +105,7 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
   }
 }
 
-// Add event listeners for interactions
+// Add event listeners for interactions (only for the owner)
 function addAlbumInteractions(userId) {
   // Update score in the Firestore when dropdown value is changed
   document.addEventListener('change', async (e) => {
@@ -230,7 +249,7 @@ function addAlbumInteractions(userId) {
   });
 }
 
-// Add event listener to the score header for sorting
+// Add event listener to the score header for sorting (only for the owner)
 function addScoreHeaderListener(userId) {
   const scoreHeader = document.querySelector('.album-table th:nth-child(4)'); // Assuming the score header is the 4th column
   let sortOrder = localStorage.getItem("sortOrder") || 'default'; // Get the stored sort order
@@ -248,12 +267,12 @@ function addScoreHeaderListener(userId) {
       // Store the sort order in localStorage for persistence
       localStorage.setItem("sortOrder", sortOrder);
 
-      fetchAndDisplayAlbums(userId, sortOrder); // Fetch and display albums with updated sorting
+      fetchAndDisplayAlbums(userId, sortOrder, true); // Fetch and display albums with updated sorting
     });
   }
 }
 
-// Color picker logic
+// Color picker logic (unchanged)
 function initializeColorPicker() {
   const changeColorBtn = document.getElementById("changeColorBtn");
   const colorModal = document.getElementById("colorModal");
