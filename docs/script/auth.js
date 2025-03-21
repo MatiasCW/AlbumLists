@@ -14,15 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Set up the authentication state listener
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in
-            const loggedInUser = user.displayName || user.email; // Use displayName or email if displayName is not available
-
-            // Display username (or email) in the UI
-            userDisplay.innerHTML = `<span>${loggedInUser}</span>`;
+            const loggedInUser = user.displayName || user.email;
+    
+            // Display username in the navbar and make it clickable
+            userDisplay.innerHTML = `<a href="profile.html?uid=${user.uid}" id="usernameLink">${loggedInUser}</a>`;
             
             // Update the auth buttons to show the Logout option
             authButtons.innerHTML = `<a href="#" id="logoutBtn">Logout</a>`;
-
+    
             // Logout handler
             document.getElementById("logoutBtn")?.addEventListener("click", async (e) => {
                 e.preventDefault();

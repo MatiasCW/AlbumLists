@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        /* Full-page background */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Background image container */
+        #background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://via.placeholder.com/1920x1080'); /* Default background */
+            background-size: cover;
+            background-position: center;
+            z-index: -1; /* Place it behind everything */
+        }
+
+        /* Profile container */
+        .profile-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Semi-transparent border */
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            backdrop-filter: blur(10px); /* Blur effect */
+            position: relative;
+            z-index: 1; /* Place it above the background */
+        }
+
+        /* Profile picture section */
+        .profile-picture {
+            position: relative;
+            width: 150px;
+        }
+
+        #profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+        }
+
+        .upload-btn {
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .upload-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .username {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #list-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #background-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background container -->
+    <div id="background-container"></div>
+
+    <!-- Profile container -->
+    <div class="profile-container">
+        <!-- Profile Picture Section -->
+        <div class="profile-picture">
+            <div class="username"></div> 
+            <img id="profile-image" src="https://via.placeholder.com/150" alt="Profile Picture">
+            <input type="file" id="file-input" accept="image/*">
+            <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+                Change Avatar
+            </button>
+            <br>
+            <button class="upload-btn" onclick="document.getElementById('background-input').click()">
+                Change Background
+            </button>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <!-- List Button -->
+            <button id="list-btn">List</button>
+        </div>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="background-input" accept="image/*">
+
+    <script type="module">
+        import { auth, db, storage } from "./script/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
+
+        // Get the UID from the query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get('uid');
+
+        // Elements
+        const usernameElement = document.querySelector('.username');
+        const profileImage = document.getElementById('profile-image');
+        const backgroundContainer = document.getElementById('background-container');
+        const fileInput = document.getElementById('file-input');
+        const backgroundInput = document.getElementById('background-input');
+
+        // Load user data
+        const loadUserData = async () => {
+            if (!uid) {
+                alert("User ID not found.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            const userDoc = await getDoc(doc(db, 'users', uid));
+            if (userDoc.exists()) {
+                const { username, profileImageUrl, backgroundImageUrl } = userDoc.data();
+                usernameElement.textContent = username;
+                if (profileImageUrl) profileImage.src = profileImageUrl;
+                if (backgroundImageUrl) {
+                    backgroundContainer.style.backgroundImage = `url('${backgroundImageUrl}')`;
+                }
+            } else {
+                alert("User not found.");
+                window.location.href = "index.html";
+            }
+        };
+
+        // Upload profile image
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file || !auth.currentUser) return;
+
+            try {
+                const storageRef = ref(storage, `profilePictures/${auth.currentUser.uid}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+
+                await updateDoc(doc(db, 'users', auth.currentUser.uid), { profileImageUrl: url });
+                profileImage.src = url;
+            } catch (error) {
+                alert('Failed to upload profile image.');
+            }
+        });
+
+        // Upload background image
+        backgroundInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file || !auth.currentUser) return;
+
+            try {
+                const storageRef = ref(storage, `backgrounds/${auth.currentUser.uid}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+
+                await updateDoc(doc(db, 'users', auth.currentUser.uid), { backgroundImageUrl: url });
+                backgroundContainer.style.backgroundImage = `url('${url}')`;
+            } catch (error) {
+                alert('Failed to upload background image.');
+            }
+        });
+
+        // Click image to upload
+        profileImage.addEventListener('click', () => fileInput.click());
+
+        // Initialize page
+        onAuthStateChanged(auth, (user) => {
+            if (!user) window.location.href = "login.html";
+            loadUserData();
+        });
+    </script>
+</body>
+</html>
