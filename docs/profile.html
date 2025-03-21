@@ -178,7 +178,9 @@
 
                 await updateDoc(doc(db, 'users', auth.currentUser.uid), { profileImageUrl: url });
                 profileImage.src = url;
+                alert('Profile picture updated successfully!');
             } catch (error) {
+                console.error('Failed to upload profile image:', error);
                 alert('Failed to upload profile image.');
             }
         });
@@ -195,7 +197,9 @@
 
                 await updateDoc(doc(db, 'users', auth.currentUser.uid), { backgroundImageUrl: url });
                 backgroundContainer.style.backgroundImage = `url('${url}')`;
+                alert('Background image updated successfully!');
             } catch (error) {
+                console.error('Failed to upload background image:', error);
                 alert('Failed to upload background image.');
             }
         });
