@@ -455,7 +455,7 @@ p {
 .album-item {
   display: flex;
   align-items: center;
-  background-color: linear-gradient(#f6ca61, #ad881d);
+  background-color: #f6ca61;
 }
 
 .album-item img {
