@@ -308,6 +308,7 @@ p {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background-color: linear-gradient(#f6ca61, #ad881d);
 }
 
 .album-table th, .album-table td {
