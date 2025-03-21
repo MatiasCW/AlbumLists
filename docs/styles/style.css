@@ -89,13 +89,13 @@ header {
   padding: 10px 0; /* Reduced padding to make the navbar shorter */
   position: relative;
   z-index: 1; /* Ensure header is above the slideshow */
-  height: 80px; /* Fixed height for the navbar */
+  height: 110px; /* Fixed height for the navbar */
   display: flex;
   align-items: center; /* Vertically center items */
 }
 /* Header title */
 header h1 {
-  font-size: 2rem;
+  font-size: 3rem;
   margin: 0;
   flex-grow: 1; /* Allow title to take up remaining space */
   text-align: center;
@@ -124,7 +124,7 @@ header nav .nav-links li {
 header nav .nav-links li a {
   color: white;
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 2rem;
   padding: 5px 10px;
 }
 
