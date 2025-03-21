@@ -455,7 +455,6 @@ p {
 .album-item {
   display: flex;
   align-items: center;
-  background-color: #f6ca61;
 }
 
 .album-item img {
@@ -468,6 +467,7 @@ p {
 
 .album-details {
   flex-grow: 1;
+  background-color: linear-gradient(#f6ca61, #ad881d);
 }
 
 .album-details strong {
