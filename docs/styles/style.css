@@ -20,7 +20,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* Ensure it stays in the background */
+  z-index: -1; 
   background-size: cover;
   background-position: center;
   animation: slideshow 50s infinite;
@@ -58,7 +58,7 @@ body {
     background-image: url('../media/shakira.jpg');
   }
   100% {
-    background-image: url('../media/snoop.jpg'); /* Loop back to the first image */
+    background-image: url('../media/snoop.jpg'); 
   }
 }
 
@@ -68,30 +68,38 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  align-items: center; /* Vertically center items */
+  align-items: center;
   justify-content: space-between;
-  padding: 0; /* Remove padding to avoid extra height */
+  padding: 0; 
 }
+
 /* Logo styling */
 .logo {
-  margin-right: 20px; /* Space between logo and title */
+  margin-right: 20px; 
 }
 
 .logo img {
-  height: 50px; /* Adjust the height as needed */
-  width: auto; /* Maintain aspect ratio */
+  height: 50px; 
+  width: auto; 
+  border: none; 
+}
+
+.logo a {
+  text-decoration: none; 
+  color: inherit;
+  display: inline-block;
 }
 
 /* Header styles */
 header {
-  background-color: rgba(51, 51, 51, 0.8); /* Semi-transparent background */
+  background-color: rgba(51, 51, 51, 0.8); 
   color: white;
-  padding: 10px 0; /* Reduced padding to make the navbar shorter */
+  padding: 10px 0; 
   position: relative;
-  z-index: 1; /* Ensure header is above the slideshow */
-  height: 110px; /* Fixed height for the navbar */
+  z-index: 1; 
+  height: 110px; 
   display: flex;
-  align-items: center; /* Vertically center items */
+  align-items: center;
 }
 
 header nav {
@@ -106,7 +114,7 @@ header nav .nav-links {
   display: flex;
   justify-content: center;
   list-style: none;
-  flex: 1; /* Allow the nav links to take up available space */
+  flex: 1; 
 }
 
 header nav .nav-links li {
@@ -129,9 +137,9 @@ header nav .nav-links li a:hover {
 /* Auth section (Login/Signup) aligned to the right */
 header nav .auth-section {
   display: flex;
-  justify-content: flex-end; /* Align auth links to the far right */
-  align-items: center; /* Center vertically */
-  margin-left: auto; /* Ensure space between nav and auth links */
+  justify-content: flex-end; 
+  align-items: center; 
+  margin-left: auto; 
 }
 
 header nav .auth-section a {
