@@ -434,6 +434,10 @@ p {
   background-color: #36454f;
 }
 
+#top-albums h2{
+  color: white;
+}
+
 #top-albums ul {
   list-style-type: none;
   padding: 0;
