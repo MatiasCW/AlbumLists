@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://matiascw.github.io"], 
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+    "responseHeader": ["Content-Type", "Authorization"],
+    "maxAgeSeconds": 3600
+  }
+]
