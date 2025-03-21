@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  background-color: #36454f;
 }
 
 /* Set the font and background color for the entire page */
@@ -431,7 +432,6 @@ p {
 
 #top-albums {
   margin: 20px;
-  background-color: #36454f;
 }
 
 #top-albums h2{
