@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Fetch and display albums for the target user
       fetchAndDisplayAlbums(targetUserId, storedSortOrder, isOwner);
 
-      // Add interactions (e.g., score dropdown, remove button) only if the current user is the owner
+      // Add interactions (e.g., remove button) only if the current user is the owner
       if (isOwner) {
         addAlbumInteractions(targetUserId);
       }
@@ -84,13 +84,7 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default', isOwner = tr
         <td>${rank++}</td>
         <td><img src="${album.image}" alt="${album.name}" width="100"></td>
         <td>${album.name}</td>
-        <td>
-          <select class="score-dropdown" data-album-id="${album.id}" ${isOwner ? '' : 'disabled'}>
-            ${["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-              .map(opt => `<option ${album.score === opt ? 'selected' : (album.score === null && opt === '-') ? 'selected' : ''}>${opt}</option>`)
-              .join('')}
-          </select>
-        </td>
+        <td>${album.score || '-'}</td> <!-- Display score as plain text -->
         <td>${album.release_date}</td>
         <td>${isOwner ? `<button class="remove-btn" data-album-id="${album.id}">-</button>` : ''}</td>
       `;
@@ -106,87 +100,6 @@ async function fetchAndDisplayAlbums(userId, sortOrder = 'default', isOwner = tr
 
 // Add event listeners for interactions (only for the owner)
 function addAlbumInteractions(userId) {
-  // Update score in the Firestore when dropdown value is changed
-  document.addEventListener('change', async (e) => {
-    if (e.target.classList.contains('score-dropdown')) {
-      const userAlbumId = e.target.dataset.albumId; // Firestore document ID of the user's album
-      const selectedScore = e.target.value === '-' ? null : e.target.value;
-
-      // Update the user's album score
-      const userAlbumRef = doc(db, 'users', userId, 'albums', userAlbumId);
-      await updateDoc(userAlbumRef, { score: selectedScore });
-
-      // Fetch the Spotify ID from the user's album document
-      const userAlbumSnap = await getDoc(userAlbumRef);
-      if (!userAlbumSnap.exists()) return;
-
-      const spotifyId = userAlbumSnap.data().spotifyId; // Spotify ID of the album
-      const globalAlbumRef = doc(db, 'albums', spotifyId);
-      const userRatingRef = doc(globalAlbumRef, 'ratings', userId);
-
-      // Get previous rating (if exists)
-      const userRatingSnap = await getDoc(userRatingRef);
-      const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
-
-      // Use transaction to update global album stats
-      try {
-        await runTransaction(db, async (transaction) => {
-          const albumSnap = await transaction.get(globalAlbumRef);
-          const albumData = albumSnap.exists() ? albumSnap.data() : {
-            totalScore: 0,
-            numberOfRatings: 0,
-            averageScore: 0,
-            name: userAlbumSnap.data().name, // Fallback to user's album data
-            image: userAlbumSnap.data().image
-          };
-
-          // Ensure totalScore and numberOfRatings are numbers
-          let totalScore = Number(albumData.totalScore) || 0;
-          let numberOfRatings = Number(albumData.numberOfRatings) || 0;
-
-          // Subtract old rating if exists
-          if (oldRating !== null) {
-            totalScore -= Number(oldRating) || 0;
-          }
-
-          // Add new rating
-          if (selectedScore !== null) {
-            const newRating = Number(selectedScore) || 0;
-            totalScore += newRating;
-            if (oldRating === null) numberOfRatings += 1; // New rating
-          } else {
-            numberOfRatings = Math.max(numberOfRatings - 1, 0); // Prevent negatives
-          }
-
-          // Clamp values to prevent invalid numbers
-          totalScore = Math.max(totalScore, 0); // Ensure totalScore >= 0
-          numberOfRatings = Math.max(numberOfRatings, 0); // Ensure numberOfRatings >= 0
-
-          // Calculate new average
-          const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
-
-          // Update or create the album document
-          transaction.set(globalAlbumRef, {
-            ...albumData,
-            totalScore,
-            numberOfRatings,
-            averageScore
-          }, { merge: true });
-
-          // Update/delete the rating subcollection
-          if (selectedScore !== null) {
-            transaction.set(userRatingRef, { rating: Number(selectedScore) || 0 });
-          } else {
-            transaction.delete(userRatingRef);
-          }
-        });
-        console.log("Global stats updated!");
-      } catch (error) {
-        console.error("Transaction failed:", error);
-      }
-    }
-  });
-
   // Remove album from Firestore when the remove button is clicked
   document.addEventListener('click', async (e) => {
     if (e.target.classList.contains('remove-btn') && confirm("Are you sure you want to remove this album?")) {
