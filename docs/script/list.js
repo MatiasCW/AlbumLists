@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.location.pathname.includes("list.html")) {
     const urlParams = new URLSearchParams(window.location.search);
     const uidParam = urlParams.get('uid'); // Get the UID from the URL parameter
-    let storedSortOrder = 'default'; // Default sorting order
+    let storedSortOrder = localStorage.getItem("sortOrder") || 'default'; // Get the stored sort order
 
     onAuthStateChanged(auth, (user) => {
       let targetUserId; // The user whose list is being displayed
