@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Add score header listener for sorting (available to all users)
-      addScoreHeaderListener(targetUserId);
+      addScoreHeaderListener(targetUserId, isOwner);
     });
   }
 });
@@ -251,7 +251,7 @@ function addAlbumInteractions(userId) {
 }
 
 // Add event listener to the score header for sorting (available to all users)
-function addScoreHeaderListener(userId) {
+function addScoreHeaderListener(userId, isOwner) {
   const scoreHeader = document.querySelector('.album-table th:nth-child(4)'); // Assuming the score header is the 4th column
   let sortOrder = localStorage.getItem("sortOrder") || 'default'; // Get the stored sort order
 
@@ -269,7 +269,7 @@ function addScoreHeaderListener(userId) {
       localStorage.setItem("sortOrder", sortOrder);
 
       // Fetch and display albums with updated sorting
-      fetchAndDisplayAlbums(userId, sortOrder);
+      fetchAndDisplayAlbums(userId, sortOrder, isOwner);
     });
   }
 }
