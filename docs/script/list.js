@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Fetch and display albums without a container
-async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
+async function fetchAndDisplayAlbums(userId, sortOrder = 'default', isOwner = true) {
   try {
     const tbody = document.querySelector('.album-table tbody');
     tbody.innerHTML = ''; // Clear existing content
@@ -267,8 +267,7 @@ function addScoreHeaderListener(userId) {
       // Store the sort order in localStorage for persistence
       localStorage.setItem("sortOrder", sortOrder);
 
-      // Fetch and display albums with updated sorting
-      fetchAndDisplayAlbums(userId, sortOrder, false); // Pass `false` for `isOwner` to allow sorting for everyone
+      fetchAndDisplayAlbums(userId, sortOrder, true); // Fetch and display albums with updated sorting
     });
   }
 }
