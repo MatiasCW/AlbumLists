@@ -10,10 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!username) return;
 
             try {
+                // Convert the search term to lowercase
+                const lowercaseUsername = username.toLowerCase();
+
                 // Search in the usernames collection
                 const q = query(
                     collection(db, 'usernames'), 
-                    where('username', '==', username.toLowerCase())
+                    where('username', '==', lowercaseUsername)
                 );
 
                 const querySnapshot = await getDocs(q);
@@ -23,7 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // Get the userId from the query result
                 const userId = querySnapshot.docs[0].data().userId;
+
+                // Redirect to the user's profile page
                 window.location.href = `profile.html?uid=${userId}`;
             } catch (error) {
                 console.error('Error searching user:', error);
