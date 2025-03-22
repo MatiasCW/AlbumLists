@@ -267,7 +267,8 @@ function addScoreHeaderListener(userId) {
       // Store the sort order in localStorage for persistence
       localStorage.setItem("sortOrder", sortOrder);
 
-      fetchAndDisplayAlbums(userId, sortOrder, true); // Fetch and display albums with updated sorting
+      // Fetch and display albums with updated sorting
+      fetchAndDisplayAlbums(userId, sortOrder, false); // Pass `false` for `isOwner` to allow sorting for everyone
     });
   }
 }
