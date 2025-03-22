@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Convert the search term to lowercase
                 const lowercaseUsername = username.toLowerCase();
+                console.log("Searching for username:", lowercaseUsername);
 
                 // Search in the usernames collection
                 const q = query(
@@ -20,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
 
                 const querySnapshot = await getDocs(q);
-                
+                console.log("Query Result:", querySnapshot.docs);
+
                 if (querySnapshot.empty) {
                     alert('User not found');
                     return;
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Get the userId from the query result
                 const userId = querySnapshot.docs[0].data().userId;
+                console.log("User ID found:", userId);
 
                 // Redirect to the user's profile page
                 window.location.href = `profile.html?uid=${userId}`;

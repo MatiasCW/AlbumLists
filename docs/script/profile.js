@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.
 // Get the UID from the query parameter
 const urlParams = new URLSearchParams(window.location.search);
 const uid = urlParams.get('uid');
+console.log("UID from URL:", uid);
 
 // Elements
 const usernameElement = document.querySelector('.username');
@@ -31,8 +32,12 @@ const loadUserData = async () => {
     }
 
     try {
+        console.log("Fetching user data for UID:", uid);
+
         // Fetch user document from Firestore
         const userDoc = await getDoc(doc(db, 'users', uid));
+        console.log("User Document:", userDoc.data());
+
         if (userDoc.exists()) {
             const { username, profilePicture, backgroundImage } = userDoc.data();
 
