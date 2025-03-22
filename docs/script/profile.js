@@ -20,7 +20,7 @@ const changeBgBtn = document.getElementById('change-bg-btn');
 const listBtn = document.getElementById('list-btn'); // Added List button reference
 
 // Predefined profile pictures and backgrounds
-const profilePictures = Array.from({ length: 20 }, (_, i) => `media/pfp/pfp${i + 1}.jpg`);
+const profilePictures = Array.from({ length: 23 }, (_, i) => `media/pfp/pfp${i + 1}.jpg`);
 const backgrounds = Array.from({ length: 20 }, (_, i) => `media/bg/bg${i + 1}.jpg`);
 
 // Load user data
