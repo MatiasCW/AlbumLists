@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('userSearch');
@@ -10,29 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!username) return;
 
             try {
-                // Convert the search term to lowercase
+                // Convert to lowercase for document ID lookup
                 const lowercaseUsername = username.toLowerCase();
                 console.log("Searching for username:", lowercaseUsername);
 
-                // Search in the usernames collection
-                const q = query(
-                    collection(db, 'usernames'), 
-                    where('username', '==', lowercaseUsername)
-                );
+                // Get document directly by ID from usernames collection
+                const docRef = doc(db, 'usernames', lowercaseUsername);
+                const docSnap = await getDoc(docRef);
 
-                const querySnapshot = await getDocs(q);
-                console.log("Query Result:", querySnapshot.docs);
+                console.log("Query Result:", docSnap);
 
-                if (querySnapshot.empty) {
+                if (!docSnap.exists()) {
                     alert('User not found');
                     return;
                 }
 
-                // Get the userId from the query result
-                const userId = querySnapshot.docs[0].data().userId;
+                // Get the userId from the document
+                const userId = docSnap.data().userId;
                 console.log("User ID found:", userId);
 
-                // Redirect to the user's profile page
+                // Redirect to profile
                 window.location.href = `profile.html?uid=${userId}`;
             } catch (error) {
                 console.error('Error searching user:', error);
