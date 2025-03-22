@@ -1,41 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Options</title>
     <link rel="stylesheet" href="styles/style.css">
     <style>
+        /* Prevent scrolling on the body */
+        body {
+            margin: 0;
+            /* Remove default margin */
+            overflow: hidden;
+            /* Disable scrolling */
+        }
+
         .search-options {
             display: flex;
             height: 100vh;
+            /* Full viewport height */
         }
+
         .search-option {
-            flex: 1; /* Each option takes 50% of the width */
+            flex: 1;
+            /* Each option takes 50% of the width */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: 0.3s;
-            background-size: cover; /* Stretch the image to fit the container */
-            background-position: center; /* Centers the image */
-            background-repeat: no-repeat; /* Prevents the image from repeating */
-            position: absolute;
+            background-size: cover;
+            /* Cover the container without distorting the image */
+            background-position: center;
+            /* Centers the image */
+            background-repeat: no-repeat;
+            /* Prevents the image from repeating */
         }
 
         .search-option:hover {
             opacity: 0.9;
         }
+
         .search-users {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                       url('media/users.jpg');
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('media/search-users.jpg');
             color: white;
         }
+
         .search-albums {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                       url('media/artists.jpg');
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('media/search-albums.jpg');
             color: white;
         }
+
         .option-content {
             text-align: center;
             font-size: 2.5em;
@@ -43,6 +60,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="container">
@@ -85,4 +103,5 @@
     <script type="module" src="script/firebase.js"></script>
     <script type="module" src="script/auth.js"></script>
 </body>
+
 </html>
