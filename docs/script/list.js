@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Fetch and display albums without a container
-async function fetchAndDisplayAlbums(userId, sortOrder = 'default', isOwner = true) {
+async function fetchAndDisplayAlbums(userId, sortOrder = 'default') {
   try {
     const tbody = document.querySelector('.album-table tbody');
     tbody.innerHTML = ''; // Clear existing content
