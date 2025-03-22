@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('userSearch');
@@ -10,26 +10,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!username) return;
 
             try {
-                // Convert to lowercase for document ID lookup
-                const lowercaseUsername = username.toLowerCase();
-                console.log("Searching for username:", lowercaseUsername);
+                console.log("Searching for username:", username);
 
-                // Get document directly by ID from usernames collection
-                const docRef = doc(db, 'usernames', lowercaseUsername);
-                const docSnap = await getDoc(docRef);
+                // Query the usernames collection for a matching username (case-sensitive)
+                const q = query(
+                    collection(db, 'usernames'),
+                    where('username', '==', username) // Case-sensitive search
+                );
 
-                console.log("Query Result:", docSnap);
+                const querySnapshot = await getDocs(q);
+                console.log("Query Result:", querySnapshot.docs);
 
-                if (!docSnap.exists()) {
+                if (querySnapshot.empty) {
                     alert('User not found');
                     return;
                 }
 
-                // Get the userId from the document
-                const userId = docSnap.data().userId;
+                // Get the userId from the query result
+                const userId = querySnapshot.docs[0].data().userId; // Use 'userId' field
                 console.log("User ID found:", userId);
 
-                // Redirect to profile
+                // Redirect to the user's profile page
                 window.location.href = `profile.html?uid=${userId}`;
             } catch (error) {
                 console.error('Error searching user:', error);
