@@ -11,26 +11,27 @@
             height: 100vh;
         }
         .search-option {
-            flex: 1;
+            flex: 1; /* Each option takes 50% of the width */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: 0.3s;
-            background-size: cover;
-            background-position: center;
+            background-size: cover; /* Ensures the image covers the entire container */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
         }
         .search-option:hover {
             opacity: 0.9;
         }
         .search-users {
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                       url('media/users.jpg');
+                       url('media/search-users.jpg');
             color: white;
         }
         .search-albums {
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                       url('media/artists.jpg');
+                       url('media/search-albums.jpg');
             color: white;
         }
         .option-content {
