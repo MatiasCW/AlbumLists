@@ -19,8 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // If a UID parameter is provided, display that user's list
         targetUserId = uidParam;
         isOwner = user !== null && user.uid === targetUserId; // Check if the current user is the owner
-        // Use default sorting for others' lists
-        storedSortOrder = isOwner ? localStorage.getItem("sortOrder") || 'default' : 'default';
       } else {
         // If no UID parameter is provided, display the current user's list
         if (!user) {
@@ -30,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         targetUserId = user.uid; // Use the current user's UID
         isOwner = true; // The current user is the owner
-        storedSortOrder = localStorage.getItem("sortOrder") || 'default'; // Use stored sort order
       }
 
       // Fetch and display albums for the target user
@@ -39,8 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Add interactions (e.g., score dropdown, remove button) only if the current user is the owner
       if (isOwner) {
         addAlbumInteractions(targetUserId);
-        addScoreHeaderListener(targetUserId);
       }
+
+      // Add score header listener for sorting (available to all users)
+      addScoreHeaderListener(targetUserId);
     });
   }
 });
@@ -249,7 +248,7 @@ function addAlbumInteractions(userId) {
   });
 }
 
-// Add event listener to the score header for sorting (only for the owner)
+// Add event listener to the score header for sorting (available to all users)
 function addScoreHeaderListener(userId) {
   const scoreHeader = document.querySelector('.album-table th:nth-child(4)'); // Assuming the score header is the 4th column
   let sortOrder = localStorage.getItem("sortOrder") || 'default'; // Get the stored sort order
@@ -267,7 +266,8 @@ function addScoreHeaderListener(userId) {
       // Store the sort order in localStorage for persistence
       localStorage.setItem("sortOrder", sortOrder);
 
-      fetchAndDisplayAlbums(userId, sortOrder, true); // Fetch and display albums with updated sorting
+      // Fetch and display albums with updated sorting
+      fetchAndDisplayAlbums(userId, sortOrder);
     });
   }
 }
