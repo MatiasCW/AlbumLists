@@ -1,7 +1,6 @@
 {
   "name": "albumlists",
   "version": "1.0.0",
-  "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,6 +10,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
-  }
+    "express": "^4.21.2",
+    "firebase-admin": "^13.2.0"
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatiasCW/AlbumLists.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MatiasCW/AlbumLists/issues"
+  },
+  "homepage": "https://github.com/MatiasCW/AlbumLists#readme",
+  "description": ""
 }

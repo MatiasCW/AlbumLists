@@ -3,7 +3,40 @@ import { auth, db } from "./firebase.js";
 
 // Import Firebase Authentication and Firestore functions
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+// Function to check if a username is unique
+async function checkUsernameUnique(username) {
+    const q = query(
+        collection(db, 'usernames'),
+        where('username', '==', username.toLowerCase())
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.empty; // Returns true if the username is unique
+}
+
+// Function to create a user profile
+async function createUserProfile(user, username, email) {
+    // Check username uniqueness
+    if (!(await checkUsernameUnique(username))) {
+        throw new Error('Username already exists');
+    }
+
+    // Create user document in the 'users' collection
+    await setDoc(doc(db, 'users', user.uid), {
+        username: username,
+        email: email,
+        createdAt: serverTimestamp(),
+        profilePicture: "https://via.placeholder.com/150", // Default profile picture
+        backgroundImage: "https://via.placeholder.com/1920x1080" // Default background image
+    });
+
+    // Create username reference in the 'usernames' collection
+    await setDoc(doc(db, 'usernames', username.toLowerCase()), {
+        userId: user.uid,
+        username: username
+    });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const signupForm = document.getElementById("signupForm");
@@ -21,19 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     // Create user with Firebase Authentication
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    
+
                     // Update user profile with username
                     await updateProfile(userCredential.user, {
                         displayName: username
                     });
 
-                    // Store additional user data in Firestore
-                    const userRef = doc(db, "users", userCredential.user.uid);
-                    await setDoc(userRef, {
-                        username: username,
-                        email: email,
-                        createdAt: serverTimestamp()
-                    });
+                    // Create user profile in Firestore
+                    await createUserProfile(userCredential.user, username, email);
 
                     // Redirect to homepage after successful signup
                     window.location.href = "index.html";
@@ -50,6 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             break;
                         case "auth/weak-password":
                             errorMessage = "Password should be at least 6 characters.";
+                            break;
+                        case "username-already-exists": // Custom error for username uniqueness
+                            errorMessage = "Username is already taken.";
                             break;
                         default:
                             errorMessage = error.message; // Show the default error message

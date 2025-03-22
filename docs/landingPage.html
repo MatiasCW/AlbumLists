@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Options</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .search-options {
+            display: flex;
+            height: 100vh;
+        }
+        .search-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background-size: cover;
+            background-position: center;
+        }
+        .search-option:hover {
+            opacity: 0.9;
+        }
+        .search-users {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                       url('media/search-users.jpg');
+            color: white;
+        }
+        .search-albums {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                       url('media/search-albums.jpg');
+            color: white;
+        }
+        .option-content {
+            text-align: center;
+            font-size: 2.5em;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <!-- Logo as a link to index.html -->
+            <div class="logo">
+                <a href="index.html">
+                    <img src="media/logo.png" alt="Logo">
+                </a>
+            </div>
+            <h1>Sounada</h1>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="list.html">List</a></li>
+                    <li><a href="rankings.html">Rankings</a></li>
+                    <li><a href="landingPage.html">Search</a></li>
+                </ul>
+                <div class="auth-section">
+                    <span id="userDisplay"></span> <!-- Username (if logged in) -->
+                    <div id="authButtons">
+                        <a href="signup.html">Sign Up</a>
+                        <a href="login.html">Login</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <div class="search-options">
+        <div class="search-option search-users" onclick="window.location.href='usearch.html'">
+            <div class="option-content">
+                🔍 Search Users
+            </div>
+        </div>
+        <div class="search-option search-albums" onclick="window.location.href='search.html'">
+            <div class="option-content">
+                🎵 Search Albums
+            </div>
+        </div>
+    </div>
+    <script type="module" src="script/firebase.js"></script>
+    <script type="module" src="script/auth.js"></script>
+</body>
+</html>

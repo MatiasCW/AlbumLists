@@ -1,11 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Albums</title>
+    <title>Search Users</title>
     <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .user-search-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .search-input {
+            margin: 20px 0;
+        }
+
+        #userSearch {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+        }
+    </style>
 </head>
+
 <body>
     <header>
         <div class="container">
@@ -33,13 +53,20 @@
             </nav>
         </div>
     </header>
+    <header>
+        <!-- Same header as other pages -->
     </header>
 
-    <div class="album-container"></div> <!-- Albums will be displayed here -->
+    <div class="user-search-container">
+        <h1>Search Users by Username</h1>
+        <div class="search-input">
+            <input type="text" id="userSearch" placeholder="Enter username and press Enter...">
+        </div>
+    </div>
+
     <script type="module" src="script/firebase.js"></script>
     <script type="module" src="script/auth.js"></script>
-    <script type="module" src="script/fetch.js"></script>
-    <script type="module" src="script/list.js"></script>
+    <script type="module" src="script/usearch.js"></script>
 </body>
-</html>
 
+</html>

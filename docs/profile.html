@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/style.css">
     <title>User Profile</title>
+</head>
+
+<body>
     <header>
         <div class="container">
             <!-- Logo as a link to index.html -->
@@ -19,7 +23,7 @@
                     <li><a href="index.html">Home</a></li>
                     <li><a href="list.html">List</a></li>
                     <li><a href="rankings.html">Rankings</a></li>
-                    <li><a href="search.html">Search</a></li>
+                    <li><a href="landingPage.html">Search</a></li>
                 </ul>
                 <div class="auth-section">
                     <span id="userDisplay"></span> <!-- Username (if logged in) -->
@@ -31,8 +35,6 @@
             </nav>
         </div>
     </header>
-</head>
-<body>
     <!-- Background container -->
     <div id="background-container"></div>
 
@@ -40,7 +42,7 @@
     <div class="profile-container">
         <!-- Profile Picture Section -->
         <div class="profile-picture">
-            <div class="username"></div> 
+            <div class="username"></div>
             <img id="profile-image" src="https://via.placeholder.com/150" alt="Profile Picture">
             <input type="file" id="file-input" accept="image/*">
             <button class="upload-btn" id="change-pfp-btn">
@@ -85,4 +87,5 @@
     <script type="module" src="script/firebase.js"></script>
     <script type="module" src="script/auth.js"></script>
 </body>
+
 </html>
