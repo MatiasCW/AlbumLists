@@ -21,7 +21,7 @@ const listBtn = document.getElementById('list-btn'); // Added List button refere
 
 // Predefined profile pictures and backgrounds
 const profilePictures = Array.from({ length: 23 }, (_, i) => `media/pfp/pfp${i + 1}.jpg`);
-const backgrounds = Array.from({ length: 20 }, (_, i) => `media/bg/bg${i + 1}.jpg`);
+const backgrounds = Array.from({ length: 12 }, (_, i) => `media/bg/bg${i + 1}.jpg`);
 
 // Load user data
 const loadUserData = async () => {
