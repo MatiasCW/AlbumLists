@@ -30,22 +30,46 @@ const loadUserData = async () => {
         return;
     }
 
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    if (userDoc.exists()) {
-        const { username, profilePicture, backgroundImage } = userDoc.data();
-        usernameElement.textContent = username;
-        profileImage.src = profilePicture || "https://via.placeholder.com/150";
-        backgroundContainer.style.backgroundImage = `url('${backgroundImage || "https://via.placeholder.com/1920x1080"}')`;
+    try {
+        // Fetch user document from Firestore
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        if (userDoc.exists()) {
+            const { username, profilePicture, backgroundImage } = userDoc.data();
 
-        // Set the List button's href to the user's list page
-        if (listBtn) {
-            listBtn.onclick = () => {
-                window.location.href = `list.html?uid=${uid}`;
-            };
+            // Display username
+            usernameElement.textContent = username || "Unknown User";
+
+            // Set profile picture
+            profileImage.src = profilePicture || "https://via.placeholder.com/150";
+
+            // Set background image
+            backgroundContainer.style.backgroundImage = `url('${backgroundImage || "https://via.placeholder.com/1920x1080"}')`;
+
+            // Set the List button's href to the user's list page
+            if (listBtn) {
+                listBtn.onclick = () => {
+                    window.location.href = `list.html?uid=${uid}`;
+                };
+            }
+
+            // Enable profile editing only for the current user
+            const currentUser = auth.currentUser;
+            if (currentUser && currentUser.uid === uid) {
+                // Show edit buttons for profile picture and background
+                changePfpBtn.style.display = "block";
+                changeBgBtn.style.display = "block";
+            } else {
+                // Hide edit buttons for other users
+                changePfpBtn.style.display = "none";
+                changeBgBtn.style.display = "none";
+            }
+        } else {
+            alert("User not found.");
+            window.location.href = "index.html";
         }
-    } else {
-        alert("User not found.");
-        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Error loading user data:", error);
+        alert("Error loading user data. Please try again.");
     }
 };
 
@@ -111,6 +135,9 @@ const loadBgOptions = () => {
 
 // Initialize page
 onAuthStateChanged(auth, (user) => {
-    if (!user) window.location.href = "login.html";
-    loadUserData();
+    if (!user) {
+        window.location.href = "login.html";
+    } else {
+        loadUserData();
+    }
 });
