@@ -2,6 +2,9 @@ import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
+// Default profile picture
+const DEFAULT_PFP = "media/default.jpg";
+
 // Get the UID from the query parameter
 const urlParams = new URLSearchParams(window.location.search);
 const uid = urlParams.get('uid');
@@ -17,11 +20,12 @@ const pfpOptions = document.getElementById('pfp-options');
 const bgOptions = document.getElementById('bg-options');
 const changePfpBtn = document.getElementById('change-pfp-btn');
 const changeBgBtn = document.getElementById('change-bg-btn');
-const listBtn = document.getElementById('list-btn'); // Added List button reference
+const listBtn = document.getElementById('list-btn');
 
-// Predefined profile pictures and backgrounds
-const profilePictures = Array.from({ length: 23 }, (_, i) => `media/pfp/pfp${i + 1}.jpg`);
-const backgrounds = Array.from({ length: 12 }, (_, i) => `media/bg/bg${i + 1}.jpg`);
+// Set default pfp if the specified one fails to load
+profileImage.onerror = () => {
+    profileImage.src = DEFAULT_PFP;
+};
 
 // Load user data
 const loadUserData = async () => {
@@ -44,10 +48,10 @@ const loadUserData = async () => {
             // Display username
             usernameElement.textContent = username || "Unknown User";
 
-            // Set profile picture
-            profileImage.src = profilePicture || "https://via.placeholder.com/150";
+            // Set profile picture with fallback to default
+            profileImage.src = profilePicture || DEFAULT_PFP;
 
-            // Set background image
+            // Set background image (unchanged from your original code)
             backgroundContainer.style.backgroundImage = `url('${backgroundImage || "https://via.placeholder.com/1920x1080"}')`;
 
             // Set the List button's href to the user's list page
