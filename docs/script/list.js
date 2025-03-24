@@ -274,7 +274,7 @@ function addScoreHeaderListener(userId, isOwner) {
   }
 }
 
-// Color picker logic (unchanged)
+// Modify initializeColorPicker to use Firestore
 function initializeColorPicker() {
   const changeColorBtn = document.getElementById("changeColorBtn");
   const colorModal = document.getElementById("colorModal");
@@ -284,47 +284,69 @@ function initializeColorPicker() {
 
   if (!changeColorBtn || !colorModal || !closeModal || !backgroundColorPicker || !fontColorPicker) return;
 
-  // Retrieve the saved background color from localStorage and apply it if available
-  const savedBackgroundColor = localStorage.getItem("backgroundColor");
-  if (savedBackgroundColor) {
-    document.body.style.backgroundColor = savedBackgroundColor;
-    backgroundColorPicker.value = savedBackgroundColor;
-  }
+  const urlParams = new URLSearchParams(window.location.search);
+  const uidParam = urlParams.get('uid');
+  let isOwner = !uidParam; // If no UID param, assume owner
 
-  // Retrieve the saved font color from localStorage and apply it if available
-  const savedFontColor = localStorage.getItem("fontColor");
-  if (savedFontColor) {
-    // Apply font color to all elements except the modal
-    applyFontColor(savedFontColor);
-    fontColorPicker.value = savedFontColor;
-  }
+  // Only show style button if owner
+  changeColorBtn.style.display = isOwner ? 'block' : 'none';
 
-  // Open the color picker modal
+  onAuthStateChanged(auth, async (user) => {
+    if (!isOwner && uidParam) {
+      // Apply owner's style when viewing someone else's list
+      const ownerDoc = await getDoc(doc(db, 'users', uidParam));
+      if (ownerDoc.exists()) {
+        const { backgroundColor, fontColor } = ownerDoc.data();
+        applyColors(backgroundColor, fontColor);
+      }
+    } else if (user) {
+      // Load owner's style from Firestore
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const { backgroundColor, fontColor } = userDoc.data();
+        applyColors(backgroundColor, fontColor);
+        backgroundColorPicker.value = backgroundColor || '#ffffff';
+        fontColorPicker.value = fontColor || '#000000';
+      }
+    }
+  });
+
+  // Update color picker handlers
+  backgroundColorPicker.addEventListener("input", async (e) => {
+    const color = e.target.value;
+    document.body.style.backgroundColor = color;
+    if (auth.currentUser) {
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+        backgroundColor: color
+      });
+    }
+  });
+
+  fontColorPicker.addEventListener("input", async (e) => {
+    const color = e.target.value;
+    applyFontColor(color);
+    if (auth.currentUser) {
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+        fontColor: color
+      });
+    }
+  });
+
+  // Rest of modal handling remains the same
   changeColorBtn.addEventListener("click", () => colorModal.style.display = "flex");
-
-  // Close the modal when the close button is clicked
   closeModal.addEventListener("click", () => colorModal.style.display = "none");
-
-  // Close the modal when clicking outside the modal
   window.addEventListener("click", (e) => e.target === colorModal && (colorModal.style.display = "none"));
-
-  // Update the background color when the background color picker input changes
-  backgroundColorPicker.addEventListener("input", (e) => {
-    document.body.style.backgroundColor = e.target.value;
-    localStorage.setItem("backgroundColor", e.target.value); // Save background color to localStorage
-  });
-
-  // Update the font color when the font color picker input changes
-  fontColorPicker.addEventListener("input", (e) => {
-    const selectedFontColor = e.target.value;
-    applyFontColor(selectedFontColor); // Apply font color to all elements except the modal
-    localStorage.setItem("fontColor", selectedFontColor); // Save font color to localStorage
-  });
 }
 
-// Helper function to apply font color to all elements except the modal
+// Helper to apply both colors
+function applyColors(bgColor, fontColor) {
+  if (bgColor) document.body.style.backgroundColor = bgColor;
+  if (fontColor) applyFontColor(fontColor);
+}
+
+// Modified applyFontColor
 function applyFontColor(color) {
-  const allElements = document.querySelectorAll("body *:not(.modal *)"); // Select all elements except those inside the modal
+  const allElements = document.querySelectorAll("body *:not(.modal *)");
   allElements.forEach(element => {
     element.style.color = color;
   });
