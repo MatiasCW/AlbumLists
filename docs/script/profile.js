@@ -22,6 +22,10 @@ const changePfpBtn = document.getElementById('change-pfp-btn');
 const changeBgBtn = document.getElementById('change-bg-btn');
 const listBtn = document.getElementById('list-btn');
 
+// Predefined profile pictures and backgrounds
+const profilePictures = Array.from({ length: 23 }, (_, i) => `media/pfp/pfp${i + 1}.jpg`);
+const backgrounds = Array.from({ length: 12 }, (_, i) => `media/bg/bg${i + 1}.jpg`);
+
 // Set default pfp if the specified one fails to load
 profileImage.onerror = () => {
     profileImage.src = DEFAULT_PFP;
