@@ -1,1 +1,1 @@
-Make an account, rate artists' albums, and rate them. 
+Make an account, add artists' albums to a list, and rate them. 
