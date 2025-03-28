@@ -646,6 +646,7 @@ p {
 .user-username {
   font-size: 1.1rem;
   font-weight: 600;
+  color: #333;
   text-align: center;
   max-width: 100%;
   word-break: break-word;
@@ -664,6 +665,5 @@ p {
 .users-grid-container {
   position: relative;
   z-index: 1;
-  background-color: rgba(0, 0, 0, 0.5);
   padding-bottom: 3rem;
 }
