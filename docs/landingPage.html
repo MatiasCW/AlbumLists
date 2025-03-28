@@ -7,34 +7,26 @@
     <title>Search Options</title>
     <link rel="stylesheet" href="styles/style.css">
     <style>
-        /* Prevent scrolling on the body */
         body {
             margin: 0;
-            /* Remove default margin */
             overflow: hidden;
-            /* Disable scrolling */
         }
 
         .search-options {
             display: flex;
             height: 100vh;
-            /* Full viewport height */
         }
 
         .search-option {
             flex: 1;
-            /* Each option takes 50% of the width */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: 0.3s;
             background-size: cover;
-            /* Cover the container without distorting the image */
             background-position: center;
-            /* Centers the image */
             background-repeat: no-repeat;
-            /* Prevents the image from repeating */
         }
 
         .search-option:hover {
@@ -64,7 +56,6 @@
 <body>
     <header>
         <div class="container">
-            <!-- Logo as a link to index.html -->
             <div class="logo">
                 <a href="index.html">
                     <img src="media/logo.png" alt="Logo">
