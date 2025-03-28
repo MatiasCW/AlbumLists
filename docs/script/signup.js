@@ -32,10 +32,10 @@ async function createUserProfile(user, username, email) {
     });
 
     // Create username reference in the 'usernames' collection
-    await setDoc(doc(db, 'usernames', usernameLower)), {
+    await setDoc(doc(db, 'usernames', usernameLower), {
         userId: user.uid,
         username: usernameLower
-    };
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -46,8 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
             event.preventDefault();
 
             // Get form values
-            const username = document.getElementById("signupUsername").value;
-            const email = document.getElementById("signupEmail").value;
+            const username = document.getElementById("signupUsername").value.trim();
+            const email = document.getElementById("signupEmail").value.trim();
             const password = document.getElementById("signupPassword").value;
 
             if (username && email && password) {
