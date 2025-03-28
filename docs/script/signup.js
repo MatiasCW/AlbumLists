@@ -32,7 +32,7 @@ async function createUserProfile(user, username, email) {
     });
 
     // Create username reference in the 'usernames' collection
-    await setDoc(doc(db, 'usernames', usernameLower), {
+    await setDoc(doc(db, 'usernames', usernameLower)), {
         userId: user.uid,
         username: usernameLower
     };
