@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,15 +36,22 @@
     </header>
 
     <main>
+        <!-- Before (with two containers) -->
         <div class="users-grid-container">
-            <h2 class="community-title">Community Members</h2>
             <div class="users-grid" id="usersContainer">
+                <!-- user cards -->
             </div>
-          </div>
+        </div>
+
+        <!-- After (simplified) -->
+        <div class="users-grid" id="usersContainer">
+            <!-- user cards -->
+        </div>
     </main>
-    
+
     <script type="module" src="script/firebase.js"></script>
     <script type="module" src="script/auth.js"></script>
     <script type="module" src="script/home.js"></script>
 </body>
+
 </html>
