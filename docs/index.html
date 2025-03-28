@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Album Lists</title>
     <link rel="stylesheet" href="styles/style.css">
 </head>
-
 <body>
+    <div class="slideshow-background"></div>
+    
     <header>
         <div class="container">
             <div class="logo">
@@ -38,12 +38,16 @@
     <main>
         <section class="community-section">
             <h2 class="section-title">Community Members</h2>
-            <div class="users-grid" id="usersContainer"></div>
+            <div class="users-grid" id="usersContainer">
+                <!-- User cards will be inserted here by JavaScript -->
+            </div>
         </section>
 
         <section class="albums-section">
             <h2 class="section-title">Top Rated Albums</h2>
-            <div class="users-grid" id="topAlbumsContainer"></div>
+            <div class="users-grid" id="topAlbumsContainer">
+                <!-- Album cards will be inserted here by JavaScript -->
+            </div>
         </section>
     </main>
 
@@ -51,5 +55,4 @@
     <script type="module" src="script/auth.js"></script>
     <script type="module" src="script/home.js"></script>
 </body>
-
 </html>

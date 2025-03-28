@@ -589,29 +589,58 @@ p {
 .community-section, .albums-section {
   padding: 2rem;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 2rem auto;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
-  color: white;
+  color: #333;
   text-align: center;
   margin-bottom: 2rem;
   font-family: 'Pacifico', cursive;
   font-size: 2rem;
 }
 
-.average-score {
-  color: #ffd700;
-  font-size: 0.9em;
-  margin-top: 0.5rem;
-  text-align: center;
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
 }
 
 .user-card {
+  text-align: center;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: transform 0.2s;
 }
 
 .user-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.profile-image-container img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 3px solid #007bff;
+}
+
+.user-username {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.average-score {
+  color: #ffd700;
+  font-size: 1rem;
+  font-weight: bold;
 }
