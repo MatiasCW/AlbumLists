@@ -1,20 +1,20 @@
 import { db } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Function to create user card HTML
 function createUserCard(userData, userId) {
     return `
-        <div class="user-card">
+    <div class="user-card">
+        <div class="profile-circle">
             <img src="${userData.profilePicture || 'media/default.jpg'}" 
                  alt="${userData.username}'s profile" 
-                 class="user-pfp"
+                 class="profile-image"
                  onerror="this.src='media/default.jpg'">
-            <h3><a href="profile.html?uid=${userId}">${userData.username || 'Anonymous'}</a></h3>
         </div>
+        <div class="username">${userData.username || 'Anonymous'}</div>
+    </div>
     `;
 }
 
-// Function to load all users from Firestore
 async function loadAllUsers() {
     const usersContainer = document.getElementById('usersContainer');
     
@@ -29,7 +29,13 @@ async function loadAllUsers() {
 
         usersContainer.innerHTML = '';
         querySnapshot.forEach((doc) => {
-            usersContainer.innerHTML += createUserCard(doc.data(), doc.id);
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            userCard.innerHTML = createUserCard(doc.data(), doc.id);
+            userCard.addEventListener('click', () => {
+                window.location.href = `profile.html?uid=${doc.id}`;
+            });
+            usersContainer.appendChild(userCard);
         });
 
     } catch (error) {
@@ -38,7 +44,4 @@ async function loadAllUsers() {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    loadAllUsers();
-});
+document.addEventListener('DOMContentLoaded', loadAllUsers);
