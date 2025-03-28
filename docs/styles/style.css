@@ -584,3 +584,33 @@ p {
 .image-option img:hover {
   border: 2px solid #007bff;
 }
+
+ /* Add to your existing CSS or create a new section */
+ .users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-card {
+  text-align: center;
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.user-card:hover {
+  transform: translateY(-5px);
+}
+
+.user-pfp {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}

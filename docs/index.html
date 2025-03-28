@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
 <body>
     <header>
         <div class="container">
-            <!-- Logo as a link to index.html -->
             <div class="logo">
                 <a href="index.html">
                     <img src="media/logo.png" alt="Logo">
@@ -26,7 +24,7 @@
                     <li><a href="landingPage.html">Search</a></li>
                 </ul>
                 <div class="auth-section">
-                    <span id="userDisplay"></span> <!-- Username (if logged in) -->
+                    <span id="userDisplay"></span>
                     <div id="authButtons">
                         <a href="signup.html">Sign Up</a>
                         <a href="login.html">Login</a>
@@ -35,8 +33,16 @@
             </nav>
         </div>
     </header>
+
+    <main>
+        <h2 class="community-title">Community Members</h2>
+        <div class="users-grid" id="usersContainer">
+            <!-- Users will be loaded here by home.js -->
+        </div>
+    </main>
+    
     <script type="module" src="script/firebase.js"></script>
     <script type="module" src="script/auth.js"></script>
+    <script type="module" src="script/home.js"></script>
 </body>
-
 </html>
