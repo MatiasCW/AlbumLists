@@ -1,41 +1,43 @@
 // Import Firebase instances from firebase.js
 import { auth, db } from "./firebase.js";
-
-// Import Firebase Authentication and Firestore functions
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Function to check if a username is unique
 async function checkUsernameUnique(username) {
     const usernameLower = username.toLowerCase();
     const docRef = doc(db, 'usernames', usernameLower);
     const docSnap = await getDoc(docRef);
-    return !docSnap.exists(); // Returns true if username is unique
+    return !docSnap.exists();
 }
 
 // Function to create a user profile
 async function createUserProfile(user, username, email) {
     const usernameLower = username.toLowerCase();
     
-    // Check username uniqueness
     if (!(await checkUsernameUnique(username))) {
         throw new Error('Username already exists');
     }
 
-    // Create user document in the 'users' collection
-    await setDoc(doc(db, 'users', user.uid), {
+    // Use batch write for atomic operations
+    const batch = writeBatch(db);
+    
+    // Create user document
+    batch.set(doc(db, 'users', user.uid), {
         username: username,
         email: email,
         createdAt: serverTimestamp(),
-        profilePicture: "https://via.placeholder.com/150", // Default profile picture
-        backgroundImage: "https://via.placeholder.com/1920x1080" // Default background image
+        profilePicture: "media/default.jpg",  // Local default image
+        backgroundImage: "media/bg/default.jpg"  // Local default background
     });
 
-    // Create username reference in the 'usernames' collection
-    await setDoc(doc(db, 'usernames', usernameLower), {
+    // Create username reference
+    batch.set(doc(db, 'usernames', usernameLower), {
         userId: user.uid,
         username: usernameLower
     });
+
+    await batch.commit();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -45,31 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
         signupForm.addEventListener("submit", async function (event) {
             event.preventDefault();
 
-            // Get form values
             const username = document.getElementById("signupUsername").value.trim();
             const email = document.getElementById("signupEmail").value.trim();
             const password = document.getElementById("signupPassword").value;
 
             if (username && email && password) {
                 try {
-                    // Create user with Firebase Authentication
+                    // Create auth user
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-                    // Update user profile with username
+                    
+                    // Update auth profile
                     await updateProfile(userCredential.user, {
                         displayName: username
                     });
 
-                    // Create user profile in Firestore
+                    // Create Firestore records
                     await createUserProfile(userCredential.user, username, email);
 
-                    // Redirect to homepage after successful signup
-                    window.location.href = "index.html";
+                    // Redirect with success
+                    window.location.href = `profile.html?uid=${userCredential.user.uid}`;
 
                 } catch (error) {
-                    // Handle errors
                     let errorMessage = "Signup failed. Please try again.";
-                    switch (error.code) {
+                    switch (error.code || error.message) {
                         case "auth/email-already-in-use":
                             errorMessage = "Email is already registered.";
                             break;
@@ -79,20 +79,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         case "auth/weak-password":
                             errorMessage = "Password should be at least 6 characters.";
                             break;
-                        case "Username already exists": // Custom error for username uniqueness
+                        case "Username already exists":
                             errorMessage = "Username is already taken.";
                             break;
                         default:
-                            errorMessage = error.message; // Show the default error message
+                            errorMessage = error.message;
                     }
                     alert(errorMessage);
                     console.error("Signup error:", error);
                 }
             } else {
-                alert("Please fill all fields (Username, Email, and Password).");
+                alert("Please fill all fields.");
             }
         });
-    } else {
-        console.error("Signup form not found!");
     }
 });
