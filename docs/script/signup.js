@@ -3,20 +3,20 @@ import { auth, db } from "./firebase.js";
 
 // Import Firebase Authentication and Firestore functions
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Function to check if a username is unique
 async function checkUsernameUnique(username) {
-    const q = query(
-        collection(db, 'usernames'),
-        where('username', '==', username.toLowerCase())
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.empty; // Returns true if the username is unique
+    const usernameLower = username.toLowerCase();
+    const docRef = doc(db, 'usernames', usernameLower);
+    const docSnap = await getDoc(docRef);
+    return !docSnap.exists(); // Returns true if username is unique
 }
 
 // Function to create a user profile
 async function createUserProfile(user, username, email) {
+    const usernameLower = username.toLowerCase();
+    
     // Check username uniqueness
     if (!(await checkUsernameUnique(username))) {
         throw new Error('Username already exists');
@@ -32,10 +32,10 @@ async function createUserProfile(user, username, email) {
     });
 
     // Create username reference in the 'usernames' collection
-    await setDoc(doc(db, 'usernames', username.toLowerCase()), {
+    await setDoc(doc(db, 'usernames', usernameLower), {
         userId: user.uid,
-        username: username
-    });
+        username: usernameLower
+    };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         case "auth/weak-password":
                             errorMessage = "Password should be at least 6 characters.";
                             break;
-                        case "username-already-exists": // Custom error for username uniqueness
+                        case "Username already exists": // Custom error for username uniqueness
                             errorMessage = "Username is already taken.";
                             break;
                         default:
