@@ -3,14 +3,12 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/f
 
 function createUserCard(userData, userId) {
     return `
-    <div class="user-card">
         <div class="profile-image-container">
             <img src="${userData.profilePicture || 'media/default.jpg'}" 
                  alt="${userData.username}'s profile" 
                  onerror="this.src='media/default.jpg'">
         </div>
         <div class="user-username">${userData.username || 'Anonymous'}</div>
-    </div>
     `;
 }
 
