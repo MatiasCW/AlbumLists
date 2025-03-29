@@ -713,27 +713,27 @@ p {
 }
 
 /* Artist Cards */
+/* Artist Cards - Fixed Version */
 .artist-card {
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
-  padding: 6px;
+  padding: 8px; 
   border-radius: 50%;
-  width: 80px; 
+  width: 80px;
   height: 80px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  position: relative; 
+  overflow: visible; 
 }
 
-/* Artist Images */
+/* Artist Images - Fixed Version */
 .artist-card img {
-  width: 50px; 
-  height: 50px;
+  width: 60px; 
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 4px;
+  display: block; 
+  margin: 0 auto 4px; 
+  border: 2px solid rgba(255,255,255,0.2);
 }
 
 /* Artist Name in Card */
