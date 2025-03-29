@@ -25,6 +25,10 @@ function createUserCard(userData, userId) {
 }
 
 function createAlbumCard(album) {
+    const score = typeof album.averageScore === 'number' 
+        ? album.averageScore.toFixed(1) 
+        : '0.0';
+    
     return `
         <div class="profile-image-container">
             <img src="${album.image || 'media/default-album.jpg'}" 
@@ -32,8 +36,8 @@ function createAlbumCard(album) {
                  class="user-pfp"
                  onerror="this.src='media/default-album.jpg'">
         </div>
-        <div class="user-username">${album.name}</div>
-        <div class="average-score">⭐ ${album.averageScore?.toFixed(1) || '0.0'}</div>
+        <div class="user-username">${album.name || 'Unknown Album'}</div>
+        <div class="average-score">⭐ ${score}</div>
     `;
 }
 
@@ -81,14 +85,23 @@ async function loadTopAlbums() {
         albumsContainer.innerHTML = '<p>Loading top albums...</p>';
         
         const unsubscribe = listenToTop100Albums((albums) => {
+            if (!albums || albums.length === 0) {
+                albumsContainer.innerHTML = '<p>No albums found.</p>';
+                return;
+            }
+
             const top20 = albums.slice(0, 20);
             albumsContainer.innerHTML = '';
             
             top20.forEach((album) => {
+                if (!album) return; // Skip null/undefined albums
+                
                 const albumCard = document.createElement('div');
                 albumCard.className = 'user-card';
                 albumCard.innerHTML = createAlbumCard(album);
                 albumCard.addEventListener('click', () => {
+                    // Optional: Add navigation to album details
+                    // window.location.href = `album.html?id=${album.id}`;
                 });
                 albumsContainer.appendChild(albumCard);
             });
