@@ -664,24 +664,11 @@ p {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 1rem; 
   background: rgba(0, 0, 0, 0.7);
   margin: 10px 0;
   border-radius: 8px;
-  max-height: 70px; /* Strict height control */
-}
-
-.artist-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.artist-info h2 {
-  font-size: 1.2rem;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-height: 80px; 
 }
 
 /* Smaller Favorite Button */
@@ -711,14 +698,20 @@ p {
   padding: 8px; 
   border-radius: 50%;
   width: 90px; 
-  height: 90px; 
+  height: 90px;
 }
 
 /* Smaller Artist Images */
 .artist-card img {
   width: 60px; 
-  height: 60px;
+  height: 60px; 
   border-radius: 50%;
   object-fit: cover;
+}
+
+/* Optional: Smaller text for artist names */
+.artist-card p {
+  margin-top: 5px;
+  font-size: 0.8rem;
 }
 
