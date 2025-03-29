@@ -1,16 +1,6 @@
 import { db } from "./firebase.js";
-import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 import { listenToTop100Albums } from './firebase.js';
-
-// Utility function to shuffle array
-function shuffleArray(array) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-}
 
 function createUserCard(userData, userId) {
     return `
@@ -25,10 +15,6 @@ function createUserCard(userData, userId) {
 }
 
 function createAlbumCard(album) {
-    const score = typeof album.averageScore === 'number' 
-        ? album.averageScore.toFixed(1) 
-        : '0.0';
-    
     return `
         <div class="profile-image-container">
             <img src="${album.image || 'media/default-album.jpg'}" 
@@ -36,12 +22,12 @@ function createAlbumCard(album) {
                  class="user-pfp"
                  onerror="this.src='media/default-album.jpg'">
         </div>
-        <div class="user-username">${album.name || 'Unknown Album'}</div>
-        <div class="average-score">⭐ ${score}</div>
+        <div class="user-username">${album.name}</div>
+        <div class="average-score">⭐ ${album.averageScore || '0.0'}</div>
     `;
 }
 
-async function loadRandomUsers() {
+async function loadAllUsers() {
     const usersContainer = document.getElementById('usersContainer');
     
     try {
@@ -53,21 +39,13 @@ async function loadRandomUsers() {
             return;
         }
 
-        // Get all users, shuffle, and take first 20
-        const allUsers = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        const shuffledUsers = shuffleArray(allUsers);
-        const randomUsers = shuffledUsers.slice(0, 20);
-
         usersContainer.innerHTML = '';
-        randomUsers.forEach((user) => {
+        querySnapshot.forEach((doc) => {
             const userCard = document.createElement('div');
             userCard.className = 'user-card';
-            userCard.innerHTML = createUserCard(user, user.id);
+            userCard.innerHTML = createUserCard(doc.data(), doc.id);
             userCard.addEventListener('click', () => {
-                window.location.href = `profile.html?uid=${user.id}`;
+                window.location.href = `profile.html?uid=${doc.id}`;
             });
             usersContainer.appendChild(userCard);
         });
@@ -85,22 +63,15 @@ async function loadTopAlbums() {
         albumsContainer.innerHTML = '<p>Loading top albums...</p>';
         
         const unsubscribe = listenToTop100Albums((albums) => {
-            if (!albums || albums.length === 0) {
-                albumsContainer.innerHTML = '<p>No albums found.</p>';
-                return;
-            }
-
             const top20 = albums.slice(0, 20);
             albumsContainer.innerHTML = '';
             
             top20.forEach((album) => {
-                if (!album) return; // Skip null/undefined albums
-                
                 const albumCard = document.createElement('div');
                 albumCard.className = 'user-card';
                 albumCard.innerHTML = createAlbumCard(album);
                 albumCard.addEventListener('click', () => {
-                    // Optional: Add navigation to album details
+                    // You can add navigation to album details if needed
                     // window.location.href = `album.html?id=${album.id}`;
                 });
                 albumsContainer.appendChild(albumCard);
@@ -116,6 +87,6 @@ async function loadTopAlbums() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadRandomUsers(); 
+    loadAllUsers();
     loadTopAlbums();
 });
