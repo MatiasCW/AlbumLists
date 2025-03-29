@@ -659,7 +659,7 @@ p {
   background-repeat: no-repeat;
 }
 
-/* Main Artist Jumbotron Container */
+/* Smaller Artist Jumbotron */
 .artist-jumbotron {
   display: flex;
   justify-content: space-between;
@@ -668,80 +668,57 @@ p {
   background: rgba(0, 0, 0, 0.7);
   margin: 10px 0;
   border-radius: 8px;
-  height: 60px; 
-  box-sizing: border-box;
+  max-height: 70px; /* Strict height control */
 }
 
-/* Artist Info Section */
 .artist-info {
   flex: 1;
   min-width: 0;
-  overflow: hidden; 
 }
 
-/* Artist Name Heading */
 .artist-info h2 {
-  font-size: 1.1rem; 
+  font-size: 1.2rem;
   margin: 0;
-  padding: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2; 
 }
 
-/* Favorite Button */
+/* Smaller Favorite Button */
 .favorite-btn {
   background-color: #ffeb3b;
   color: black;
   border: none;
-  padding: 4px 10px; 
-  border-radius: 4px;
+  padding: 6px 12px; 
+  border-radius: 4px; 
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem; 
   transition: 0.3s;
-  margin-left: 8px; 
-  flex-shrink: 0; 
 }
 
-/* Favorite Artists Grid Layout */
+/* Smaller Grid Layout */
 .favorite-artists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
-  gap: 0.6rem;
-  padding: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+  gap: 0.8rem; 
+  padding: 0.8rem; 
 }
 
-/* Artist Cards */
-/* Artist Cards - Fixed Version */
+/* Compact Artist Cards */
 .artist-card {
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
   padding: 8px; 
   border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  position: relative; 
-  overflow: visible; 
+  width: 90px; 
+  height: 90px; 
 }
 
-/* Artist Images - Fixed Version */
+/* Smaller Artist Images */
 .artist-card img {
   width: 60px; 
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  display: block; 
-  margin: 0 auto 4px; 
-  border: 2px solid rgba(255,255,255,0.2);
 }
 
-/* Artist Name in Card */
-.artist-card p {
-  margin: 0;
-  font-size: 0.7rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
