@@ -659,62 +659,80 @@ p {
   background-repeat: no-repeat;
 }
 
-/* Smaller Artist Jumbotron */
+/* Fixed Artist Jumbotron */
 .artist-jumbotron {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem; 
+  padding: 0.8rem; /* Slightly reduced */
   background: rgba(0, 0, 0, 0.7);
   margin: 10px 0;
   border-radius: 8px;
-  min-height: 80px; 
+  min-height: 80px;
+  gap: 15px; /* Added for consistent spacing */
 }
 
-/* Smaller Favorite Button */
+/* Artist Image Container */
+.artist-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  min-width: 0; /* Crucial for text overflow */
+}
+
+/* Artist Image Styles - THIS WAS MISSING */
+.artist-info img {
+  width: 60px !important; /* Force size */
+  height: 60px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0; /* Prevent shrinking */
+  border: 2px solid rgba(255,255,255,0.2); /* Visible boundary */
+}
+
+/* Fixed Favorite Button */
 .favorite-btn {
   background-color: #ffeb3b;
   color: black;
   border: none;
-  border-radius: 50%;
-  width: 100px;
-  height: 30px;
-  font-size: 20px;
-  display: inline-block;
-  text-align: center;
+  border-radius: 4px; /* Changed from 50% */
+  width: auto; /* Changed from 120px */
+  height: auto; /* Changed from 120px */
+  font-size: 1rem;
+  padding: 6px 12px; /* Added proper padding */
   cursor: pointer;
-  padding: 0;
+  flex-shrink: 0; /* Prevent button distortion */
 }
 
-/* Smaller Grid Layout */
+/* Grid Layout - Improved */
 .favorite-artists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
-  gap: 0.8rem; 
-  padding: 0.8rem; 
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.8rem; /* Added gap between items */
+  padding: 0.8rem;
 }
 
-/* Compact Artist Cards */
+/* Artist Cards - Fixed */
 .artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
-  padding: 8px; 
+  padding: 8px;
   border-radius: 50%;
-  width: 90px; 
+  width: 90px;
   height: 90px;
+  overflow: hidden; /* Contain all content */
 }
 
-/* Smaller Artist Images */
 .artist-card img {
-  width: 60px; 
-  height: 60px; 
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
-}
-
-/* Optional: Smaller text for artist names */
-.artist-card p {
-  margin-top: 5px;
-  font-size: 0.8rem;
+  margin-bottom: 4px; /* Space between image and text */
 }
 
