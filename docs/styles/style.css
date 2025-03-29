@@ -664,12 +664,12 @@ p {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.8rem; /* Slightly reduced */
+  padding: 0.8rem; 
   background: rgba(0, 0, 0, 0.7);
   margin: 10px 0;
   border-radius: 8px;
   min-height: 80px;
-  gap: 15px; /* Added for consistent spacing */
+  gap: 15px; 
 }
 
 /* Artist Image Container */
@@ -678,17 +678,16 @@ p {
   align-items: center;
   gap: 15px;
   flex: 1;
-  min-width: 0; /* Crucial for text overflow */
+  min-width: 0; 
 }
 
-/* Artist Image Styles - THIS WAS MISSING */
 .artist-info img {
   width: 60px !important; /* Force size */
   height: 60px !important;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0; /* Prevent shrinking */
-  border: 2px solid rgba(255,255,255,0.2); /* Visible boundary */
+  flex-shrink: 0; 
+  border: 2px solid rgba(255,255,255,0.2); 
 }
 
 /* Fixed Favorite Button */
@@ -696,43 +695,61 @@ p {
   background-color: #ffeb3b;
   color: black;
   border: none;
-  border-radius: 4px; /* Changed from 50% */
-  width: auto; /* Changed from 120px */
-  height: auto; /* Changed from 120px */
+  border-radius: 4px; 
+  width: auto;
+  height: auto; 
   font-size: 1rem;
-  padding: 6px 12px; /* Added proper padding */
+  padding: 6px 12px; 
   cursor: pointer;
-  flex-shrink: 0; /* Prevent button distortion */
+  flex-shrink: 0;
 }
 
-/* Grid Layout - Improved */
+/* Favorite Artists Section */
+.favorite-artists-section {
+  padding: 1rem;
+}
+
+/* Enlarged Grid Layout */
 .favorite-artists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 0.8rem; /* Added gap between items */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Increased from 100px */
+  gap: 1.2rem; /* Increased spacing */
   padding: 0.8rem;
 }
 
-/* Artist Cards - Fixed */
+/* Larger Artist Cards */
 .artist-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
-  padding: 8px;
-  border-radius: 50%;
-  width: 90px;
-  height: 90px;
-  overflow: hidden; /* Contain all content */
+  padding: 12px; 
+  border-radius: 10px;
+  width: 150px; 
+  min-height: 180px; 
+  box-sizing: border-box; 
 }
 
 .artist-card img {
-  width: 60px;
-  height: 60px;
+  width: 100px; 
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 4px; /* Space between image and text */
+  margin-bottom: 10px; 
+  border: 2px solid rgba(255, 255, 255, 0.3); 
+}
+
+.artist-card p {
+  margin: 5px 0 0;
+  font-size: 0.9rem; 
+  width: 100%;
+  white-space: normal; 
+  overflow: visible; 
+  text-overflow: clip;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical;
+  word-break: break-word; 
 }
 
