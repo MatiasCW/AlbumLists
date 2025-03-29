@@ -34,7 +34,7 @@ export const listenToTop100Albums = (callback) => {
     const albumsRef = collection(db, "albums");
     const q = query(
       albumsRef,
-      where("numberOfRatings", ">", 0),
+      where("numberOfRatings", ">=", 3),
       orderBy("averageScore", "desc"), 
       limit(100)
     );
