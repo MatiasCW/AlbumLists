@@ -1,6 +1,16 @@
 import { db } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 import { listenToTop100Albums } from './firebase.js';
+
+// Utility function to shuffle array
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
 
 function createUserCard(userData, userId) {
     return `
@@ -23,11 +33,11 @@ function createAlbumCard(album) {
                  onerror="this.src='media/default-album.jpg'">
         </div>
         <div class="user-username">${album.name}</div>
-        <div class="average-score">⭐ ${album.averageScore || '0.0'}</div>
+        <div class="average-score">⭐ ${album.averageScore?.toFixed(1) || '0.0'}</div>
     `;
 }
 
-async function loadAllUsers() {
+async function loadRandomUsers() {
     const usersContainer = document.getElementById('usersContainer');
     
     try {
@@ -39,13 +49,21 @@ async function loadAllUsers() {
             return;
         }
 
+        // Get all users, shuffle, and take first 20
+        const allUsers = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        const shuffledUsers = shuffleArray(allUsers);
+        const randomUsers = shuffledUsers.slice(0, 20);
+
         usersContainer.innerHTML = '';
-        querySnapshot.forEach((doc) => {
+        randomUsers.forEach((user) => {
             const userCard = document.createElement('div');
             userCard.className = 'user-card';
-            userCard.innerHTML = createUserCard(doc.data(), doc.id);
+            userCard.innerHTML = createUserCard(user, user.id);
             userCard.addEventListener('click', () => {
-                window.location.href = `profile.html?uid=${doc.id}`;
+                window.location.href = `profile.html?uid=${user.id}`;
             });
             usersContainer.appendChild(userCard);
         });
@@ -71,8 +89,6 @@ async function loadTopAlbums() {
                 albumCard.className = 'user-card';
                 albumCard.innerHTML = createAlbumCard(album);
                 albumCard.addEventListener('click', () => {
-                    // You can add navigation to album details if needed
-                    // window.location.href = `album.html?id=${album.id}`;
                 });
                 albumsContainer.appendChild(albumCard);
             });
@@ -87,6 +103,6 @@ async function loadTopAlbums() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadAllUsers();
+    loadRandomUsers(); 
     loadTopAlbums();
 });
