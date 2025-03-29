@@ -1,6 +1,6 @@
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Default profile picture
 const DEFAULT_PFP = "media/default.jpg";
@@ -55,7 +55,7 @@ const loadUserData = async () => {
             // Set profile picture with fallback to default
             profileImage.src = profilePicture || DEFAULT_PFP;
 
-            // Set background image (unchanged from your original code)
+            // Set background image
             backgroundContainer.style.backgroundImage = `url('${backgroundImage || "https://via.placeholder.com/1920x1080"}')`;
 
             // Set the List button's href to the user's list page
@@ -76,6 +76,9 @@ const loadUserData = async () => {
                 changePfpBtn.style.display = "none";
                 changeBgBtn.style.display = "none";
             }
+
+            // Load favorite artists
+            await loadFavoriteArtists();
         } else {
             alert("User not found.");
             window.location.href = "index.html";
@@ -83,6 +86,40 @@ const loadUserData = async () => {
     } catch (error) {
         console.error("Error loading user data:", error);
         alert("Error loading user data. Please try again.");
+    }
+};
+
+// Load favorite artists
+const loadFavoriteArtists = async () => {
+    try {
+        const favArtistsContainer = document.querySelector('.favorite-artists-section');
+        if (!favArtistsContainer) return;
+
+        const favArtistsRef = collection(db, 'users', uid, 'favoriteArtists');
+        const querySnapshot = await getDocs(favArtistsRef);
+        
+        const artistsGrid = document.createElement('div');
+        artistsGrid.className = 'favorite-artists-grid';
+        
+        if (querySnapshot.empty) {
+            artistsGrid.innerHTML = '<p>No favorite artists yet</p>';
+        } else {
+            artistsGrid.innerHTML = querySnapshot.docs.map(doc => {
+                const artist = doc.data();
+                return `
+                    <div class="artist-card">
+                        <img src="${artist.image || DEFAULT_PFP}" alt="${artist.name}" onerror="this.src='${DEFAULT_PFP}'">
+                        <p>${artist.name}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Clear existing content and add new
+        favArtistsContainer.innerHTML = '<h3>Favorite Artists</h3>';
+        favArtistsContainer.appendChild(artistsGrid);
+    } catch (error) {
+        console.error("Error loading favorite artists:", error);
     }
 };
 

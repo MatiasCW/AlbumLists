@@ -3,7 +3,11 @@ import { collection, addDoc, getDocs, query, where, doc, deleteDoc, setDoc, runT
 
 const clientId = '2b46bd9e8aef47908b9b92deac88846b';
 const clientSecret = '681a685c75e542c49f101ae8909f3be8';
-let accessToken = '';
+
+// Artist variables
+let currentArtistId = '';
+let currentArtistName = '';
+let currentArtistImage = '';
 
 // Fetch access token once and store it
 function fetchAccessToken() {
@@ -22,14 +26,116 @@ function fetchAccessToken() {
       accessToken = data.access_token;
       console.log('Access Token:', accessToken);
 
-      // If we're on albums.html, fetch albums
+      // If we're on albums.html, fetch artist and albums
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('artistId')) {
+        fetchArtistDetails(urlParams.get('artistId'));
         fetchAlbums(urlParams.get('artistId'));
       }
     })
     .catch(error => console.error('Error:', error));
 }
+
+// Fetch artist details
+async function fetchArtistDetails(artistId) {
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    const artistData = await response.json();
+    
+    currentArtistId = artistId;
+    currentArtistName = artistData.name;
+    currentArtistImage = artistData.images[0]?.url;
+    
+    // Create and display artist jumbotron
+    createArtistJumbotron();
+    updateFavoriteButton();
+  } catch (error) {
+    console.error('Error fetching artist details:', error);
+  }
+}
+
+// Create artist jumbotron
+function createArtistJumbotron() {
+  const albumContainer = document.querySelector('.album-container');
+  if (!albumContainer) return;
+
+  // Create jumbotron if it doesn't exist
+  let jumbotron = document.querySelector('.artist-jumbotron');
+  if (!jumbotron) {
+    jumbotron = document.createElement('div');
+    jumbotron.className = 'artist-jumbotron';
+    albumContainer.parentNode.insertBefore(jumbotron, albumContainer);
+  }
+
+  jumbotron.innerHTML = `
+    <div class="artist-info">
+      <img src="${currentArtistImage || 'media/default.jpg'}" alt="${currentArtistName}" class="artist-image">
+      <h2>${currentArtistName}</h2>
+    </div>
+    <button id="favoriteArtistBtn" class="favorite-btn">☆ Add to Favorites</button>
+  `;
+}
+
+// Update favorite button state
+async function updateFavoriteButton() {
+  const btn = document.getElementById('favoriteArtistBtn');
+  if (!btn || !auth.currentUser) return;
+
+  const favoritesRef = collection(db, 'users', auth.currentUser.uid, 'favoriteArtists');
+  const q = query(favoritesRef, where('artistId', '==', currentArtistId));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    btn.textContent = '★ Remove Favorite';
+    btn.classList.add('added');
+  } else {
+    btn.textContent = '☆ Add to Favorites';
+    btn.classList.remove('added');
+  }
+}
+
+// Handle favorite artist button click
+document.addEventListener('click', async (e) => {
+  if (e.target.id === 'favoriteArtistBtn') {
+    const user = auth.currentUser;
+    if (!user) {
+      alert('Please login to save favorite artists');
+      return;
+    }
+
+    const favoritesRef = collection(db, 'users', user.uid, 'favoriteArtists');
+    const q = query(favoritesRef);
+    const snapshot = await getDocs(q);
+
+    // Check if already favorited
+    const existingFavorite = snapshot.docs.find(doc => doc.data().artistId === currentArtistId);
+
+    if (existingFavorite) {
+      // Remove from favorites
+      await deleteDoc(doc(favoritesRef, existingFavorite.id));
+    } else {
+      // Check limit (max 5)
+      if (snapshot.size >= 5) {
+        alert('You can only have 5 favorite artists');
+        return;
+      }
+
+      // Add to favorites
+      await addDoc(favoritesRef, {
+        artistId: currentArtistId,
+        name: currentArtistName,
+        image: currentArtistImage,
+        addedAt: serverTimestamp()
+      });
+    }
+
+    updateFavoriteButton();
+  }
+});
 
 // Search for an artist and redirect to albums.html
 function searchArtist(artistName) {
@@ -100,6 +206,8 @@ function fetchAlbums(artistId) {
 // Display albums in HTML
 async function displayAlbums(albums) {
   const output = document.querySelector(".album-container");
+  if (!output) return;
+  
   output.innerHTML = ''; // Clear previous content
 
   const user = auth.currentUser;
@@ -266,6 +374,10 @@ document.addEventListener('DOMContentLoaded', function() {
 auth.onAuthStateChanged(user => {
   if (user) {
     console.log('User logged in:', user);
+    // Update favorite button if on albums page
+    if (window.location.pathname.includes('albums.html') && currentArtistId) {
+      updateFavoriteButton();
+    }
   } else {
     console.log('No user logged in');
   }
