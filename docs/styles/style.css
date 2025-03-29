@@ -659,7 +659,7 @@ p {
   background-repeat: no-repeat;
 }
 
-/* Fixed Artist Jumbotron */
+/* Welcome Section Styles & ALBUMS.HTML JUMBOTRON*/
 .artist-jumbotron {
   display: flex;
   justify-content: space-between;
@@ -753,7 +753,6 @@ p {
   word-break: break-word; 
 }
 
-/* Welcome Section Styles */
 .welcome-section {
     padding: 4rem 2rem;
     max-width: 1200px;
@@ -774,13 +773,6 @@ p {
     color: #333;
     margin-bottom: 1.5rem;
     font-family: 'Pacifico', cursive;
-}
-
-.welcome-section p {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    color: #555;
-    margin-bottom: 2rem;
 }
 
 .cta-button {
