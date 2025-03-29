@@ -102,12 +102,18 @@ header {
 }
 
 header h1 {
-  font-size: 2rem; 
+  font-size: 2rem;
   margin: 0;
-  flex-grow: 1; 
+  flex-grow: 1;
   text-align: center;
   font-family: 'Pacifico', cursive;
+  color: #FFD700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5),
+               0 0 25px rgba(255, 215, 0, 0.3),
+               0 0 35px rgba(255, 215, 0, 0.2);
+  animation: glowPulse 2s infinite alternate;
 }
+
 
 header nav {
   display: flex;
@@ -117,11 +123,16 @@ header nav {
 }
 
 /* Center nav links */
-header nav .nav-links {
-  display: flex;
-  justify-content: center;
-  list-style: none;
-  flex: 1; 
+header nav .nav-links li a {
+  color: #FFD700; /* Gold color */
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-family: 'Pacifico', cursive;
+  padding: 5px 10px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.7),
+               0 0 20px rgba(255, 215, 0, 0.5),
+               0 0 30px rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
 header nav .nav-links li {
@@ -137,9 +148,12 @@ header nav .nav-links li a {
 }
 
 header nav .nav-links li a:hover {
-  background-color: #555;
-  border-radius: 5px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9),
+               0 0 25px rgba(255, 215, 0, 0.7),
+               0 0 35px rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
 }
+
 
 /* Auth section (Login/Signup) aligned to the right */
 header nav .auth-section {
@@ -175,6 +189,19 @@ header nav .auth-section #logoutBtn {
 
 header nav .auth-section #logoutBtn:hover {
   text-decoration: underline;
+}
+
+/* Pulsing animation for header title */
+@keyframes glowPulse {
+  from {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5),
+                 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  to {
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.7),
+                 0 0 30px rgba(255, 215, 0, 0.5),
+                 0 0 40px rgba(255, 215, 0, 0.3);
+  }
 }
 
 /* Search Bar */
