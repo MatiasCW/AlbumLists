@@ -102,39 +102,46 @@ async function updateFavoriteButton() {
 // Handle favorite artist button click
 document.addEventListener('click', async (e) => {
   if (e.target.id === 'favoriteArtistBtn') {
-    const user = auth.currentUser;
-    if (!user) {
-      alert('Please login to save favorite artists');
-      return;
-    }
-
-    const favoritesRef = collection(db, 'users', user.uid, 'favoriteArtists');
-    const q = query(favoritesRef);
-    const snapshot = await getDocs(q);
-
-    // Check if already favorited
-    const existingFavorite = snapshot.docs.find(doc => doc.data().artistId === currentArtistId);
-
-    if (existingFavorite) {
-      // Remove from favorites
-      await deleteDoc(doc(favoritesRef, existingFavorite.id));
-    } else {
-      // Check limit (max 5)
-      if (snapshot.size >= 5) {
-        alert('You can only have 5 favorite artists');
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert('Please login to save favorite artists');
         return;
       }
 
-      // Add to favorites
-      await addDoc(favoritesRef, {
-        artistId: currentArtistId,
-        name: currentArtistName,
-        image: currentArtistImage,
-        addedAt: serverTimestamp()
-      });
-    }
+      const favoritesRef = collection(db, 'users', user.uid, 'favoriteArtists');
+      const q = query(favoritesRef);
+      const snapshot = await getDocs(q);
 
-    updateFavoriteButton();
+      // Check if already favorited
+      const existingFavorite = snapshot.docs.find(doc => doc.data().artistId === currentArtistId);
+
+      if (existingFavorite) {
+        // Remove from favorites
+        await deleteDoc(doc(favoritesRef, existingFavorite.id));
+        console.log('Artist removed from favorites');
+      } else {
+        // Check limit (max 5)
+        if (snapshot.size >= 5) {
+          alert('You can only have 5 favorite artists');
+          return;
+        }
+
+        // Add to favorites
+        await addDoc(favoritesRef, {
+          artistId: currentArtistId,
+          name: currentArtistName,
+          image: currentArtistImage || 'media/default.jpg', // fallback image
+          addedAt: serverTimestamp() // Make sure this is called as a function
+        });
+        console.log('Artist added to favorites');
+      }
+
+      updateFavoriteButton();
+    } catch (error) {
+      console.error('Error handling favorite artist:', error);
+      alert('Failed to update favorites. Please try again.');
+    }
   }
 });
 
