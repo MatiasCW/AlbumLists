@@ -664,11 +664,24 @@ p {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem; 
+  padding: 0.5rem 1rem;
   background: rgba(0, 0, 0, 0.7);
-  margin: 10px 0; 
-  border-radius: 8px; 
-  min-height: 80px; 
+  margin: 10px 0;
+  border-radius: 8px;
+  max-height: 70px; /* Strict height control */
+}
+
+.artist-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.artist-info h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Smaller Favorite Button */
