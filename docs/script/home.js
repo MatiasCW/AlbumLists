@@ -39,13 +39,30 @@ async function loadAllUsers() {
             return;
         }
 
+        // Convert to array and shuffle
+        const allUsers = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            data: doc.data()
+        }));
+
+        // Shuffle function
+        const shuffleUsers = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        const shuffledUsers = shuffleUsers(allUsers).slice(0, 20);
+
         usersContainer.innerHTML = '';
-        querySnapshot.forEach((doc) => {
+        shuffledUsers.forEach((user) => {
             const userCard = document.createElement('div');
             userCard.className = 'user-card';
-            userCard.innerHTML = createUserCard(doc.data(), doc.id);
+            userCard.innerHTML = createUserCard(user.data, user.id);
             userCard.addEventListener('click', () => {
-                window.location.href = `profile.html?uid=${doc.id}`;
+                window.location.href = `profile.html?uid=${user.id}`;
             });
             usersContainer.appendChild(userCard);
         });
