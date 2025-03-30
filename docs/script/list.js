@@ -112,7 +112,7 @@ function addAlbumInteractions(userId) {
   document.addEventListener('change', async (e) => {
     if (e.target.classList.contains('score-dropdown')) {
       const userAlbumId = e.target.dataset.albumId; // Firestore document ID of the user's album
-      const selectedScore = e.target.value === '-' ? null : e.target.value;
+      const selectedScore = e.target.value === '-' ? null : Number(e.target.value);
 
       // Update the user's album score
       const userAlbumRef = doc(db, 'users', userId, 'albums', userAlbumId);
