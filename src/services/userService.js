@@ -1,5 +1,19 @@
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, runTransaction } from 'firebase/firestore';
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs, 
+  query, 
+  where, 
+  addDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+
+// ... rest of your existing code
 
 export const getUserByUsername = async (username) => {
   const q = query(

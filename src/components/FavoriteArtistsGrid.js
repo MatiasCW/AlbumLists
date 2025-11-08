@@ -36,6 +36,7 @@ const FavoriteArtistsGrid = ({ userId }) => {
             src={artist.image} 
             alt={artist.name}
             className="w-16 h-16 rounded-full object-cover mx-auto mb-2 border-2 border-blue-400"
+            onError={(e) => { e.target.src = './media/default.jpg'; }}
           />
           <p className="text-sm font-medium text-gray-800 line-clamp-2">{artist.name}</p>
         </div>

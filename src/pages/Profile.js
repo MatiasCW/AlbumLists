@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserData, updateUserProfile } from '../services/userService';
+import FavoriteArtistsGrid from '../components/FavoriteArtistsGrid';
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
