@@ -9,7 +9,7 @@ const LandingPage = () => {
       <div 
         className="flex-1 flex items-center justify-center cursor-pointer transition-all duration-500 hover:flex-1.2 bg-cover bg-center relative group"
         style={{
-          backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/media/users.jpg')"
+          backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('./media/users.jpg')"
         }}
         onClick={() => navigate('/usearch')}
       >
@@ -22,7 +22,7 @@ const LandingPage = () => {
       <div 
         className="flex-1 flex items-center justify-center cursor-pointer transition-all duration-500 hover:flex-1.2 bg-cover bg-center relative group"
         style={{
-          backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/media/artists.jpg')"
+          backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('./media/artists.jpg')"
         }}
         onClick={() => navigate('/search-albums')}
       >

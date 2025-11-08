@@ -5,7 +5,7 @@ const StaticBackground = () => {
     <div 
       className="fixed top-0 left-0 w-full h-full z-[-1] bg-cover bg-center"
       style={{
-        backgroundImage: "url('/media/fire.jpg')"
+        backgroundImage: "url('./media/fire.jpg')"
       }}
     />
   );

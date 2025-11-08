@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserData } from '../services/userService';
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [profileUser, setProfileUser] = useState(null);
   const uid = searchParams.get('uid') || user?.uid;
@@ -18,6 +19,10 @@ const Profile = () => {
   const loadUserProfile = async (userId) => {
     const userData = await getUserData(userId);
     setProfileUser(userData);
+  };
+
+  const handleViewList = () => {
+    navigate(`/list?uid=${uid}`);
   };
 
   if (!profileUser) {
@@ -65,7 +70,7 @@ const Profile = () => {
             <div className="w-full">
               <button 
                 className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200 mt-6"
-                onClick={() => window.location.href = `/list?uid=${uid}`}
+                onClick={handleViewList}
               >
                 View Album List
               </button>

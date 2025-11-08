@@ -15,10 +15,10 @@ const UserCard = ({ user }) => {
     >
       <div className="flex justify-center mb-4">
         <img 
-          src={user.data.profilePicture || '/media/default.jpg'} 
+          src={user.data.profilePicture || './media/default.jpg'} 
           alt={user.data.username} 
           className="w-32 h-32 rounded-full object-cover border-4 border-blue-500 shadow-md"
-          onError={(e) => { e.target.src = '/media/default.jpg'; }} 
+          onError={(e) => { e.target.src = './media/default.jpg'; }} 
         />
       </div>
       <div className="font-bold text-lg text-gray-800">
