@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { fetchArtistDetails, fetchArtistAlbums } from '../services/spotify';
+import { addFavoriteArtist, removeFavoriteArtist, isArtistFavorited } from '../services/userService';
 
 const Albums = () => {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const [artist, setArtist] = useState(null);
   const [albums, setAlbums] = useState([]);
+  const [isFavorited, setIsFavorited] = useState(false);
   const artistId = searchParams.get('artistId');
 
   useEffect(() => {
     if (artistId) {
       loadArtistData(artistId);
+      checkIfFavorited(artistId);
     }
   }, [artistId]);
 
@@ -22,6 +27,39 @@ const Albums = () => {
       setAlbums(artistAlbums);
     } catch (error) {
       console.error('Error loading artist data:', error);
+    }
+  };
+
+  const checkIfFavorited = async (id) => {
+    if (!user) return;
+    try {
+      const favorited = await isArtistFavorited(user.uid, id);
+      setIsFavorited(favorited);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      alert('Please login to save favorite artists');
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        await removeFavoriteArtist(user.uid, artistId);
+        setIsFavorited(false);
+      } else {
+        await addFavoriteArtist(user.uid, {
+          artistId: artistId,
+          name: artist.name,
+          image: artist.images?.[0]?.url || './media/default.jpg'
+        });
+        setIsFavorited(true);
+      }
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -40,14 +78,21 @@ const Albums = () => {
         <div className="artist-jumbotron bg-black bg-opacity-70 rounded-2xl p-6 mb-8 flex justify-between items-center">
           <div className="artist-info flex items-center space-x-6 flex-1">
             <img 
-              src={artist.images?.[0]?.url || '/media/default.jpg'} 
+              src={artist.images?.[0]?.url || './media/default.jpg'} 
               alt={artist.name} 
               className="w-20 h-20 rounded-full object-cover border-2 border-white border-opacity-20 flex-shrink-0"
             />
             <h2 className="text-3xl font-bold text-white truncate">{artist.name}</h2>
           </div>
-          <button className="favorite-btn bg-yellow-400 text-black py-2 px-6 rounded font-semibold hover:bg-yellow-300 transition-colors duration-200 flex-shrink-0">
-            ☆ Add to Favorites
+          <button 
+            className={`favorite-btn py-2 px-6 rounded font-semibold transition-colors duration-200 flex-shrink-0 ${
+              isFavorited 
+                ? 'bg-yellow-400 text-black hover:bg-yellow-300' 
+                : 'bg-gray-600 text-white hover:bg-gray-500'
+            }`}
+            onClick={handleFavoriteToggle}
+          >
+            {isFavorited ? '★ Remove Favorite' : '☆ Add to Favorites'}
           </button>
         </div>
 

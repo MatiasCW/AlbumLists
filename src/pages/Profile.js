@@ -33,7 +33,7 @@ const Profile = () => {
 
   const handlePfpSelect = async (pfpPath) => {
     if (!user || user.uid !== uid) return;
-    
+
     try {
       await updateUserProfile(uid, { profilePicture: pfpPath });
       setProfileUser(prev => ({ ...prev, profilePicture: pfpPath }));
@@ -46,7 +46,7 @@ const Profile = () => {
 
   const handleBgSelect = async (bgPath) => {
     if (!user || user.uid !== uid) return;
-    
+
     try {
       await updateUserProfile(uid, { backgroundImage: bgPath });
       setProfileUser(prev => ({ ...prev, backgroundImage: bgPath }));
@@ -69,11 +69,11 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen">
-      <div 
+      <div
         className="fixed top-0 left-0 w-full h-full bg-cover bg-center z-0"
         style={{ backgroundImage: `url('${profileUser.backgroundImage}')` }}
       />
-      
+
       <div className="pt-32 px-4 relative z-10">
         <div className="profile-container max-w-2xl mx-auto bg-white bg-opacity-90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white border-opacity-30">
           <div className="flex flex-col items-center space-y-6">
@@ -81,22 +81,22 @@ const Profile = () => {
               <div className="username text-3xl font-bold text-gray-800 mb-4">
                 {profileUser.username}
               </div>
-              <img 
-                src={profileUser.profilePicture} 
-                alt="Profile" 
+              <img
+                src={profileUser.profilePicture}
+                alt="Profile"
                 className="w-40 h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg mx-auto"
               />
             </div>
-            
+
             {isOwner && (
               <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
-                <button 
+                <button
                   className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
                   onClick={() => setShowPfpModal(true)}
                 >
                   Change Avatar
                 </button>
-                <button 
+                <button
                   className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
                   onClick={() => setShowBgModal(true)}
                 >
@@ -104,9 +104,9 @@ const Profile = () => {
                 </button>
               </div>
             )}
-            
+
             <div className="w-full">
-              <button 
+              <button
                 className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200 mt-6"
                 onClick={handleViewList}
               >
@@ -117,13 +117,20 @@ const Profile = () => {
         </div>
       </div>
 
+
+      {/* Favorite Artists Section */}
+      <div className="favorite-artists-section mt-8 w-full">
+        <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Favorite Artists</h3>
+        <FavoriteArtistsGrid userId={uid} />
+      </div>
+
       {/* Profile Picture Modal */}
       {showPfpModal && (
         <div className="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="modal-content bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Choose Profile Picture</h2>
-              <button 
+              <button
                 className="close text-2xl hover:text-gray-700"
                 onClick={() => setShowPfpModal(false)}
               >
@@ -132,13 +139,13 @@ const Profile = () => {
             </div>
             <div className="image-options grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {profilePictures.map((pfp, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="image-option cursor-pointer transform hover:scale-105 transition-transform duration-200"
                   onClick={() => handlePfpSelect(pfp)}
                 >
-                  <img 
-                    src={pfp} 
+                  <img
+                    src={pfp}
                     alt={`Profile ${index + 1}`}
                     className="w-full h-24 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
                   />
@@ -155,7 +162,7 @@ const Profile = () => {
           <div className="modal-content bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Choose Background</h2>
-              <button 
+              <button
                 className="close text-2xl hover:text-gray-700"
                 onClick={() => setShowBgModal(false)}
               >
@@ -164,13 +171,13 @@ const Profile = () => {
             </div>
             <div className="image-options grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {backgrounds.map((bg, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="image-option cursor-pointer transform hover:scale-105 transition-transform duration-200"
                   onClick={() => handleBgSelect(bg)}
                 >
-                  <img 
-                    src={bg} 
+                  <img
+                    src={bg}
                     alt={`Background ${index + 1}`}
                     className="w-full h-32 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
                   />
