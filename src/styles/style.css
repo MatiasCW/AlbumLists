@@ -69,9 +69,9 @@
   background-color: #16a34a;
 }
 
-/* Modal styles */
+/* Modal styles for Profile page */
 .modal {
-  display: none;
+  display: flex;
   position: fixed;
   top: 0;
   left: 0;
@@ -85,24 +85,44 @@
 
 .modal-content {
   background-color: white;
-  padding: 1.25rem;
-  border-radius: 0.5rem;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   position: relative;
 }
 
 .close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.75rem;
+  top: 0.75rem;
+  right: 1rem;
   font-size: 1.5rem;
   cursor: pointer;
   color: #374151;
+  background: none;
+  border: none;
 }
 
 .close:hover {
   color: #000;
+}
+
+.image-options {
+  display: grid;
+  gap: 1rem;
+}
+
+.image-option img {
+  width: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.image-option img:hover {
+  border-color: #3b82f6;
+  transform: scale(1.05);
 }
 
 /* Image options grid */

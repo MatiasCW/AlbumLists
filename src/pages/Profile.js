@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserData } from '../services/userService';
+import { getUserData, updateUserProfile } from '../services/userService';
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [profileUser, setProfileUser] = useState(null);
+  const [showPfpModal, setShowPfpModal] = useState(false);
+  const [showBgModal, setShowBgModal] = useState(false);
   const uid = searchParams.get('uid') || user?.uid;
+
+  // Predefined profile pictures and backgrounds
+  const profilePictures = Array.from({ length: 23 }, (_, i) => `./media/pfp/pfp${i + 1}.jpg`);
+  const backgrounds = Array.from({ length: 12 }, (_, i) => `./media/bg/bg${i + 1}.jpg`);
 
   useEffect(() => {
     if (uid) {
@@ -23,6 +29,32 @@ const Profile = () => {
 
   const handleViewList = () => {
     navigate(`/list?uid=${uid}`);
+  };
+
+  const handlePfpSelect = async (pfpPath) => {
+    if (!user || user.uid !== uid) return;
+    
+    try {
+      await updateUserProfile(uid, { profilePicture: pfpPath });
+      setProfileUser(prev => ({ ...prev, profilePicture: pfpPath }));
+      setShowPfpModal(false);
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      alert('Failed to update profile picture');
+    }
+  };
+
+  const handleBgSelect = async (bgPath) => {
+    if (!user || user.uid !== uid) return;
+    
+    try {
+      await updateUserProfile(uid, { backgroundImage: bgPath });
+      setProfileUser(prev => ({ ...prev, backgroundImage: bgPath }));
+      setShowBgModal(false);
+    } catch (error) {
+      console.error('Error updating background:', error);
+      alert('Failed to update background');
+    }
   };
 
   if (!profileUser) {
@@ -58,10 +90,16 @@ const Profile = () => {
             
             {isOwner && (
               <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
-                <button className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200">
+                <button 
+                  className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
+                  onClick={() => setShowPfpModal(true)}
+                >
                   Change Avatar
                 </button>
-                <button className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200">
+                <button 
+                  className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
+                  onClick={() => setShowBgModal(true)}
+                >
                   Change Background
                 </button>
               </div>
@@ -78,6 +116,70 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Picture Modal */}
+      {showPfpModal && (
+        <div className="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="modal-content bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Choose Profile Picture</h2>
+              <button 
+                className="close text-2xl hover:text-gray-700"
+                onClick={() => setShowPfpModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="image-options grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {profilePictures.map((pfp, index) => (
+                <div 
+                  key={index} 
+                  className="image-option cursor-pointer transform hover:scale-105 transition-transform duration-200"
+                  onClick={() => handlePfpSelect(pfp)}
+                >
+                  <img 
+                    src={pfp} 
+                    alt={`Profile ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Background Modal */}
+      {showBgModal && (
+        <div className="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="modal-content bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Choose Background</h2>
+              <button 
+                className="close text-2xl hover:text-gray-700"
+                onClick={() => setShowBgModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="image-options grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {backgrounds.map((bg, index) => (
+                <div 
+                  key={index} 
+                  className="image-option cursor-pointer transform hover:scale-105 transition-transform duration-200"
+                  onClick={() => handleBgSelect(bg)}
+                >
+                  <img 
+                    src={bg} 
+                    alt={`Background ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
