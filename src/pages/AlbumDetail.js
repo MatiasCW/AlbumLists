@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchAlbumDetails, fetchAlbumTracks } from '../services/spotify';
+import { fetchAlbumDetails, fetchAlbumTracks, fetchArtistDetails } from '../services/spotify';
 import { getAlbumRanking } from '../services/albumService';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../services/firebase';
@@ -16,6 +16,7 @@ const AlbumDetail = () => {
   const [globalRanking, setGlobalRanking] = useState(null);
   const [isInList, setIsInList] = useState(false);
   const [userScore, setUserScore] = useState(null);
+  const [artistGenres, setArtistGenres] = useState([]);
   const albumId = searchParams.get('albumId');
 
   useEffect(() => {
@@ -33,6 +34,12 @@ const AlbumDetail = () => {
       const tracksData = await fetchAlbumTracks(id);
       setAlbum(albumData);
       setTracks(tracksData.items || []);
+
+      // Load artist genres from the main artist
+      if (albumData.artists && albumData.artists.length > 0) {
+        const mainArtist = await fetchArtistDetails(albumData.artists[0].id);
+        setArtistGenres(mainArtist.genres || []);
+      }
     } catch (error) {
       console.error('Error loading album data:', error);
     } finally {
@@ -100,7 +107,7 @@ const AlbumDetail = () => {
         id: artist.id,
         name: artist.name
       })),
-      genres: album.genres || [],
+      genres: artistGenres, // Use the artist genres we fetched
       addedAt: new Date()
     });
 
@@ -178,7 +185,7 @@ const AlbumDetail = () => {
           name: album.name,
           image: album.images?.[0]?.url || './media/default-album.jpg',
           artists: album.artists.map(artist => artist.name),
-          genres: album.genres || []
+          genres: artistGenres // Use the artist genres
         };
 
         let totalScore = Number(albumData.totalScore) || 0;
@@ -367,10 +374,10 @@ const AlbumDetail = () => {
                   <strong className="w-32">Label:</strong>
                   <span>{album.label || 'Unknown'}</span>
                 </div>
-                {album.genres && album.genres.length > 0 && (
+                {artistGenres.length > 0 && (
                   <div className="flex items-start">
                     <strong className="w-32">Genres:</strong>
-                    <span>{album.genres.join(', ')}</span>
+                    <span className="capitalize">{artistGenres.join(', ')}</span>
                   </div>
                 )}
                 {album.popularity !== undefined && (
