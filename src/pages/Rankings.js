@@ -64,9 +64,6 @@ const Rankings = () => {
                       <span className="text-lg text-gray-600 font-semibold">
                         Average Score: {album.averageScore?.toFixed(1) || '0.0'}
                       </span>
-                      <div className="text-sm text-gray-500 mt-1">
-                        Click to view album details • ID: {album.spotifyId || album.id}
-                      </div>
                     </div>
                   </div>
                 </li>
