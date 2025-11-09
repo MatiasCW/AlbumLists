@@ -103,11 +103,7 @@ const Search = () => {
                 </div>
               )}
               
-              {!searching && albumResults.length === 0 && (
-                <div className="text-center text-white text-lg">
-                  Search for albums to see results
-                </div>
-              )}
+              {!searching && albumResults.length === 0 && null}
             </div>
           )}
         </div>
