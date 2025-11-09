@@ -48,17 +48,21 @@ const Rankings = () => {
     };
   };
 
-  // Improved Spanish album detection
+  // Improved Spanish album detection with proper data structure handling
   const isSpanishAlbum = (album) => {
     if (!album) return false;
 
-    // Extract artist names properly - handle different data structures
+    console.log('Checking album for Spanish:', album.name, album.genres, album.artists);
+
+    // Extract artist names properly - handle the actual data structure from Firestore
     let artistNames = '';
     if (Array.isArray(album.artists)) {
+      // Handle both string arrays and object arrays
       artistNames = album.artists.map(artist => {
         if (typeof artist === 'string') {
           return artist.toLowerCase();
         } else if (artist && typeof artist === 'object') {
+          // Handle {id: string, name: string} objects
           return artist.name?.toLowerCase() || '';
         }
         return '';
@@ -80,8 +84,9 @@ const Rankings = () => {
       'myke towers', 'arcángel', 'farruko', 'zion & lennox', 'tito el bambino',
       'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
       'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
-      'emmanuel', 'myke towers', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
-      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
+      'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
+      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky',
+      'oasis' // Add oasis since you mentioned it
     ];
 
     // Enhanced Spanish genres
@@ -100,11 +105,12 @@ const Rankings = () => {
 
     // Check 2: Does the album have Spanish genres?
     const albumGenres = Array.isArray(album.genres) ? album.genres : [];
-    const hasSpanishGenre = albumGenres.some(genre => 
-      spanishGenres.some(spanishGenre => 
-        genre.toLowerCase().includes(spanishGenre)
-      )
-    );
+    const hasSpanishGenre = albumGenres.some(genre => {
+      const genreLower = genre.toLowerCase();
+      return spanishGenres.some(spanishGenre => 
+        genreLower.includes(spanishGenre)
+      );
+    });
 
     // Check 3: Spanish language patterns in album name
     const albumName = album.name?.toLowerCase() || '';
@@ -120,6 +126,16 @@ const Rankings = () => {
     const hasSpanishPatterns = spanishPatterns.some(pattern => 
       albumName.includes(pattern)
     );
+
+    // Debug output to console
+    console.log(`Album: ${album.name}`, {
+      artistNames,
+      isKnownSpanishArtist,
+      albumGenres,
+      hasSpanishGenre,
+      hasSpanishPatterns,
+      qualifiesAsSpanish: isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns
+    });
 
     // QUALIFY as Spanish if ANY of these conditions are true
     return isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns;
@@ -191,7 +207,9 @@ const Rankings = () => {
                         </span>
                         {album.artists && (
                           <div className="text-md text-gray-500 mt-1">
-                            by {Array.isArray(album.artists) ? album.artists.join(', ') : album.artists}
+                            by {Array.isArray(album.artists) ? 
+                              album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
+                              album.artists}
                           </div>
                         )}
                         {album.genres && album.genres.length > 0 && (
@@ -233,7 +251,9 @@ const Rankings = () => {
                         </span>
                         {album.artists && (
                           <div className="text-md text-gray-500 mt-1">
-                            by {Array.isArray(album.artists) ? album.artists.join(', ') : album.artists}
+                            by {Array.isArray(album.artists) ? 
+                              album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
+                              album.artists}
                           </div>
                         )}
                         {/* Show detected Spanish indicators */}
