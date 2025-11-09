@@ -1,36 +1,35 @@
-// In the Albums.js file, update the AlbumCard usage:
-{albums.map(album => {
-  const rating = albumRatings[album.id];
-  const hasRating = rating && !rating.needsMoreRatings;
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const AlbumCard = ({ album }) => {
+  const navigate = useNavigate();
+
+  const handleAlbumClick = () => {
+    navigate(`/album?albumId=${album.id}`);
+  };
 
   return (
-    <div key={album.id} className="relative">
-      <AlbumCard 
-        album={{
-          ...album,
-          // Pass the rating data to AlbumCard so it can display the stars
-          averageScore: hasRating ? rating.averageScore : 0
-        }} 
-      />
-
-      {/* Rating Display Overlay */}
-      <div className="absolute top-3 right-3 bg-black bg-opacity-70 rounded-lg p-2 backdrop-blur-sm">
-        <div className="text-white font-bold text-sm text-center">
-          {hasRating ? rating.averageScore?.toFixed(1) : 'N/A'}
-        </div>
-        {rating && (
-          <div className="text-xs text-gray-300 text-center mt-1">
-            {rating.numberOfRatings || 0} rating{rating.numberOfRatings !== 1 ? 's' : ''}
-          </div>
-        )}
+    <div 
+      className="text-center bg-white p-6 rounded-xl shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-xl border border-gray-100"
+      onClick={handleAlbumClick}
+    >
+      <div className="flex justify-center mb-4">
+        <img 
+          src={album.images?.[0]?.url || album.image || './media/default-album.jpg'} 
+          alt={album.name} 
+          className="w-32 h-32 rounded-lg object-cover border-4 border-blue-500 shadow-md"
+          onError={(e) => { e.target.src = './media/default-album.jpg'; }} 
+        />
       </div>
-
-      {/* Global Rank Badge */}
-      {hasRating && rating.rank && (
-        <div className="absolute top-3 left-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg">
-          #{rating.rank}
-        </div>
-      )}
+      <div className="font-bold text-lg text-gray-800 mb-2 line-clamp-2 h-14 flex items-center justify-center">
+        {album.name}
+      </div>
+      <div className="text-yellow-500 text-base font-bold flex items-center justify-center space-x-1">
+        <span>⭐</span>
+        <span>{album.averageScore?.toFixed(1) || '0.0'}</span>
+      </div>
     </div>
   );
-})}
+};
+
+export default AlbumCard;
