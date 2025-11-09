@@ -1,5 +1,5 @@
+import { db } from './firebase';
 import { 
-  db, 
   collection, 
   doc, 
   getDoc, 
@@ -11,7 +11,8 @@ import {
   where, 
   addDoc, 
   serverTimestamp 
-} from './firebase'; // Import from your firebase.js file
+} from 'firebase/firestore';
+
 
 export const getUserByUsername = async (username) => {
   const q = query(
@@ -79,57 +80,6 @@ export const getFavoriteArtists = async (userId) => {
 export const isArtistFavorited = async (userId, artistId) => {
   const favoritesRef = collection(db, 'users', userId, 'favoriteArtists');
   const q = query(favoritesRef, where('artistId', '==', artistId));
-  const snapshot = await getDocs(q);
-  return !snapshot.empty;
-};
-
-// ALBUM COLLECTION FUNCTIONS
-export const addAlbumToCollection = async (userId, albumData) => {
-  console.log('Adding album to collection:', { userId, albumData }); // DEBUG
-  
-  const collectionRef = collection(db, 'users', userId, 'albumCollection');
-  
-  // Check if already in collection
-  const q = query(collectionRef, where('albumId', '==', albumData.albumId));
-  const snapshot = await getDocs(q);
-  
-  if (!snapshot.empty) {
-    console.log('Album already exists in collection'); // DEBUG
-    throw new Error('Album already in collection');
-  }
-
-  console.log('Creating new album document...'); // DEBUG
-  const result = await addDoc(collectionRef, {
-    ...albumData,
-    addedAt: serverTimestamp()
-  });
-  
-  console.log('Album added successfully with ID:', result.id); // DEBUG
-  return result;
-};
-
-export const removeAlbumFromCollection = async (userId, albumId) => {
-  const collectionRef = collection(db, 'users', userId, 'albumCollection');
-  const q = query(collectionRef, where('albumId', '==', albumId));
-  const snapshot = await getDocs(q);
-  
-  if (!snapshot.empty) {
-    await deleteDoc(doc(collectionRef, snapshot.docs[0].id));
-  }
-};
-
-export const getAlbumCollection = async (userId) => {
-  const collectionRef = collection(db, 'users', userId, 'albumCollection');
-  const snapshot = await getDocs(collectionRef);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-};
-
-export const isAlbumInCollection = async (userId, albumId) => {
-  const collectionRef = collection(db, 'users', userId, 'albumCollection');
-  const q = query(collectionRef, where('albumId', '==', albumId));
   const snapshot = await getDocs(q);
   return !snapshot.empty;
 };

@@ -3,24 +3,6 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  updateDoc, 
-  deleteDoc,
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  onSnapshot,
-  serverTimestamp,
-  runTransaction
-} from 'firebase/firestore';
-
 const firebaseConfig = {
   apiKey: "AIzaSyBx8UEWD05g3kiPROxWegNmD67LnV1wOuA",
   authDomain: "thealbumlists.firebaseapp.com",
@@ -36,6 +18,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+// Re-export common Firestore functions
 export { 
   collection, 
   doc, 
@@ -44,7 +27,6 @@ export {
   setDoc, 
   updateDoc, 
   deleteDoc,
-  addDoc, 
   query, 
   where, 
   orderBy, 
@@ -52,4 +34,4 @@ export {
   onSnapshot,
   serverTimestamp,
   runTransaction
-};
+} from 'firebase/firestore';
