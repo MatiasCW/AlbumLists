@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserData, updateUserProfile } from '../services/userService';
-import FavoriteArtistsHorizontal from '../components/FavoriteArtistsHorizontal';
+import FavoriteArtistsGrid from '../components/FavoriteArtistsGrid';
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
@@ -122,7 +122,7 @@ const Profile = () => {
 
         {/* Favorite Artists - Centered at bottom */}
         <div className="flex justify-center">
-          <FavoriteArtistsHorizontal userId={uid} />
+          <FavoriteArtistsGrid userId={uid} />
         </div>
       </div>
 

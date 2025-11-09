@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getFavoriteArtists, removeFavoriteArtist } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 
-const FavoriteArtistsHorizontal = ({ userId }) => {
+const FavoriteArtistsGrid = ({ userId }) => {
   const [favoriteArtists, setFavoriteArtists] = useState([]);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -88,4 +88,4 @@ const FavoriteArtistsHorizontal = ({ userId }) => {
   );
 };
 
-export default FavoriteArtistsHorizontal;
+export default FavoriteArtistsGrid;
