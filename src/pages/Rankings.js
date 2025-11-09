@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { listenToTop100Albums } from '../services/albumService';
 
 const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = listenToTop100Albums((albums) => {
@@ -11,6 +13,12 @@ const Rankings = () => {
 
     return unsubscribe;
   }, []);
+
+  const handleAlbumClick = (album) => {
+    if (album.id) {
+      navigate(`/album?albumId=${album.id}`);
+    }
+  };
 
   return (
     <main className="pt-32 min-h-screen bg-gray-50 px-4">
@@ -27,7 +35,11 @@ const Rankings = () => {
           ) : (
             <ul className="space-y-4">
               {topAlbums.map((album, index) => (
-                <li key={album.id} className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                <li 
+                  key={album.id} 
+                  className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-amber-200"
+                  onClick={() => handleAlbumClick(album)}
+                >
                   <div className="album-item flex items-center space-x-6">
                     <img 
                       src={album.image} 
@@ -41,6 +53,9 @@ const Rankings = () => {
                       <span className="text-lg text-gray-600 font-semibold">
                         Average Score: {album.averageScore?.toFixed(1) || '0.0'}
                       </span>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Click to view album details
+                      </div>
                     </div>
                   </div>
                 </li>
