@@ -4,7 +4,7 @@ import { listenToTop100Albums } from '../services/albumService';
 
 const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
-  const [topSpanishSongs, setTopSpanishSongs] = useState([]);
+  const [topSpanishAlbums, setTopSpanishAlbums] = useState([]);
   const [activeTab, setActiveTab] = useState('albums'); // 'albums' or 'spanish'
   const navigate = useNavigate();
 
@@ -13,7 +13,7 @@ const Rankings = () => {
       // Separate albums into two exclusive lists
       const { englishAlbums, spanishAlbums } = separateAlbumsByLanguage(albums);
       setTopAlbums(englishAlbums);
-      setTopSpanishSongs(spanishAlbums);
+      setTopSpanishAlbums(spanishAlbums);
     });
 
     return unsubscribe;
@@ -127,12 +127,12 @@ const Rankings = () => {
               }`}
               onClick={() => setActiveTab('spanish')}
             >
-              Top 100 Spanish Songs
+              Top 100 Spanish Albums
             </button>
           </div>
 
           <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center font-pacifico">
-            {activeTab === 'albums' ? 'Top 100 Albums' : 'Top 100 Spanish Songs'}
+            {activeTab === 'albums' ? 'Top 100 Albums' : 'Top 100 Spanish Albums'}
           </h2>
           
           {activeTab === 'albums' ? (
@@ -173,13 +173,13 @@ const Rankings = () => {
               </ul>
             )
           ) : (
-            topSpanishSongs.length === 0 ? (
+            topSpanishAlbums.length === 0 ? (
               <div className="text-center py-12 text-gray-500 text-xl">
-                {topAlbums.length === 0 ? 'Loading...' : 'No Spanish songs found in the top rankings.'}
+                {topAlbums.length === 0 ? 'Loading...' : 'No Spanish Albums found in the top rankings.'}
               </div>
             ) : (
               <ul className="space-y-4">
-                {topSpanishSongs.map((album, index) => (
+                {topSpanishAlbums.map((album, index) => (
                   <li 
                     key={album.id} 
                     className="bg-blue-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-blue-200"

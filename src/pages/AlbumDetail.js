@@ -367,10 +367,6 @@ const AlbumDetail = () => {
                   <strong className="w-32">Label:</strong>
                   <span>{album.label || 'Unknown'}</span>
                 </div>
-                <div className="flex items-center">
-                  <strong className="w-32">Album Type:</strong>
-                  <span className="capitalize">{album.album_type}</span>
-                </div>
                 {album.genres && album.genres.length > 0 && (
                   <div className="flex items-start">
                     <strong className="w-32">Genres:</strong>
