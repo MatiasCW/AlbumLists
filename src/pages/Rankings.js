@@ -48,82 +48,75 @@ const Rankings = () => {
     };
   };
 
-  // Improved Spanish album detection
+  // Improved Spanish album detection based primarily on genres
   const isSpanishAlbum = (album) => {
     if (!album) return false;
 
-    // Extract artist names properly - handle the actual data structure from Firestore
+    // First and most important: Check if we have Spanish genres
+    const albumGenres = Array.isArray(album.genres) ? album.genres : [];
+    
+    // Enhanced Spanish genres list - focus on Latin/Spanish music genres
+    const spanishGenres = [
+        'latin', 'reggaeton', 'trap latino', 'urbano latino', 'latin urban', 'urbano',
+        'bachata', 'salsa', 'merengue', 'flamenco', 'ranchera', 'cumbia', 'tango',
+        'mexican', 'tejano', 'latin pop', 'corrido', 'banda', 'norteño', 'mariachi',
+        'vallenato', 'bolero', 'rumba', 'guaracha', 'mambo', 'son cubano',
+        'latin rock', 'latin alternative', 'latin jazz', 'trap latino', 'urbano latino',
+        'reggaeton flow', 'dem bow', 'latin hip hop', 'rap latino', 'pop latino',
+        'musica mexicana', 'regional mexicano', 'latino'
+    ];
+
+    // Check if any of the album's genres match Spanish genres
+    const hasSpanishGenre = albumGenres.some(genre => {
+        const genreLower = genre.toLowerCase();
+        return spanishGenres.some(spanishGenre => 
+            genreLower.includes(spanishGenre)
+        );
+    });
+
+    // If we have clear Spanish genres, immediately classify as Spanish
+    if (hasSpanishGenre) {
+        return true;
+    }
+
+    // Only if no genres are available, fall back to artist name detection
     let artistNames = '';
     if (Array.isArray(album.artists)) {
-      artistNames = album.artists.map(artist => {
-        if (typeof artist === 'string') {
-          return artist.toLowerCase();
-        } else if (artist && typeof artist === 'object') {
-          return artist.name?.toLowerCase() || '';
-        }
-        return '';
-      }).join(' ');
+        artistNames = album.artists.map(artist => {
+            if (typeof artist === 'string') {
+                return artist.toLowerCase();
+            } else if (artist && typeof artist === 'object') {
+                return artist.name?.toLowerCase() || '';
+            }
+            return '';
+        }).join(' ');
     } else {
-      artistNames = (album.artists?.toLowerCase() || '');
+        artistNames = (album.artists?.toLowerCase() || '');
     }
 
     // Enhanced known Spanish artists list
     const knownSpanishArtists = [
-      'bad bunny', 'anuel', 'anuel aa', 'j balvin', 'ozuna', 'daddy yankee', 
-      'shakira', 'enrique iglesias', 'ricky martin', 'maluma', 'karol g', 
-      'rosalía', 'becky g', 'nicky jam', 'wisin', 'yandel', 'don omar', 
-      'pitbull', 'marc anthony', 'romeo santos', 'prince royce', 'juanes', 
-      'maná', 'chayanne', 'luis fonsi', 'thalia', 'paulina rubio', 
-      'alejandro fernandez', 'vicente fernandez', 'carlos vives', 'fonseca', 
-      'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
-      'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme',
-      'myke towers', 'arcángel', 'farruko', 'zion & lennox', 'tito el bambino',
-      'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
-      'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
-      'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
-      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
+        'bad bunny', 'anuel', 'anuel aa', 'j balvin', 'ozuna', 'daddy yankee', 
+        'shakira', 'enrique iglesias', 'ricky martin', 'maluma', 'karol g', 
+        'rosalía', 'becky g', 'nicky jam', 'wisin', 'yandel', 'don omar', 
+        'pitbull', 'marc anthony', 'romeo santos', 'prince royce', 'juanes', 
+        'maná', 'chayanne', 'luis fonsi', 'thalia', 'paulina rubio', 
+        'alejandro fernandez', 'vicente fernandez', 'carlos vives', 'fonseca', 
+        'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
+        'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme',
+        'myke towers', 'arcángel', 'farruko', 'zion & lennox', 'tito el bambino',
+        'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
+        'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
+        'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
+        'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
     ];
 
-    // Enhanced Spanish genres
-    const spanishGenres = [
-      'latin', 'reggaeton', 'bachata', 'salsa', 'merengue', 'flamenco', 
-      'ranchera', 'cumbia', 'tango', 'mexican', 'tejano', 'latin pop', 
-      'latin urban', 'urbano', 'corrido', 'banda', 'norteño', 'mariachi',
-      'vallenato', 'bolero', 'rumba', 'guaracha', 'mambo', 'son cubano',
-      'latin rock', 'latin alternative', 'latin jazz', 'trap latino', 'urbano latino'
-    ];
-
-    // Check 1: Is the artist a known Spanish artist?
+    // Check if the artist is a known Spanish artist
     const isKnownSpanishArtist = knownSpanishArtists.some(artist => 
-      artistNames.includes(artist)
+        artistNames.includes(artist)
     );
 
-    // Check 2: Does the album have Spanish genres?
-    const albumGenres = Array.isArray(album.genres) ? album.genres : [];
-    const hasSpanishGenre = albumGenres.some(genre => {
-      const genreLower = genre.toLowerCase();
-      return spanishGenres.some(spanishGenre => 
-        genreLower.includes(spanishGenre)
-      );
-    });
-
-    // Check 3: Spanish language patterns in album name
-    const albumName = album.name?.toLowerCase() || '';
-    const spanishPatterns = [
-      'feat.', 'con ', ' y ', ' del ', ' los ', ' las ', ' el ', ' la ',
-      ' mi ', ' tu ', ' su ', ' más ', ' por ', ' para ', ' qué ', ' cómo ',
-      ' cuando ', ' dónde ', ' quién ', ' porque ', ' si ', ' no ', ' todo ',
-      ' nada ', ' muy ', ' bien ', ' mal ', ' grande ', ' pequeño ', ' amor ',
-      ' vida ', ' corazón ', ' mundo ', ' noche ', ' día ', ' tiempo ', ' mujer ',
-      ' hombre ', ' casa ', ' calle ', ' ciudad ', ' país ', ' gente ', ' familia '
-    ];
-
-    const hasSpanishPatterns = spanishPatterns.some(pattern => 
-      albumName.includes(pattern)
-    );
-
-    // QUALIFY as Spanish if ANY of these conditions are true
-    return isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns;
+    return isKnownSpanishArtist;
   };
 
   const handleAlbumClick = (album) => {
