@@ -13,7 +13,6 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-// ... rest of your existing code
 
 export const getUserByUsername = async (username) => {
   const q = query(
@@ -47,10 +46,10 @@ export const addFavoriteArtist = async (userId, artistData) => {
     throw new Error('Artist already in favorites');
   }
 
-  // Check limit (max 5)
+  // Check limit (max 10)
   const allFavorites = await getDocs(favoritesRef);
-  if (allFavorites.size >= 5) {
-    throw new Error('You can only have 5 favorite artists');
+  if (allFavorites.size >= 10) {
+    throw new Error('You can only have 10 favorite artists');
   }
 
   await addDoc(favoritesRef, {

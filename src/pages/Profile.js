@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserData, updateUserProfile } from '../services/userService';
-import FavoriteArtistsGrid from '../components/FavoriteArtistsGrid';
+import FavoriteArtistsHorizontal from '../components/FavoriteArtistsHorizontal';
 
 const Profile = () => {
   const [searchParams] = useSearchParams();
@@ -76,53 +76,54 @@ const Profile = () => {
       />
 
       <div className="pt-32 px-4 relative z-10">
-        <div className="profile-container max-w-2xl mx-auto bg-white bg-opacity-90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white border-opacity-30">
-          <div className="flex flex-col items-center space-y-6">
-            <div className="text-center">
-              <div className="username text-3xl font-bold text-gray-800 mb-4">
-                {profileUser.username}
+        {/* Profile Card - Centered at top */}
+        <div className="flex justify-center mb-8">
+          <div className="profile-container max-w-2xl w-full bg-white bg-opacity-90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white border-opacity-30">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="text-center">
+                <div className="username text-3xl font-bold text-gray-800 mb-4">
+                  {profileUser.username}
+                </div>
+                <img
+                  src={profileUser.profilePicture}
+                  alt="Profile"
+                  className="w-40 h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg mx-auto"
+                />
               </div>
-              <img
-                src={profileUser.profilePicture}
-                alt="Profile"
-                className="w-40 h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg mx-auto"
-              />
-            </div>
 
-            {isOwner && (
-              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
+              {isOwner && (
+                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
+                  <button
+                    className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
+                    onClick={() => setShowPfpModal(true)}
+                  >
+                    Change Avatar
+                  </button>
+                  <button
+                    className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
+                    onClick={() => setShowBgModal(true)}
+                  >
+                    Change Background
+                  </button>
+                </div>
+              )}
+
+              <div className="w-full max-w-xs">
                 <button
-                  className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
-                  onClick={() => setShowPfpModal(true)}
+                  className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
+                  onClick={handleViewList}
                 >
-                  Change Avatar
-                </button>
-                <button
-                  className="upload-btn bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200"
-                  onClick={() => setShowBgModal(true)}
-                >
-                  Change Background
+                  View Album List
                 </button>
               </div>
-            )}
-
-            <div className="w-full">
-              <button
-                className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-200 mt-6"
-                onClick={handleViewList}
-              >
-                View Album List
-              </button>
             </div>
           </div>
         </div>
-      </div>
 
-
-      {/* Favorite Artists Section */}
-      <div className="favorite-artists-section mt-8 w-full">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Favorite Artists</h3>
-        <FavoriteArtistsGrid userId={uid} />
+        {/* Favorite Artists - Centered at bottom */}
+        <div className="flex justify-center">
+          <FavoriteArtistsHorizontal userId={uid} />
+        </div>
       </div>
 
       {/* Profile Picture Modal */}
