@@ -122,7 +122,13 @@ const Albums = () => {
 
             return (
               <div key={album.id} className="relative">
-                <AlbumCard album={album} />
+                <AlbumCard 
+                  album={{
+                    ...album,
+                    // Pass the averageScore to AlbumCard so it displays the star rating
+                    averageScore: hasRating ? rating.averageScore : 0
+                  }} 
+                />
 
                 {/* Rating Display */}
                 <div className="absolute top-3 right-3 bg-black bg-opacity-70 rounded-lg p-2 backdrop-blur-sm">
