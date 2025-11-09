@@ -45,7 +45,7 @@ const FavoriteArtistsGrid = ({ userId }) => {
   return (
     <div className="favorite-artists-horizontal bg-white bg-opacity-90 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-white border-opacity-30 w-full max-w-4xl mx-auto">
       <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Favorite Artists {favoriteArtists.length > 0 && `(${favoriteArtists.length}/10)`}
+        Favorite Artists 
       </h3>
       
       {favoriteArtists.length === 0 ? (
