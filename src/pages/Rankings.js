@@ -135,18 +135,6 @@ const Rankings = () => {
             {activeTab === 'albums' ? 'Top 100 Albums' : 'Top 100 Spanish Songs'}
           </h2>
           
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center bg-amber-50 rounded-lg p-3">
-              <div className="text-lg font-bold text-amber-600">{topAlbums.length}</div>
-              <div className="text-sm text-amber-800">English Albums</div>
-            </div>
-            <div className="text-center bg-blue-50 rounded-lg p-3">
-              <div className="text-lg font-bold text-blue-600">{topSpanishSongs.length}</div>
-              <div className="text-sm text-blue-800">Spanish Songs</div>
-            </div>
-          </div>
-          
           {activeTab === 'albums' ? (
             topAlbums.length === 0 ? (
               <div className="text-center py-12 text-gray-500 text-xl">
