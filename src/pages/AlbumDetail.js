@@ -2,20 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks } from '../services/spotify';
 import { getAlbumRanking } from '../services/albumService';
+import { useAuth } from '../context/AuthContext';
+import { addFavoriteAlbum, removeFavoriteAlbum, isAlbumFavorited } from '../services/userService';
 
 const AlbumDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [album, setAlbum] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalRanking, setGlobalRanking] = useState(null);
+  const [isFavorited, setIsFavorited] = useState(false);
   const albumId = searchParams.get('albumId');
 
   useEffect(() => {
     if (albumId) {
       loadAlbumData(albumId);
       loadAlbumRanking(albumId);
+      checkIfFavorited(albumId);
     }
   }, [albumId]);
 
@@ -39,6 +44,42 @@ const AlbumDetail = () => {
       setGlobalRanking(ranking);
     } catch (error) {
       console.error('Error loading album ranking:', error);
+    }
+  };
+
+  const checkIfFavorited = async (id) => {
+    if (!user) return;
+    try {
+      const favorited = await isAlbumFavorited(user.uid, id);
+      setIsFavorited(favorited);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      alert('Please login to save favorite albums');
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        await removeFavoriteAlbum(user.uid, albumId);
+        setIsFavorited(false);
+      } else {
+        await addFavoriteAlbum(user.uid, {
+          albumId: albumId,
+          name: album.name,
+          artist: album.artists[0]?.name || 'Unknown Artist',
+          image: album.images?.[0]?.url || './media/default-album.jpg',
+          releaseDate: album.release_date,
+          totalTracks: album.total_tracks
+        });
+        setIsFavorited(true);
+      }
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -94,7 +135,18 @@ const AlbumDetail = () => {
 
             {/* Album Info */}
             <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-800 mb-4">{album.name}</h1>
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-4xl font-bold text-gray-800">{album.name}</h1>
+                <button
+                  className={`favorite-btn py-2 px-6 rounded font-semibold transition-colors duration-200 flex-shrink-0 ${isFavorited
+                      ? 'bg-yellow-400 text-black hover:bg-yellow-300'
+                      : 'bg-gray-600 text-white hover:bg-gray-500'
+                    }`}
+                  onClick={handleFavoriteToggle}
+                >
+                  {isFavorited ? '★ Remove Favorite' : '☆ Add to Favorites'}
+                </button>
+              </div>
               
               <div className="flex items-center space-x-2 mb-6">
                 {album.artists.map((artist, index) => (
