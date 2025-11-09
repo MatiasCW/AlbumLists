@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { fetchArtistDetails, fetchArtistAlbums } from '../services/spotify';
 import { addFavoriteArtist, removeFavoriteArtist, isArtistFavorited } from '../services/userService';
 import AlbumCard from '../components/AlbumCard'; 
+import { getAlbumRanking } from '../services/albumService';
 
 const Albums = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +12,7 @@ const Albums = () => {
   const [artist, setArtist] = useState(null);
   const [albums, setAlbums] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [albumRatings, setAlbumRatings] = useState({});
   const artistId = searchParams.get('artistId');
 
   useEffect(() => {
@@ -26,8 +28,24 @@ const Albums = () => {
       const artistAlbums = await fetchArtistAlbums(id);
       setArtist(artistData);
       setAlbums(artistAlbums);
+      
+      // Load ratings for all albums
+      loadAlbumRatings(artistAlbums);
     } catch (error) {
       console.error('Error loading artist data:', error);
+    }
+  };
+
+  const loadAlbumRatings = async (albumsList) => {
+    try {
+      const ratings = {};
+      for (const album of albumsList) {
+        const ranking = await getAlbumRanking(album.id);
+        ratings[album.id] = ranking;
+      }
+      setAlbumRatings(ratings);
+    } catch (error) {
+      console.error('Error loading album ratings:', error);
     }
   };
 
@@ -97,14 +115,40 @@ const Albums = () => {
           </button>
         </div>
 
-        {/* Albums Grid - UPDATED TO USE AlbumCard COMPONENT */}
+        {/* Albums Grid */}
         <div className="album-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {albums.map(album => (
-            <AlbumCard 
-              key={album.id} 
-              album={album}
-            />
-          ))}
+          {albums.map(album => {
+            const rating = albumRatings[album.id];
+            const hasRating = rating && !rating.needsMoreRatings;
+            
+            return (
+              <div key={album.id} className="relative">
+                <AlbumCard album={album} />
+                
+                {/* Rating Display */}
+                <div className="absolute top-3 right-3 bg-black bg-opacity-70 rounded-lg p-2 backdrop-blur-sm">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-yellow-400 text-sm">⭐</span>
+                    <span className="text-white font-bold text-sm">
+                      {hasRating ? rating.averageScore?.toFixed(1) : 'N/A'}
+                    </span>
+                  </div>
+                  {rating && (
+                    <div className="text-xs text-gray-300 text-center mt-1">
+                      {rating.numberOfRatings || 0} rating{rating.numberOfRatings !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Global Rank Badge */}
+                {hasRating && rating.rank && (
+                  <div className="absolute top-3 left-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg">
+                    #{rating.rank}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {albums.length === 0 && (
