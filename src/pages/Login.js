@@ -1,20 +1,61 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../services/firebase';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { resendVerification } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check if email is verified
+      if (!user.emailVerified) {
+        alert('Please verify your email address before logging in. Check your inbox for the verification link.');
+        // Optionally, you can sign them out here
+        // await signOut(auth);
+        setIsLoading(false);
+        return;
+      }
+
+      // If email is verified, proceed to home page
       navigate('/');
     } catch (error) {
-      alert(error.message);
+      console.error('Login error:', error);
+      let errorMessage = 'An error occurred during login.';
+      
+      if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Invalid password.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await resendVerification();
+      alert('Verification email sent! Please check your inbox.');
+    } catch (error) {
+      alert('Error sending verification email. Please try again.');
     }
   };
 
@@ -45,11 +86,25 @@ const Login = () => {
           </div>
           <button 
             type="submit"
-            className="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-green-300"
+            disabled={isLoading}
+            className="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-600 disabled:bg-green-300 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-green-300"
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800 text-center">
+            Need verification email?{' '}
+            <button 
+              onClick={handleResendVerification}
+              className="text-blue-600 hover:text-blue-800 font-semibold underline"
+            >
+              Resend here
+            </button>
+          </p>
+        </div>
+
         <p className="mt-6 text-center text-gray-600">
           Don't have an account? <a href="/signup" className="text-blue-500 hover:text-blue-600 font-semibold transition-colors duration-200">Sign up here</a>
         </p>
