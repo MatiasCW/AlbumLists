@@ -8,7 +8,6 @@ const Rankings = () => {
 
   useEffect(() => {
     const unsubscribe = listenToTop100Albums((albums) => {
-      console.log('Top albums loaded:', albums); // DEBUG
       setTopAlbums(albums);
     });
 
@@ -16,18 +15,8 @@ const Rankings = () => {
   }, []);
 
   const handleAlbumClick = (album) => {
-    console.log('Album clicked:', album); // DEBUG
-    console.log('Album ID:', album.id); // DEBUG
-    console.log('Album Spotify ID:', album.spotifyId); // DEBUG
-    
-    // Try different ID fields
-    const albumId = album.spotifyId || album.id;
-    
-    if (albumId) {
-      console.log('Navigating to album:', albumId); // DEBUG
-      navigate(`/album?albumId=${albumId}`);
-    } else {
-      console.log('No valid album ID found'); // DEBUG
+    if (album.id) {
+      navigate(`/album?albumId=${album.id}`);
     }
   };
 
@@ -62,8 +51,14 @@ const Rankings = () => {
                         {index + 1}. {album.name}
                       </strong>
                       <span className="text-lg text-gray-600 font-semibold">
-                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                        Average Score: {album.averageScore?.toFixed(1) || '0.0'} 
+                        <span className="text-sm text-gray-500 ml-2">
+                          ({album.numberOfRatings} ratings)
+                        </span>
                       </span>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Click to view album details
+                      </div>
                     </div>
                   </div>
                 </li>

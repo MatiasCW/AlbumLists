@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks } from '../services/spotify';
-import { getAlbumRanking } from '../services/albumService'; 
+import { getAlbumRanking } from '../services/albumService';
 
 const AlbumDetail = () => {
   const [searchParams] = useSearchParams();
@@ -61,13 +61,6 @@ const AlbumDetail = () => {
     });
   };
 
-  const getRankingSuffix = (rank) => {
-    if (rank === 1) return 'st';
-    if (rank === 2) return 'nd';
-    if (rank === 3) return 'rd';
-    return 'th';
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -123,7 +116,14 @@ const AlbumDetail = () => {
                   <div className="text-2xl font-bold text-blue-600">
                     {globalRanking?.averageScore?.toFixed(1) || '0.0'}
                   </div>
-                  <div className="text-sm text-blue-800 font-medium">Average Rating</div>
+                  <div className="text-sm text-blue-800 font-medium">
+                    Average Rating
+                    {globalRanking && (
+                      <div className="text-xs mt-1">
+                        ({globalRanking.numberOfRatings} rating{globalRanking.numberOfRatings !== 1 ? 's' : ''})
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="text-center bg-green-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-green-600">{album.total_tracks}</div>
@@ -137,14 +137,13 @@ const AlbumDetail = () => {
                 </div>
                 <div className="text-center bg-orange-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-orange-600">
-                    {globalRanking ? `#${globalRanking.rank}` : 'N/A'}
+                    {globalRanking?.needsMoreRatings ? 'N/R' : globalRanking?.rank ? `#${globalRanking.rank}` : 'N/A'}
                   </div>
                   <div className="text-sm text-orange-800 font-medium">
                     Global Ranking
-                    {globalRanking && (
+                    {globalRanking?.needsMoreRatings && globalRanking.numberOfRatings < 3 && (
                       <div className="text-xs mt-1">
-                        {globalRanking.rank}
-                        {getRankingSuffix(globalRanking.rank)} out of {globalRanking.totalAlbums}
+                        Needs {3 - globalRanking.numberOfRatings} more rating(s)
                       </div>
                     )}
                   </div>
