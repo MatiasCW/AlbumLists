@@ -3,13 +3,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
-  const { user, userData, logout } = useAuth();
+  const { user, userData, logout, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async (e) => {
     e.preventDefault();
     await logout();
     navigate('/');
+  };
+
+  // Get user display name with loading state
+  const getDisplayName = () => {
+    if (loading) {
+      return 'Loading...';
+    }
+    return userData?.username || user?.email?.split('@')[0] || 'User';
+  };
+
+  // Get user avatar initial
+  const getAvatarInitial = () => {
+    if (loading) {
+      return '...';
+    }
+    return userData?.username?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U';
   };
 
   return (
@@ -40,14 +56,16 @@ const Header = () => {
                 Home
               </Link>
             </li>
-            <li>
-              <Link
-                to="/list"
-                className="text-gray-300 no-underline font-medium px-3 py-2 transition-all duration-300 hover:text-white hover:bg-gray-800 rounded-lg"
-              >
-                My List
-              </Link>
-            </li>
+            {user && (
+              <li>
+                <Link
+                  to="/list"
+                  className="text-gray-300 no-underline font-medium px-3 py-2 transition-all duration-300 hover:text-white hover:bg-gray-800 rounded-lg"
+                >
+                  My List
+                </Link>
+              </li>
+            )}
             <li>
               <Link
                 to="/rankings"
@@ -69,17 +87,25 @@ const Header = () => {
 
         {/* User Section */}
         <div className="flex items-center space-x-4">
-          {user ? (
+          {loading ? (
+            // Loading state
+            <div className="flex items-center space-x-3">
+              <div className="w-20 h-8 bg-gray-700 rounded-full animate-pulse"></div>
+              <div className="w-8 h-8 bg-gray-700 rounded-full animate-pulse"></div>
+            </div>
+          ) : user ? (
+            // Logged in state
             <>
               <div className="flex items-center space-x-3 bg-gray-800 rounded-full pl-3 pr-1 py-1">
                 <span className="text-sm font-medium text-gray-200">
-                  {userData?.username || user.email?.split('@')[0]}
+                  {getDisplayName()}
                 </span>
                 <Link
                   to={`/profile?uid=${user.uid}`}
                   className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
+                  title="Go to Profile"
                 >
-                  {userData?.username?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                  {getAvatarInitial()}
                 </Link>
               </div>
               <button
@@ -90,6 +116,7 @@ const Header = () => {
               </button>
             </>
           ) : (
+            // Logged out state
             <div className="flex items-center space-x-3">
               <Link
                 to="/login"

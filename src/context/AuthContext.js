@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { auth, db } from '../services/firebase';
 import { onAuthStateChanged, signOut, sendEmailVerification } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -41,26 +41,41 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeUserData = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       
       if (user) {
         // Sync email verification status
         await syncEmailVerification(user);
         
-        // Fetch additional user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        }
+        // Set up real-time listener for user data
+        const userDocRef = doc(db, 'users', user.uid);
+        unsubscribeUserData = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUserData(docSnap.data());
+          } else {
+            // User document doesn't exist yet (new user)
+            setUserData(null);
+          }
+          setLoading(false);
+        });
       } else {
         setUserData(null);
+        setLoading(false);
+        if (unsubscribeUserData) {
+          unsubscribeUserData();
+        }
       }
-      
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      if (unsubscribeUserData) {
+        unsubscribeUserData();
+      }
+      unsubscribeAuth();
+    };
   }, []);
 
   const logout = async () => {
