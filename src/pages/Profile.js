@@ -85,9 +85,10 @@ const Profile = () => {
                   {profileUser.username}
                 </div>
                 <img
-                  src={profileUser.profilePicture}
+                  src={profileUser.profilePicture || './media/default.jpg'}
                   alt="Profile"
                   className="w-40 h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg mx-auto"
+                  onError={(e) => { e.target.src = './media/default.jpg'; }}
                 />
               </div>
 
