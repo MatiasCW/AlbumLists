@@ -114,5 +114,6 @@ export const searchAlbums = async (albumName) => {
   });
   
   const data = await response.json();
-  return data.albums.items;
+  
+  return data.albums.items.filter(album => album.album_type === 'album');
 };
