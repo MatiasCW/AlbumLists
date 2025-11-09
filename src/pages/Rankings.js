@@ -68,7 +68,7 @@ const Rankings = () => {
       'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme'
     ];
     
-    // Check if album has Spanish genre
+    // Check if album has Spanish genre (now using the stored genres)
     const hasSpanishGenre = album.genres?.some(genre => 
       spanishGenres.some(spanishGenre => 
         genre.toLowerCase().includes(spanishGenre)
@@ -166,6 +166,11 @@ const Rankings = () => {
                             by {Array.isArray(album.artists) ? album.artists.join(', ') : album.artists}
                           </div>
                         )}
+                        {album.genres && album.genres.length > 0 && (
+                          <div className="text-sm text-amber-600 mt-1">
+                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </li>
@@ -175,7 +180,7 @@ const Rankings = () => {
           ) : (
             topSpanishAlbums.length === 0 ? (
               <div className="text-center py-12 text-gray-500 text-xl">
-                {topAlbums.length === 0 ? 'Loading...' : 'No Spanish Albums found in the top rankings.'}
+                {topAlbums.length === 0 ? 'Loading...' : 'No Spanish albums found in the top rankings.'}
               </div>
             ) : (
               <ul className="space-y-4">
@@ -204,7 +209,7 @@ const Rankings = () => {
                           </div>
                         )}
                         {/* Show detected Spanish indicators */}
-                        {album.genres && (
+                        {album.genres && album.genres.length > 0 && (
                           <div className="text-sm text-blue-600 mt-1">
                             Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
                           </div>
