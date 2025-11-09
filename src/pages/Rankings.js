@@ -48,53 +48,81 @@ const Rankings = () => {
     };
   };
 
-  // Function to detect Spanish albums
+  // Improved Spanish album detection
   const isSpanishAlbum = (album) => {
-    const albumName = album.name?.toLowerCase() || '';
-    const artistName = Array.isArray(album.artists) 
-      ? album.artists.join(' ').toLowerCase()
-      : (album.artists?.toLowerCase() || '');
-    
-    // Common Spanish music indicators
-    const spanishGenres = ['latin', 'reggaeton', 'bachata', 'salsa', 'merengue', 'flamenco', 'ranchera', 'cumbia', 'tango', 'mexican', 'tejano', 'latin pop', 'latin urban'];
-    const spanishKeywords = ['feat.', 'con', 'y', 'del', 'los', 'las', 'el', 'la', 'si', 'que', 'más', 'por', 'para', 'mi', 'tu', 'su'];
+    if (!album) return false;
+
+    // Extract artist names properly - handle different data structures
+    let artistNames = '';
+    if (Array.isArray(album.artists)) {
+      artistNames = album.artists.map(artist => {
+        if (typeof artist === 'string') {
+          return artist.toLowerCase();
+        } else if (artist && typeof artist === 'object') {
+          return artist.name?.toLowerCase() || '';
+        }
+        return '';
+      }).join(' ');
+    } else {
+      artistNames = (album.artists?.toLowerCase() || '');
+    }
+
+    // Enhanced known Spanish artists list
     const knownSpanishArtists = [
-      'bad bunny', 'j balvin', 'ozuna', 'daddy yankee', 'shakira', 'enrique iglesias', 
-      'ricky martin', 'maluma', 'karol g', 'rosalía', 'becky g', 'nicky jam', 
-      'wisin', 'yandel', 'don omar', 'pitbull', 'marc anthony', 'romeo santos', 
-      'prince royce', 'juanes', 'maná', 'chayanne', 'luis fonsi', 'thalia', 
-      'paulina rubio', 'alejandro fernandez', 'vicente fernandez', 'carlos vives',
-      'fonseca', 'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
-      'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme'
+      'bad bunny', 'anuel', 'anuel aa', 'j balvin', 'ozuna', 'daddy yankee', 
+      'shakira', 'enrique iglesias', 'ricky martin', 'maluma', 'karol g', 
+      'rosalía', 'becky g', 'nicky jam', 'wisin', 'yandel', 'don omar', 
+      'pitbull', 'marc anthony', 'romeo santos', 'prince royce', 'juanes', 
+      'maná', 'chayanne', 'luis fonsi', 'thalia', 'paulina rubio', 
+      'alejandro fernandez', 'vicente fernandez', 'carlos vives', 'fonseca', 
+      'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
+      'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme',
+      'myke towers', 'arcángel', 'farruko', 'zion & lennox', 'tito el bambino',
+      'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
+      'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
+      'emmanuel', 'myke towers', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
+      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
     ];
-    
-    // Check if album has Spanish genre (now using the stored genres)
-    const hasSpanishGenre = album.genres?.some(genre => 
+
+    // Enhanced Spanish genres
+    const spanishGenres = [
+      'latin', 'reggaeton', 'bachata', 'salsa', 'merengue', 'flamenco', 
+      'ranchera', 'cumbia', 'tango', 'mexican', 'tejano', 'latin pop', 
+      'latin urban', 'urbano', 'corrido', 'banda', 'norteño', 'mariachi',
+      'vallenato', 'bolero', 'rumba', 'guaracha', 'mambo', 'son cubano',
+      'latin rock', 'latin alternative', 'latin jazz'
+    ];
+
+    // Check 1: Is the artist a known Spanish artist?
+    const isKnownSpanishArtist = knownSpanishArtists.some(artist => 
+      artistNames.includes(artist)
+    );
+
+    // Check 2: Does the album have Spanish genres?
+    const albumGenres = Array.isArray(album.genres) ? album.genres : [];
+    const hasSpanishGenre = albumGenres.some(genre => 
       spanishGenres.some(spanishGenre => 
         genre.toLowerCase().includes(spanishGenre)
       )
     );
-    
-    // Check if artist is known Spanish artist
-    const isKnownSpanishArtist = knownSpanishArtists.some(artist => 
-      artistName.includes(artist)
+
+    // Check 3: Spanish language patterns in album name
+    const albumName = album.name?.toLowerCase() || '';
+    const spanishPatterns = [
+      'feat.', 'con ', ' y ', ' del ', ' los ', ' las ', ' el ', ' la ',
+      ' mi ', ' tu ', ' su ', ' más ', ' por ', ' para ', ' qué ', ' cómo ',
+      ' cuando ', ' dónde ', ' quién ', ' porque ', ' si ', ' no ', ' todo ',
+      ' nada ', ' muy ', ' bien ', ' mal ', ' grande ', ' pequeño ', ' amor ',
+      ' vida ', ' corazón ', ' mundo ', ' noche ', ' día ', ' tiempo ', ' mujer ',
+      ' hombre ', ' casa ', ' calle ', ' ciudad ', ' país ', ' gente ', ' familia '
+    ];
+
+    const hasSpanishPatterns = spanishPatterns.some(pattern => 
+      albumName.includes(pattern)
     );
-    
-    // Check for Spanish language indicators in title
-    const hasSpanishKeywords = spanishKeywords.some(keyword => 
-      albumName.includes(keyword)
-    );
-    
-    // Additional check for common Spanish music patterns
-    const hasSpanishPattern = /(feat\.|con\s|\sy\s|del\s|los\s|las\s)/i.test(albumName);
-    
-    // Strong indicators (any of these qualifies as Spanish)
-    const strongIndicators = hasSpanishGenre || isKnownSpanishArtist;
-    
-    // Weak indicators (need multiple to qualify)
-    const weakIndicators = hasSpanishKeywords || hasSpanishPattern;
-    
-    return strongIndicators || (weakIndicators && (hasSpanishKeywords && hasSpanishPattern));
+
+    // QUALIFY as Spanish if ANY of these conditions are true
+    return isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns;
   };
 
   const handleAlbumClick = (album) => {
