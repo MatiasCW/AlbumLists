@@ -13,6 +13,7 @@ const Albums = () => {
   const [albums, setAlbums] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
   const [albumRatings, setAlbumRatings] = useState({});
+  const [artistGenres, setArtistGenres] = useState([]); // ADD THIS LINE
   const artistId = searchParams.get('artistId');
 
   useEffect(() => {
@@ -28,6 +29,7 @@ const Albums = () => {
       const artistAlbums = await fetchArtistAlbums(id);
       setArtist(artistData);
       setAlbums(artistAlbums);
+      setArtistGenres(artistData.genres || []); // ADD THIS LINE
 
       // Load ratings for all albums
       loadAlbumRatings(artistAlbums);
@@ -73,7 +75,8 @@ const Albums = () => {
         await addFavoriteArtist(user.uid, {
           artistId: artistId,
           name: artist.name,
-          image: artist.images?.[0]?.url || './media/default.jpg'
+          image: artist.images?.[0]?.url || './media/default.jpg',
+          genres: artistGenres // ADD THIS LINE - store genres with favorite artist
         });
         setIsFavorited(true);
       }
@@ -101,7 +104,15 @@ const Albums = () => {
               alt={artist.name}
               className="w-20 h-20 rounded-full object-cover border-2 border-white border-opacity-20 flex-shrink-0"
             />
-            <h2 className="text-3xl font-bold text-white truncate">{artist.name}</h2>
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold text-white truncate">{artist.name}</h2>
+              {/* Display genres if available */}
+              {artistGenres.length > 0 && (
+                <div className="text-gray-300 text-sm mt-1">
+                  Genres: {artistGenres.join(', ')}
+                </div>
+              )}
+            </div>
           </div>
           <button
             className={`favorite-btn py-2 px-6 rounded font-semibold transition-colors duration-200 flex-shrink-0 ${isFavorited
@@ -126,7 +137,9 @@ const Albums = () => {
                   album={{
                     ...album,
                     // Pass the averageScore to AlbumCard so it displays the star rating
-                    averageScore: hasRating ? rating.averageScore : 0
+                    averageScore: hasRating ? rating.averageScore : 0,
+                    // Pass genres to AlbumCard so they can be used when adding to list
+                    genres: artistGenres // ADD THIS LINE
                   }} 
                 />
 
@@ -151,4 +164,4 @@ const Albums = () => {
   );
 };
 
-export default Albums;
+export default Albums;  
