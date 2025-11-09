@@ -4,15 +4,98 @@ import { listenToTop100Albums } from '../services/albumService';
 
 const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
+  const [topSpanishSongs, setTopSpanishSongs] = useState([]);
+  const [activeTab, setActiveTab] = useState('albums'); // 'albums' or 'spanish'
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = listenToTop100Albums((albums) => {
-      setTopAlbums(albums);
+      // Separate albums into two exclusive lists
+      const { englishAlbums, spanishAlbums } = separateAlbumsByLanguage(albums);
+      setTopAlbums(englishAlbums);
+      setTopSpanishSongs(spanishAlbums);
     });
 
     return unsubscribe;
   }, []);
+
+  // Function to separate albums into exclusive English and Spanish lists
+  const separateAlbumsByLanguage = (albums) => {
+    const spanishAlbums = [];
+    const englishAlbums = [];
+    
+    // First pass: identify all Spanish albums
+    const spanishAlbumIds = new Set();
+    
+    albums.forEach(album => {
+      if (isSpanishAlbum(album)) {
+        spanishAlbums.push(album);
+        spanishAlbumIds.add(album.id);
+      }
+    });
+    
+    // Second pass: add only non-Spanish albums to English list
+    albums.forEach(album => {
+      if (!spanishAlbumIds.has(album.id)) {
+        englishAlbums.push(album);
+      }
+    });
+    
+    // Take top 100 for each category
+    return {
+      englishAlbums: englishAlbums.slice(0, 100),
+      spanishAlbums: spanishAlbums.slice(0, 100)
+    };
+  };
+
+  // Function to detect Spanish albums
+  const isSpanishAlbum = (album) => {
+    const albumName = album.name?.toLowerCase() || '';
+    const artistName = Array.isArray(album.artists) 
+      ? album.artists.join(' ').toLowerCase()
+      : (album.artists?.toLowerCase() || '');
+    
+    // Common Spanish music indicators
+    const spanishGenres = ['latin', 'reggaeton', 'bachata', 'salsa', 'merengue', 'flamenco', 'ranchera', 'cumbia', 'tango', 'mexican', 'tejano', 'latin pop', 'latin urban'];
+    const spanishKeywords = ['feat.', 'con', 'y', 'del', 'los', 'las', 'el', 'la', 'si', 'que', 'más', 'por', 'para', 'mi', 'tu', 'su'];
+    const knownSpanishArtists = [
+      'bad bunny', 'j balvin', 'ozuna', 'daddy yankee', 'shakira', 'enrique iglesias', 
+      'ricky martin', 'maluma', 'karol g', 'rosalía', 'becky g', 'nicky jam', 
+      'wisin', 'yandel', 'don omar', 'pitbull', 'marc anthony', 'romeo santos', 
+      'prince royce', 'juanes', 'maná', 'chayanne', 'luis fonsi', 'thalia', 
+      'paulina rubio', 'alejandro fernandez', 'vicente fernandez', 'carlos vives',
+      'fonseca', 'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
+      'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme'
+    ];
+    
+    // Check if album has Spanish genre
+    const hasSpanishGenre = album.genres?.some(genre => 
+      spanishGenres.some(spanishGenre => 
+        genre.toLowerCase().includes(spanishGenre)
+      )
+    );
+    
+    // Check if artist is known Spanish artist
+    const isKnownSpanishArtist = knownSpanishArtists.some(artist => 
+      artistName.includes(artist)
+    );
+    
+    // Check for Spanish language indicators in title
+    const hasSpanishKeywords = spanishKeywords.some(keyword => 
+      albumName.includes(keyword)
+    );
+    
+    // Additional check for common Spanish music patterns
+    const hasSpanishPattern = /(feat\.|con\s|\sy\s|del\s|los\s|las\s)/i.test(albumName);
+    
+    // Strong indicators (any of these qualifies as Spanish)
+    const strongIndicators = hasSpanishGenre || isKnownSpanishArtist;
+    
+    // Weak indicators (need multiple to qualify)
+    const weakIndicators = hasSpanishKeywords || hasSpanishPattern;
+    
+    return strongIndicators || (weakIndicators && (hasSpanishKeywords && hasSpanishPattern));
+  };
 
   const handleAlbumClick = (album) => {
     if (album.id) {
@@ -24,40 +107,126 @@ const Rankings = () => {
     <main className="pt-32 min-h-screen bg-gray-50 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-8">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-200 mb-8">
+            <button
+              className={`py-3 px-6 font-semibold text-lg border-b-2 transition-colors ${
+                activeTab === 'albums'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('albums')}
+            >
+              Top 100 Albums
+            </button>
+            <button
+              className={`py-3 px-6 font-semibold text-lg border-b-2 transition-colors ${
+                activeTab === 'spanish'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('spanish')}
+            >
+              Top 100 Spanish Songs
+            </button>
+          </div>
+
           <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center font-pacifico">
-            Top 100 Albums
+            {activeTab === 'albums' ? 'Top 100 Albums' : 'Top 100 Spanish Songs'}
           </h2>
           
-          {topAlbums.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-xl">
-              Loading albums...
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="text-center bg-amber-50 rounded-lg p-3">
+              <div className="text-lg font-bold text-amber-600">{topAlbums.length}</div>
+              <div className="text-sm text-amber-800">English Albums</div>
             </div>
-          ) : (
-            <ul className="space-y-4">
-              {topAlbums.map((album, index) => (
-                <li 
-                  key={album.id} 
-                  className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-amber-200"
-                  onClick={() => handleAlbumClick(album)}
-                >
-                  <div className="album-item flex items-center space-x-6">
-                    <img 
-                      src={album.image} 
-                      alt={album.name} 
-                      className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
-                    />
-                    <div className="album-details flex-grow">
-                      <strong className="text-2xl text-gray-800 block mb-2">
-                        {index + 1}. {album.name}
-                      </strong>
-                      <span className="text-lg text-gray-600 font-semibold">
-                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                      </span>
+            <div className="text-center bg-blue-50 rounded-lg p-3">
+              <div className="text-lg font-bold text-blue-600">{topSpanishSongs.length}</div>
+              <div className="text-sm text-blue-800">Spanish Songs</div>
+            </div>
+          </div>
+          
+          {activeTab === 'albums' ? (
+            topAlbums.length === 0 ? (
+              <div className="text-center py-12 text-gray-500 text-xl">
+                Loading albums...
+              </div>
+            ) : (
+              <ul className="space-y-4">
+                {topAlbums.map((album, index) => (
+                  <li 
+                    key={album.id} 
+                    className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-amber-200"
+                    onClick={() => handleAlbumClick(album)}
+                  >
+                    <div className="album-item flex items-center space-x-6">
+                      <img 
+                        src={album.image} 
+                        alt={album.name} 
+                        className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
+                      />
+                      <div className="album-details flex-grow">
+                        <strong className="text-2xl text-gray-800 block mb-2">
+                          {index + 1}. {album.name}
+                        </strong>
+                        <span className="text-lg text-gray-600 font-semibold">
+                          Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                        </span>
+                        {album.artists && (
+                          <div className="text-md text-gray-500 mt-1">
+                            by {Array.isArray(album.artists) ? album.artists.join(', ') : album.artists}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : (
+            topSpanishSongs.length === 0 ? (
+              <div className="text-center py-12 text-gray-500 text-xl">
+                {topAlbums.length === 0 ? 'Loading...' : 'No Spanish songs found in the top rankings.'}
+              </div>
+            ) : (
+              <ul className="space-y-4">
+                {topSpanishSongs.map((album, index) => (
+                  <li 
+                    key={album.id} 
+                    className="bg-blue-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-blue-200"
+                    onClick={() => handleAlbumClick(album)}
+                  >
+                    <div className="album-item flex items-center space-x-6">
+                      <img 
+                        src={album.image} 
+                        alt={album.name} 
+                        className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
+                      />
+                      <div className="album-details flex-grow">
+                        <strong className="text-2xl text-gray-800 block mb-2">
+                          {index + 1}. {album.name}
+                        </strong>
+                        <span className="text-lg text-gray-600 font-semibold">
+                          Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                        </span>
+                        {album.artists && (
+                          <div className="text-md text-gray-500 mt-1">
+                            by {Array.isArray(album.artists) ? album.artists.join(', ') : album.artists}
+                          </div>
+                        )}
+                        {/* Show detected Spanish indicators */}
+                        {album.genres && (
+                          <div className="text-sm text-blue-600 mt-1">
+                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )
           )}
         </div>
       </div>

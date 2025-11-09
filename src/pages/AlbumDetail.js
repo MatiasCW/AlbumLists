@@ -96,7 +96,11 @@ const AlbumDetail = () => {
       name: album.name,
       image: album.images?.[0]?.url || './media/default-album.jpg',
       release_date: album.release_date,
-      artists: album.artists.map(artist => artist.name),
+      artists: album.artists.map(artist => ({
+        id: artist.id,
+        name: artist.name
+      })),
+      genres: album.genres || [],
       addedAt: new Date()
     });
 
@@ -172,7 +176,9 @@ const AlbumDetail = () => {
           numberOfRatings: 0,
           averageScore: 0,
           name: album.name,
-          image: album.images?.[0]?.url || './media/default-album.jpg'
+          image: album.images?.[0]?.url || './media/default-album.jpg',
+          artists: album.artists.map(artist => artist.name),
+          genres: album.genres || []
         };
 
         let totalScore = Number(albumData.totalScore) || 0;
@@ -369,6 +375,20 @@ const AlbumDetail = () => {
                   <div className="flex items-start">
                     <strong className="w-32">Genres:</strong>
                     <span>{album.genres.join(', ')}</span>
+                  </div>
+                )}
+                {album.popularity !== undefined && (
+                  <div className="flex items-center">
+                    <strong className="w-32">Popularity:</strong>
+                    <div className="flex items-center space-x-2">
+                      <span>{album.popularity}%</span>
+                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-green-500 h-2 rounded-full" 
+                          style={{ width: `${album.popularity}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
