@@ -130,19 +130,7 @@ const Albums = () => {
                   }} 
                 />
 
-                {/* Rating Display */}
-                <div className="absolute top-3 right-3 bg-black bg-opacity-70 rounded-lg p-2 backdrop-blur-sm">
-                  <div className="text-white font-bold text-sm text-center">
-                    {hasRating ? rating.averageScore?.toFixed(1) : 'N/A'}
-                  </div>
-                  {rating && (
-                    <div className="text-xs text-gray-300 text-center mt-1">
-                      {rating.numberOfRatings || 0} rating{rating.numberOfRatings !== 1 ? 's' : ''}
-                    </div>
-                  )}
-                </div>
-
-                {/* Global Rank Badge */}
+                {/* Global Rank Badge - Only show if album has a rank */}
                 {hasRating && rating.rank && (
                   <div className="absolute top-3 left-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg">
                     #{rating.rank}
