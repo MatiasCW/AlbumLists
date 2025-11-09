@@ -118,11 +118,6 @@ const AlbumDetail = () => {
                   </div>
                   <div className="text-sm text-blue-800 font-medium">
                     Average Rating
-                    {globalRanking && (
-                      <div className="text-xs mt-1">
-                        ({globalRanking.numberOfRatings} rating{globalRanking.numberOfRatings !== 1 ? 's' : ''})
-                      </div>
-                    )}
                   </div>
                 </div>
                 <div className="text-center bg-green-50 rounded-lg p-4">
@@ -131,9 +126,11 @@ const AlbumDetail = () => {
                 </div>
                 <div className="text-center bg-purple-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-purple-600">
-                    {new Date(album.release_date).getFullYear()}
+                    {globalRanking?.numberOfRatings || '0'}
                   </div>
-                  <div className="text-sm text-purple-800 font-medium">Released</div>
+                  <div className="text-sm text-purple-800 font-medium">
+                    Total Ratings
+                  </div>
                 </div>
                 <div className="text-center bg-orange-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-orange-600">
@@ -143,7 +140,7 @@ const AlbumDetail = () => {
                     Global Ranking
                     {globalRanking?.needsMoreRatings && globalRanking.numberOfRatings < 3 && (
                       <div className="text-xs mt-1">
-                        Needs {3 - globalRanking.numberOfRatings} more rating(s)
+                        Needs {3 - globalRanking.numberOfRatings} more
                       </div>
                     )}
                   </div>
