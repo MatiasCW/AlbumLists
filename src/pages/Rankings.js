@@ -51,14 +51,8 @@ const Rankings = () => {
                         {index + 1}. {album.name}
                       </strong>
                       <span className="text-lg text-gray-600 font-semibold">
-                        Average Score: {album.averageScore?.toFixed(1) || '0.0'} 
-                        <span className="text-sm text-gray-500 ml-2">
-                          ({album.numberOfRatings} ratings)
-                        </span>
+                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
                       </span>
-                      <div className="text-sm text-gray-500 mt-1">
-                        Click to view album details
-                      </div>
                     </div>
                   </div>
                 </li>
