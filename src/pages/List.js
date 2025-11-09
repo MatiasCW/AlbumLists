@@ -90,7 +90,7 @@ const List = () => {
         // Skip buttons, inputs, selects, and modal elements
         if (!element.closest('.modal') && 
             !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
-          element.style.color = fColor;
+          element.style.color = color;
         }
       });
     }
@@ -246,6 +246,11 @@ const List = () => {
     }
   };
 
+  // NEW: Handle album name click to navigate to album detail page
+  const handleAlbumNameClick = (albumId) => {
+    navigate(`/album?albumId=${albumId}`);
+  };
+
   const isOwner = !searchParams.get('uid') || user?.uid === searchParams.get('uid');
 
   return (
@@ -327,9 +332,21 @@ const List = () => {
                 <tr key={album.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium">{index + 1}</td>
                   <td className="px-6 py-4">
-                    <img src={album.image} alt={album.name} className="w-20 h-20 rounded-lg object-cover shadow-md" />
+                    <img 
+                      src={album.image} 
+                      alt={album.name} 
+                      className="w-20 h-20 rounded-lg object-cover shadow-md cursor-pointer"
+                      onClick={() => handleAlbumNameClick(album.spotifyId)}
+                    />
                   </td>
-                  <td className="px-6 py-4 font-semibold text-gray-800">{album.name}</td>
+                  <td className="px-6 py-4">
+                    <span 
+                      className="font-semibold text-gray-800 hover:text-blue-600 cursor-pointer transition-colors"
+                      onClick={() => handleAlbumNameClick(album.spotifyId)}
+                    >
+                      {album.name}
+                    </span>
+                  </td>
                   <td className="px-6 py-4">
                     {isOwner ? (
                       <select 
