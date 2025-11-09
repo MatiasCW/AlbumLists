@@ -11,6 +11,7 @@ import {
   where,
   orderBy,
   onSnapshot,
+  limit,
   serverTimestamp 
 } from './firebase';
 
