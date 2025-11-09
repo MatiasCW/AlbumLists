@@ -24,10 +24,6 @@ const AlbumCard = ({ album }) => {
       <div className="font-bold text-lg text-gray-800 mb-2 line-clamp-2 h-14 flex items-center justify-center">
         {album.name}
       </div>
-      <div className="text-yellow-500 text-base font-bold flex items-center justify-center space-x-1">
-        <span>⭐</span>
-        <span>{album.averageScore?.toFixed(1) || '0.0'}</span>
-      </div>
     </div>
   );
 };
