@@ -10,10 +10,15 @@ const Rankings = () => {
 
   useEffect(() => {
     const unsubscribe = listenToTop100Albums((albums) => {
+      console.log('🎵 Total albums received:', albums.length);
       // Separate albums into two exclusive lists
       const { englishAlbums, spanishAlbums } = separateAlbumsByLanguage(albums);
       setTopAlbums(englishAlbums);
       setTopSpanishAlbums(spanishAlbums);
+      console.log('📊 Separation results:', {
+        english: englishAlbums.length,
+        spanish: spanishAlbums.length
+      });
     });
 
     return unsubscribe;
@@ -31,6 +36,7 @@ const Rankings = () => {
       if (isSpanishAlbum(album)) {
         spanishAlbums.push(album);
         spanishAlbumIds.add(album.id);
+        console.log(`✅ SPANISH: ${album.name} - ${album.artists ? 'Has artists' : 'No artists'} - ${album.genres ? 'Has genres' : 'No genres'}`);
       }
     });
     
@@ -38,6 +44,7 @@ const Rankings = () => {
     albums.forEach(album => {
       if (!spanishAlbumIds.has(album.id)) {
         englishAlbums.push(album);
+        console.log(`❌ ENGLISH: ${album.name} - ${album.artists ? 'Has artists' : 'No artists'} - ${album.genres ? 'Has genres' : 'No genres'}`);
       }
     });
     
@@ -48,21 +55,24 @@ const Rankings = () => {
     };
   };
 
-  // Improved Spanish album detection with proper data structure handling
+  // Enhanced Spanish album detection with detailed debugging
   const isSpanishAlbum = (album) => {
     if (!album) return false;
 
-    console.log('Checking album for Spanish:', album.name, album.genres, album.artists);
+    // Enhanced debugging - log everything
+    console.log('=== SPANISH DETECTION DEBUG ===');
+    console.log('Album:', album.name);
+    console.log('Album ID:', album.id);
+    console.log('Raw artists data:', album.artists);
+    console.log('Raw genres data:', album.genres);
 
     // Extract artist names properly - handle the actual data structure from Firestore
     let artistNames = '';
     if (Array.isArray(album.artists)) {
-      // Handle both string arrays and object arrays
       artistNames = album.artists.map(artist => {
         if (typeof artist === 'string') {
           return artist.toLowerCase();
         } else if (artist && typeof artist === 'object') {
-          // Handle {id: string, name: string} objects
           return artist.name?.toLowerCase() || '';
         }
         return '';
@@ -70,6 +80,8 @@ const Rankings = () => {
     } else {
       artistNames = (album.artists?.toLowerCase() || '');
     }
+
+    console.log('Processed artist names:', artistNames);
 
     // Enhanced known Spanish artists list
     const knownSpanishArtists = [
@@ -85,8 +97,7 @@ const Rankings = () => {
       'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
       'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
       'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
-      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky',
-      'oasis' // Add oasis since you mentioned it
+      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
     ];
 
     // Enhanced Spanish genres
@@ -95,21 +106,25 @@ const Rankings = () => {
       'ranchera', 'cumbia', 'tango', 'mexican', 'tejano', 'latin pop', 
       'latin urban', 'urbano', 'corrido', 'banda', 'norteño', 'mariachi',
       'vallenato', 'bolero', 'rumba', 'guaracha', 'mambo', 'son cubano',
-      'latin rock', 'latin alternative', 'latin jazz'
+      'latin rock', 'latin alternative', 'latin jazz', 'trap latino', 'urbano latino'
     ];
 
     // Check 1: Is the artist a known Spanish artist?
-    const isKnownSpanishArtist = knownSpanishArtists.some(artist => 
-      artistNames.includes(artist)
-    );
+    const isKnownSpanishArtist = knownSpanishArtists.some(artist => {
+      const match = artistNames.includes(artist);
+      if (match) console.log(`✓ Matched known Spanish artist: ${artist}`);
+      return match;
+    });
 
     // Check 2: Does the album have Spanish genres?
     const albumGenres = Array.isArray(album.genres) ? album.genres : [];
     const hasSpanishGenre = albumGenres.some(genre => {
       const genreLower = genre.toLowerCase();
-      return spanishGenres.some(spanishGenre => 
+      const matched = spanishGenres.some(spanishGenre => 
         genreLower.includes(spanishGenre)
       );
+      if (matched) console.log(`✓ Matched Spanish genre: ${genre} -> ${spanishGenres.find(sg => genreLower.includes(sg))}`);
+      return matched;
     });
 
     // Check 3: Spanish language patterns in album name
@@ -123,22 +138,22 @@ const Rankings = () => {
       ' hombre ', ' casa ', ' calle ', ' ciudad ', ' país ', ' gente ', ' familia '
     ];
 
-    const hasSpanishPatterns = spanishPatterns.some(pattern => 
-      albumName.includes(pattern)
-    );
-
-    // Debug output to console
-    console.log(`Album: ${album.name}`, {
-      artistNames,
-      isKnownSpanishArtist,
-      albumGenres,
-      hasSpanishGenre,
-      hasSpanishPatterns,
-      qualifiesAsSpanish: isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns
+    const hasSpanishPatterns = spanishPatterns.some(pattern => {
+      const match = albumName.includes(pattern);
+      if (match) console.log(`✓ Matched Spanish pattern: ${pattern}`);
+      return match;
     });
 
-    // QUALIFY as Spanish if ANY of these conditions are true
-    return isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns;
+    const qualifiesAsSpanish = isKnownSpanishArtist || hasSpanishGenre || hasSpanishPatterns;
+    
+    console.log('=== RESULTS ===');
+    console.log('Known Spanish Artist:', isKnownSpanishArtist);
+    console.log('Has Spanish Genre:', hasSpanishGenre);
+    console.log('Has Spanish Patterns:', hasSpanishPatterns);
+    console.log('QUALIFIES AS SPANISH:', qualifiesAsSpanish);
+    console.log('================\n');
+
+    return qualifiesAsSpanish;
   };
 
   const handleAlbumClick = (album) => {
