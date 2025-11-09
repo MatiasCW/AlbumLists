@@ -11,11 +11,13 @@ const Profile = () => {
   const [profileUser, setProfileUser] = useState(null);
   const [showPfpModal, setShowPfpModal] = useState(false);
   const [showBgModal, setShowBgModal] = useState(false);
+  const [backgroundLoaded, setBackgroundLoaded] = useState(false);
+  const [profilePicLoaded, setProfilePicLoaded] = useState(false);
   const uid = searchParams.get('uid') || user?.uid;
 
-  // Predefined profile pictures and backgrounds
-  const profilePictures = Array.from({ length: 23 }, (_, i) => `./media/pfp/pfp${i + 1}.jpg`);
-  const backgrounds = Array.from({ length: 12 }, (_, i) => `./media/bg/bg${i + 1}.jpg`);
+  // Predefined profile pictures and backgrounds - UPDATED TO WEBP
+  const profilePictures = Array.from({ length: 23 }, (_, i) => `./media/pfp/pfp${i + 1}.webp`);
+  const backgrounds = Array.from({ length: 12 }, (_, i) => `./media/bg/bg${i + 1}.webp`);
 
   useEffect(() => {
     if (uid) {
@@ -58,6 +60,23 @@ const Profile = () => {
     }
   };
 
+  const handleImageError = (e, fallbackType = 'default') => {
+    console.log('Image failed to load, using fallback');
+    if (fallbackType === 'profile') {
+      e.target.src = './media/default.webp';
+    } else if (fallbackType === 'background') {
+      e.target.src = './media/bg/bg1.webp';
+    }
+  };
+
+  const handleBackgroundLoad = () => {
+    setBackgroundLoaded(true);
+  };
+
+  const handleProfilePicLoad = () => {
+    setProfilePicLoaded(true);
+  };
+
   if (!profileUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -70,10 +89,30 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Background with loading state */}
       <div
-        className="fixed top-0 left-0 w-full h-full bg-cover bg-center z-0"
-        style={{ backgroundImage: `url('${profileUser.backgroundImage}')` }}
-      />
+        className="fixed top-0 left-0 w-full h-full bg-cover bg-center z-0 transition-opacity duration-500"
+        style={{ 
+          backgroundImage: `url('${profileUser.backgroundImage || './media/bg/bg1.webp'}')`,
+          opacity: backgroundLoaded ? 1 : 0
+        }}
+      >
+        {/* Preload the background image */}
+        <img 
+          src={profileUser.backgroundImage || './media/bg/bg1.webp'} 
+          alt="" 
+          className="hidden" 
+          onLoad={handleBackgroundLoad}
+          onError={(e) => handleImageError(e, 'background')}
+        />
+        
+        {/* Loading overlay for background */}
+        {!backgroundLoaded && (
+          <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+            <div className="text-white text-lg">Loading background...</div>
+          </div>
+        )}
+      </div>
 
       <div className="pt-32 px-4 relative z-10">
         {/* Profile Card - Centered at top */}
@@ -84,12 +123,28 @@ const Profile = () => {
                 <div className="username text-3xl font-bold text-gray-800 mb-4">
                   {profileUser.username}
                 </div>
-                <img
-                  src={profileUser.profilePicture || './media/default.jpg'}
-                  alt="Profile"
-                  className="w-40 h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg mx-auto"
-                  onError={(e) => { e.target.src = './media/default.jpg'; }}
-                />
+                
+                {/* Profile Picture with loading state */}
+                <div className="relative">
+                  <div className={`w-40 h-40 rounded-full border-4 border-blue-500 shadow-lg mx-auto overflow-hidden ${
+                    !profilePicLoaded ? 'bg-gray-200 animate-pulse' : ''
+                  }`}>
+                    <img
+                      src={profileUser.profilePicture || './media/default.webp'}
+                      alt="Profile"
+                      className={`w-full h-full object-cover transition-opacity duration-300 ${
+                        profilePicLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      onLoad={handleProfilePicLoad}
+                      onError={(e) => handleImageError(e, 'profile')}
+                    />
+                  </div>
+                  {!profilePicLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-gray-500">Loading...</div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {isOwner && (
@@ -151,6 +206,8 @@ const Profile = () => {
                     src={pfp}
                     alt={`Profile ${index + 1}`}
                     className="w-full h-24 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, 'profile')}
                   />
                 </div>
               ))}
@@ -183,6 +240,8 @@ const Profile = () => {
                     src={bg}
                     alt={`Background ${index + 1}`}
                     className="w-full h-32 object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, 'background')}
                   />
                 </div>
               ))}
