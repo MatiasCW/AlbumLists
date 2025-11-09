@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchArtistDetails, fetchArtistAlbums } from '../services/spotify';
 import { addFavoriteArtist, removeFavoriteArtist, isArtistFavorited } from '../services/userService';
-import AlbumCard from '../components/AlbumCard'; 
+import AlbumCard from '../components/AlbumCard';
 import { getAlbumRanking } from '../services/albumService';
 
 const Albums = () => {
@@ -28,7 +28,7 @@ const Albums = () => {
       const artistAlbums = await fetchArtistAlbums(id);
       setArtist(artistData);
       setAlbums(artistAlbums);
-      
+
       // Load ratings for all albums
       loadAlbumRatings(artistAlbums);
     } catch (error) {
@@ -96,19 +96,18 @@ const Albums = () => {
         {/* Artist Jumbotron */}
         <div className="artist-jumbotron bg-black bg-opacity-70 rounded-2xl p-6 mb-8 flex justify-between items-center">
           <div className="artist-info flex items-center space-x-6 flex-1">
-            <img 
-              src={artist.images?.[0]?.url || './media/default.jpg'} 
-              alt={artist.name} 
+            <img
+              src={artist.images?.[0]?.url || './media/default.jpg'}
+              alt={artist.name}
               className="w-20 h-20 rounded-full object-cover border-2 border-white border-opacity-20 flex-shrink-0"
             />
             <h2 className="text-3xl font-bold text-white truncate">{artist.name}</h2>
           </div>
-          <button 
-            className={`favorite-btn py-2 px-6 rounded font-semibold transition-colors duration-200 flex-shrink-0 ${
-              isFavorited 
-                ? 'bg-yellow-400 text-black hover:bg-yellow-300' 
+          <button
+            className={`favorite-btn py-2 px-6 rounded font-semibold transition-colors duration-200 flex-shrink-0 ${isFavorited
+                ? 'bg-yellow-400 text-black hover:bg-yellow-300'
                 : 'bg-gray-600 text-white hover:bg-gray-500'
-            }`}
+              }`}
             onClick={handleFavoriteToggle}
           >
             {isFavorited ? '★ Remove Favorite' : '☆ Add to Favorites'}
@@ -120,18 +119,15 @@ const Albums = () => {
           {albums.map(album => {
             const rating = albumRatings[album.id];
             const hasRating = rating && !rating.needsMoreRatings;
-            
+
             return (
               <div key={album.id} className="relative">
                 <AlbumCard album={album} />
-                
+
                 {/* Rating Display */}
                 <div className="absolute top-3 right-3 bg-black bg-opacity-70 rounded-lg p-2 backdrop-blur-sm">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-yellow-400 text-sm">⭐</span>
-                    <span className="text-white font-bold text-sm">
-                      {hasRating ? rating.averageScore?.toFixed(1) : 'N/A'}
-                    </span>
+                  <div className="text-white font-bold text-sm text-center">
+                    {hasRating ? rating.averageScore?.toFixed(1) : 'N/A'}
                   </div>
                   {rating && (
                     <div className="text-xs text-gray-300 text-center mt-1">
@@ -139,7 +135,7 @@ const Albums = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Global Rank Badge */}
                 {hasRating && rating.rank && (
                   <div className="absolute top-3 left-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg">
