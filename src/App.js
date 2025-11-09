@@ -12,6 +12,7 @@ import Signup from './pages/Signup';
 import Albums from './pages/Albums';
 import UserSearch from './pages/UserSearch';
 import LandingPage from './pages/LandingPage';
+import AlbumDetail from './pages/AlbumDetail'; 
 import './styles/style.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/albums" element={<Albums />} />
             <Route path="/usearch" element={<UserSearch />} />
+            <Route path="/album" element={<AlbumDetail />} /> 
           </Routes>
         </div>
       </Router>

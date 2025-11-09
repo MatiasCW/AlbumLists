@@ -2,6 +2,14 @@ const clientId = '2b46bd9e8aef47908b9b92deac88846b';
 const clientSecret = '681a685c75e542c49f101ae8909f3be8';
 let accessToken = '';
 
+// Helper function to get access token
+const getAccessToken = async () => {
+  if (!accessToken) {
+    await fetchAccessToken();
+  }
+  return accessToken;
+};
+
 export const fetchAccessToken = async () => {
   const authHeader = 'Basic ' + btoa(`${clientId}:${clientSecret}`);
 
@@ -58,6 +66,40 @@ export const fetchArtistDetails = async (artistId) => {
       'Authorization': `Bearer ${accessToken}`
     }
   });
+  
+  return await response.json();
+};
+
+// NEW: Fetch album details
+export const fetchAlbumDetails = async (albumId) => {
+  const token = await getAccessToken();
+  
+  const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch album details');
+  }
+  
+  return await response.json();
+};
+
+// NEW: Fetch album tracks
+export const fetchAlbumTracks = async (albumId) => {
+  const token = await getAccessToken();
+  
+  const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch album tracks');
+  }
   
   return await response.json();
 };

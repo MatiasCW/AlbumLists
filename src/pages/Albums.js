@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchArtistDetails, fetchArtistAlbums } from '../services/spotify';
 import { addFavoriteArtist, removeFavoriteArtist, isArtistFavorited } from '../services/userService';
+import AlbumCard from '../components/AlbumCard'; 
 
 const Albums = () => {
   const [searchParams] = useSearchParams();
@@ -96,23 +97,13 @@ const Albums = () => {
           </button>
         </div>
 
-        {/* Albums Grid */}
+        {/* Albums Grid - UPDATED TO USE AlbumCard COMPONENT */}
         <div className="album-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {albums.map(album => (
-            <div key={album.id} className="album bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <img 
-                src={album.images[0]?.url} 
-                alt={album.name} 
-                className="w-full h-48 object-cover rounded-lg mb-4 shadow-md"
-              />
-              <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">{album.name}</h3>
-              <p className="text-gray-600 mb-4">
-                <strong>Release Date:</strong> {album.release_date}
-              </p>
-              <button className="add-btn">
-                +
-              </button>
-            </div>
+            <AlbumCard 
+              key={album.id} 
+              album={album}
+            />
           ))}
         </div>
 
