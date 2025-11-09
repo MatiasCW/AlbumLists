@@ -85,6 +85,8 @@ export const isArtistFavorited = async (userId, artistId) => {
 
 // ALBUM COLLECTION FUNCTIONS
 export const addAlbumToCollection = async (userId, albumData) => {
+  console.log('Adding album to collection:', { userId, albumData }); // DEBUG
+  
   const collectionRef = collection(db, 'users', userId, 'albumCollection');
   
   // Check if already in collection
@@ -92,13 +94,18 @@ export const addAlbumToCollection = async (userId, albumData) => {
   const snapshot = await getDocs(q);
   
   if (!snapshot.empty) {
+    console.log('Album already exists in collection'); // DEBUG
     throw new Error('Album already in collection');
   }
 
-  await addDoc(collectionRef, {
+  console.log('Creating new album document...'); // DEBUG
+  const result = await addDoc(collectionRef, {
     ...albumData,
     addedAt: serverTimestamp()
   });
+  
+  console.log('Album added successfully with ID:', result.id); // DEBUG
+  return result;
 };
 
 export const removeAlbumFromCollection = async (userId, albumId) => {

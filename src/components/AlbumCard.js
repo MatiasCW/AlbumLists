@@ -29,7 +29,7 @@ const AlbumCard = ({ album }) => {
   };
 
   const handleCollectionToggle = async (e) => {
-    e.stopPropagation(); // Prevent navigating to album detail
+    e.stopPropagation();
     setLoading(true);
 
     if (!user) {
@@ -42,19 +42,25 @@ const AlbumCard = ({ album }) => {
       if (isInCollection) {
         await removeAlbumFromCollection(user.uid, album.id);
         setIsInCollection(false);
+        console.log('Removed from collection:', album.name);
       } else {
-        await addAlbumToCollection(user.uid, {
+        // Format the album data correctly for Firestore
+        const albumData = {
           albumId: album.id,
           name: album.name,
           artist: album.artists?.[0]?.name || 'Unknown Artist',
           image: album.images?.[0]?.url || './media/default-album.jpg',
           releaseDate: album.release_date,
           totalTracks: album.total_tracks
-        });
+        };
+        
+        await addAlbumToCollection(user.uid, albumData);
         setIsInCollection(true);
+        console.log('Added to collection:', album.name);
       }
     } catch (error) {
-      alert(error.message);
+      console.error('Collection error:', error);
+      alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -77,7 +83,6 @@ const AlbumCard = ({ album }) => {
         {album.name}
       </div>
       
-      {/* Replace ratings with collection button */}
       <button 
         onClick={handleCollectionToggle}
         disabled={loading}
