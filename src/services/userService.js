@@ -83,3 +83,53 @@ export const isArtistFavorited = async (userId, artistId) => {
   const snapshot = await getDocs(q);
   return !snapshot.empty;
 };
+
+// Album Favorite Functions - following the same pattern as artists
+export const addFavoriteAlbum = async (userId, albumData) => {
+  const favoritesRef = collection(db, 'users', userId, 'favoriteAlbums');
+  
+  // Check if already favorited
+  const q = query(favoritesRef, where('albumId', '==', albumData.albumId));
+  const snapshot = await getDocs(q);
+  
+  if (!snapshot.empty) {
+    throw new Error('Album already in favorites');
+  }
+
+  // Check limit (max 10)
+  const allFavorites = await getDocs(favoritesRef);
+  if (allFavorites.size >= 10) {
+    throw new Error('You can only have 10 favorite albums');
+  }
+
+  await addDoc(favoritesRef, {
+    ...albumData,
+    addedAt: serverTimestamp()
+  });
+};
+
+export const removeFavoriteAlbum = async (userId, albumId) => {
+  const favoritesRef = collection(db, 'users', userId, 'favoriteAlbums');
+  const q = query(favoritesRef, where('albumId', '==', albumId));
+  const snapshot = await getDocs(q);
+  
+  if (!snapshot.empty) {
+    await deleteDoc(doc(favoritesRef, snapshot.docs[0].id));
+  }
+};
+
+export const getFavoriteAlbums = async (userId) => {
+  const favoritesRef = collection(db, 'users', userId, 'favoriteAlbums');
+  const snapshot = await getDocs(favoritesRef);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
+
+export const isAlbumFavorited = async (userId, albumId) => {
+  const favoritesRef = collection(db, 'users', userId, 'favoriteAlbums');
+  const q = query(favoritesRef, where('albumId', '==', albumId));
+  const snapshot = await getDocs(q);
+  return !snapshot.empty;
+};
