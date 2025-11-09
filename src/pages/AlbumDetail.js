@@ -2,22 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks } from '../services/spotify';
 import { getAlbumRanking } from '../services/albumService';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../services/firebase';
+import { doc, getDoc, setDoc, deleteDoc, runTransaction } from 'firebase/firestore';
 
 const AlbumDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [album, setAlbum] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalRanking, setGlobalRanking] = useState(null);
+  const [isInList, setIsInList] = useState(false);
+  const [userScore, setUserScore] = useState(null);
   const albumId = searchParams.get('albumId');
 
   useEffect(() => {
     if (albumId) {
       loadAlbumData(albumId);
       loadAlbumRanking(albumId);
+      checkIfInList(albumId);
     }
-  }, [albumId]);
+  }, [albumId, user]);
 
   const loadAlbumData = async (id) => {
     try {
@@ -39,6 +46,174 @@ const AlbumDetail = () => {
       setGlobalRanking(ranking);
     } catch (error) {
       console.error('Error loading album ranking:', error);
+    }
+  };
+
+  const checkIfInList = async (id) => {
+    if (!user) return;
+    
+    try {
+      const userAlbumRef = doc(db, 'users', user.uid, 'albums', id);
+      const userAlbumSnap = await getDoc(userAlbumRef);
+      
+      if (userAlbumSnap.exists()) {
+        setIsInList(true);
+        setUserScore(userAlbumSnap.data().score || null);
+      } else {
+        setIsInList(false);
+        setUserScore(null);
+      }
+    } catch (error) {
+      console.error('Error checking if album is in list:', error);
+    }
+  };
+
+  const handleAddRemoveAlbum = async () => {
+    if (!user) {
+      alert('Please login to manage your album list');
+      return;
+    }
+
+    try {
+      if (isInList) {
+        // Remove album from list
+        await removeAlbumFromList();
+      } else {
+        // Add album to list
+        await addAlbumToList();
+      }
+    } catch (error) {
+      console.error('Error managing album:', error);
+      alert('Error managing album in your list');
+    }
+  };
+
+  const addAlbumToList = async () => {
+    const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
+    
+    await setDoc(userAlbumRef, {
+      spotifyId: albumId,
+      name: album.name,
+      image: album.images?.[0]?.url || './media/default-album.jpg',
+      release_date: album.release_date,
+      artists: album.artists.map(artist => artist.name),
+      addedAt: new Date()
+    });
+
+    setIsInList(true);
+  };
+
+  const removeAlbumFromList = async () => {
+    const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
+    const userAlbumSnap = await getDoc(userAlbumRef);
+    
+    if (!userAlbumSnap.exists()) return;
+
+    const globalAlbumRef = doc(db, 'albums', albumId);
+    const userRatingRef = doc(globalAlbumRef, 'ratings', user.uid);
+
+    const userRatingSnap = await getDoc(userRatingRef);
+    const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
+
+    await runTransaction(db, async (transaction) => {
+      const albumSnap = await transaction.get(globalAlbumRef);
+      if (albumSnap.exists()) {
+        const albumData = albumSnap.data();
+        let totalScore = Number(albumData.totalScore) || 0;
+        let numberOfRatings = Number(albumData.numberOfRatings) || 0;
+
+        if (oldRating !== null) {
+          totalScore -= Number(oldRating) || 0;
+          numberOfRatings = Math.max(numberOfRatings - 1, 0);
+        }
+
+        const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
+
+        transaction.set(globalAlbumRef, {
+          ...albumData,
+          totalScore,
+          numberOfRatings,
+          averageScore
+        }, { merge: true });
+      }
+
+      transaction.delete(userRatingRef);
+    });
+
+    await deleteDoc(userAlbumRef);
+    setIsInList(false);
+    setUserScore(null);
+  };
+
+  const handleScoreChange = async (newScore) => {
+    if (!user) return;
+    
+    const selectedScore = newScore === '-' ? null : Number(newScore);
+    const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
+    
+    try {
+      const userAlbumSnap = await getDoc(userAlbumRef);
+      if (!userAlbumSnap.exists()) return;
+      
+      await setDoc(userAlbumRef, { 
+        score: selectedScore 
+      }, { merge: true });
+
+      const globalAlbumRef = doc(db, 'albums', albumId);
+      const userRatingRef = doc(globalAlbumRef, 'ratings', user.uid);
+
+      const userRatingSnap = await getDoc(userRatingRef);
+      const oldRating = userRatingSnap.exists() ? userRatingSnap.data().rating : null;
+
+      await runTransaction(db, async (transaction) => {
+        const albumSnap = await transaction.get(globalAlbumRef);
+        const albumData = albumSnap.exists() ? albumSnap.data() : {
+          totalScore: 0,
+          numberOfRatings: 0,
+          averageScore: 0,
+          name: album.name,
+          image: album.images?.[0]?.url || './media/default-album.jpg'
+        };
+
+        let totalScore = Number(albumData.totalScore) || 0;
+        let numberOfRatings = Number(albumData.numberOfRatings) || 0;
+
+        if (oldRating !== null) {
+          totalScore -= Number(oldRating) || 0;
+        }
+
+        if (selectedScore !== null) {
+          const newRating = Number(selectedScore) || 0;
+          totalScore += newRating;
+          if (oldRating === null) numberOfRatings += 1;
+        } else {
+          numberOfRatings = Math.max(numberOfRatings - 1, 0);
+        }
+
+        totalScore = Math.max(totalScore, 0);
+        numberOfRatings = Math.max(numberOfRatings, 0);
+
+        const averageScore = numberOfRatings > 0 ? totalScore / numberOfRatings : 0;
+
+        transaction.set(globalAlbumRef, {
+          ...albumData,
+          totalScore,
+          numberOfRatings,
+          averageScore
+        }, { merge: true });
+
+        if (selectedScore !== null) {
+          transaction.set(userRatingRef, { rating: Number(selectedScore) || 0 });
+        } else {
+          transaction.delete(userRatingRef);
+        }
+      });
+
+      setUserScore(selectedScore);
+      // Reload global ranking to reflect the score change
+      loadAlbumRanking(albumId);
+    } catch (error) {
+      console.error("Error updating score:", error);
     }
   };
 
@@ -108,6 +283,35 @@ const AlbumDetail = () => {
                     {index < album.artists.length - 1 && <span className="text-gray-400">•</span>}
                   </React.Fragment>
                 ))}
+              </div>
+
+              {/* Add/Remove Button and Score Selection */}
+              <div className="flex items-center space-x-4 mb-8">
+                <button
+                  onClick={handleAddRemoveAlbum}
+                  className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                    isInList 
+                      ? 'bg-red-500 text-white hover:bg-red-600' 
+                      : 'bg-green-500 text-white hover:bg-green-600'
+                  }`}
+                >
+                  {isInList ? 'Remove from List' : 'Add to My List'}
+                </button>
+                
+                {isInList && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700 font-medium">Your Rating:</span>
+                    <select 
+                      value={userScore || '-'}
+                      onChange={(e) => handleScoreChange(e.target.value)}
+                      className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {["-", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"].map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               {/* Album Stats */}
