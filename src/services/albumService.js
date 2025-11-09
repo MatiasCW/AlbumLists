@@ -1,5 +1,18 @@
-import { db } from './firebase';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { 
+  db, 
+  collection, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  serverTimestamp 
+} from './firebase';
 
 export const listenToTop100Albums = (callback) => {
   try {

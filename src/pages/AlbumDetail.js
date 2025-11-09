@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks } from '../services/spotify';
-import { getAlbumRanking } from '../services/albumService'; // You'll need to create this function
+import { getAlbumRanking } from '../services/albumService'; 
 
 const AlbumDetail = () => {
   const [searchParams] = useSearchParams();
