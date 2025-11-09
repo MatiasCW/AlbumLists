@@ -90,7 +90,7 @@ const List = () => {
         // Skip buttons, inputs, selects, and modal elements
         if (!element.closest('.modal') && 
             !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
-          element.style.color = color;
+          element.style.color = fColor;
         }
       });
     }
