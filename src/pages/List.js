@@ -22,6 +22,11 @@ const List = () => {
         loadUserColors(uid);
       }
     }
+
+    return () => {
+      document.body.style.backgroundColor = '';
+      resetTextColors();
+    };
   }, [uid, sortOrder, user]);
 
   const fetchAlbums = async (userId) => {
@@ -63,14 +68,28 @@ const List = () => {
     }
   };
 
+  // NEW: Reset text colors when leaving the page
+  const resetTextColors = () => {
+    const allElements = document.querySelectorAll('body, body *');
+    allElements.forEach(element => {
+      element.style.color = '';
+    });
+  };
+
   const applyColors = (bgColor, fColor) => {
-    if (bgColor) {
-      document.body.style.backgroundColor = bgColor;
+    // Only apply background color to the main content area, not the entire body
+    const mainElement = document.querySelector('main');
+    if (mainElement && bgColor) {
+      mainElement.style.backgroundColor = bgColor;
     }
+    
+    // Only apply font color to elements within the main content
     if (fColor) {
-      const allElements = document.querySelectorAll('body, body *:not(.modal *):not(button):not(input):not(select)');
-      allElements.forEach(element => {
-        if (!element.closest('.modal')) {
+      const listPageElements = document.querySelectorAll('main *');
+      listPageElements.forEach(element => {
+        // Skip buttons, inputs, selects, and modal elements
+        if (!element.closest('.modal') && 
+            !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
           element.style.color = fColor;
         }
       });
@@ -80,12 +99,17 @@ const List = () => {
   const handleColorChange = async (type, color) => {
     if (type === 'background') {
       setBackgroundColor(color);
-      document.body.style.backgroundColor = color;
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        mainElement.style.backgroundColor = color;
+      }
     } else {
       setFontColor(color);
-      const allElements = document.querySelectorAll('body, body *:not(.modal *):not(button):not(input):not(select)');
-      allElements.forEach(element => {
-        if (!element.closest('.modal')) {
+      // Apply font color only to list page content
+      const listPageElements = document.querySelectorAll('main *');
+      listPageElements.forEach(element => {
+        if (!element.closest('.modal') && 
+            !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
           element.style.color = color;
         }
       });
@@ -102,13 +126,6 @@ const List = () => {
     }
   };
 
-  // NEW: Handle album click to navigate to album detail page
-  const handleAlbumClick = (album) => {
-    if (album.spotifyId) {
-      navigate(`/album?albumId=${album.spotifyId}`);
-    }
-  };
-
   const handleScoreChange = async (albumId, newScore) => {
     if (!user) return;
     
@@ -116,16 +133,13 @@ const List = () => {
     const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
     
     try {
-      // Get the album data first
       const userAlbumSnap = await getDoc(userAlbumRef);
       if (!userAlbumSnap.exists()) return;
 
       const spotifyId = userAlbumSnap.data().spotifyId;
       
-      // Update user's album score
       await updateDoc(userAlbumRef, { score: selectedScore });
 
-      // Update global album stats
       const globalAlbumRef = doc(db, 'albums', spotifyId);
       const userRatingRef = doc(globalAlbumRef, 'ratings', user.uid);
 
@@ -235,7 +249,7 @@ const List = () => {
   const isOwner = !searchParams.get('uid') || user?.uid === searchParams.get('uid');
 
   return (
-    <main className="pt-32 min-h-screen px-4">
+    <main className="pt-32 min-h-screen px-4" style={{ backgroundColor: 'inherit' }}>
       <div className="max-w-6xl mx-auto">
         {isOwner && (
           <button 
@@ -313,19 +327,9 @@ const List = () => {
                 <tr key={album.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium">{index + 1}</td>
                   <td className="px-6 py-4">
-                    <img 
-                      src={album.image} 
-                      alt={album.name} 
-                      className="w-20 h-20 rounded-lg object-cover shadow-md cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => handleAlbumClick(album)}
-                    />
+                    <img src={album.image} alt={album.name} className="w-20 h-20 rounded-lg object-cover shadow-md" />
                   </td>
-                  <td 
-                    className="px-6 py-4 font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
-                    onClick={() => handleAlbumClick(album)}
-                  >
-                    {album.name}
-                  </td>
+                  <td className="px-6 py-4 font-semibold text-gray-800">{album.name}</td>
                   <td className="px-6 py-4">
                     {isOwner ? (
                       <select 
