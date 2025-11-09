@@ -1,5 +1,5 @@
-import { db } from './firebase';
 import { 
+  db, 
   collection, 
   doc, 
   getDoc, 
@@ -11,8 +11,7 @@ import {
   where, 
   addDoc, 
   serverTimestamp 
-} from 'firebase/firestore';
-
+} from './firebase'; // Import from your firebase.js file
 
 export const getUserByUsername = async (username) => {
   const q = query(
@@ -80,6 +79,50 @@ export const getFavoriteArtists = async (userId) => {
 export const isArtistFavorited = async (userId, artistId) => {
   const favoritesRef = collection(db, 'users', userId, 'favoriteArtists');
   const q = query(favoritesRef, where('artistId', '==', artistId));
+  const snapshot = await getDocs(q);
+  return !snapshot.empty;
+};
+
+// ALBUM COLLECTION FUNCTIONS
+export const addAlbumToCollection = async (userId, albumData) => {
+  const collectionRef = collection(db, 'users', userId, 'albumCollection');
+  
+  // Check if already in collection
+  const q = query(collectionRef, where('albumId', '==', albumData.albumId));
+  const snapshot = await getDocs(q);
+  
+  if (!snapshot.empty) {
+    throw new Error('Album already in collection');
+  }
+
+  await addDoc(collectionRef, {
+    ...albumData,
+    addedAt: serverTimestamp()
+  });
+};
+
+export const removeAlbumFromCollection = async (userId, albumId) => {
+  const collectionRef = collection(db, 'users', userId, 'albumCollection');
+  const q = query(collectionRef, where('albumId', '==', albumId));
+  const snapshot = await getDocs(q);
+  
+  if (!snapshot.empty) {
+    await deleteDoc(doc(collectionRef, snapshot.docs[0].id));
+  }
+};
+
+export const getAlbumCollection = async (userId) => {
+  const collectionRef = collection(db, 'users', userId, 'albumCollection');
+  const snapshot = await getDocs(collectionRef);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
+
+export const isAlbumInCollection = async (userId, albumId) => {
+  const collectionRef = collection(db, 'users', userId, 'albumCollection');
+  const q = query(collectionRef, where('albumId', '==', albumId));
   const snapshot = await getDocs(q);
   return !snapshot.empty;
 };

@@ -1,11 +1,63 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { addAlbumToCollection, removeAlbumFromCollection, isAlbumInCollection } from '../services/userService';
 
 const AlbumCard = ({ album }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isInCollection, setIsInCollection] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && album.id) {
+      checkIfInCollection(album.id);
+    }
+  }, [user, album.id]);
+
+  const checkIfInCollection = async (albumId) => {
+    try {
+      const inCollection = await isAlbumInCollection(user.uid, albumId);
+      setIsInCollection(inCollection);
+    } catch (error) {
+      console.error('Error checking collection status:', error);
+    }
+  };
 
   const handleAlbumClick = () => {
     navigate(`/album?albumId=${album.id}`);
+  };
+
+  const handleCollectionToggle = async (e) => {
+    e.stopPropagation(); // Prevent navigating to album detail
+    setLoading(true);
+
+    if (!user) {
+      alert('Please login to manage your collection');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isInCollection) {
+        await removeAlbumFromCollection(user.uid, album.id);
+        setIsInCollection(false);
+      } else {
+        await addAlbumToCollection(user.uid, {
+          albumId: album.id,
+          name: album.name,
+          artist: album.artists?.[0]?.name || 'Unknown Artist',
+          image: album.images?.[0]?.url || './media/default-album.jpg',
+          releaseDate: album.release_date,
+          totalTracks: album.total_tracks
+        });
+        setIsInCollection(true);
+      }
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,10 +76,19 @@ const AlbumCard = ({ album }) => {
       <div className="font-bold text-lg text-gray-800 mb-2 line-clamp-2 h-14 flex items-center justify-center">
         {album.name}
       </div>
-      <div className="text-yellow-500 text-base font-bold flex items-center justify-center space-x-1">
-        <span>⭐</span>
-        <span>{album.averageScore?.toFixed(1) || '0.0'}</span>
-      </div>
+      
+      {/* Replace ratings with collection button */}
+      <button 
+        onClick={handleCollectionToggle}
+        disabled={loading}
+        className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors duration-200 ${
+          isInCollection 
+            ? 'bg-red-500 text-white hover:bg-red-600' 
+            : 'bg-green-500 text-white hover:bg-green-600'
+        } disabled:opacity-50 disabled:cursor-not-allowed`}
+      >
+        {loading ? '...' : isInCollection ? 'Remove from Collection' : 'Add to Collection'}
+      </button>
     </div>
   );
 };
