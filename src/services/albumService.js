@@ -21,20 +21,10 @@ export const listenToTop100Albums = (callback) => {
   
   return onSnapshot(q, (snapshot) => {
     const albums = snapshot.docs
-      .map(doc => {
-        const data = doc.data();
-        // Debug logging for album data
-        console.log(`🔥 Album from Firestore: ${data.name}`, {
-          artists: data.artists,
-          genres: data.genres,
-          hasGenres: !!data.genres && data.genres.length > 0,
-          artistCount: Array.isArray(data.artists) ? data.artists.length : 'unknown'
-        });
-        return {
-          id: doc.id,
-          ...data
-        };
-      })
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
       .filter(album => album.numberOfRatings >= 3) // Only albums with 3+ ratings
       .slice(0, 100); // Take top 100 after filtering
     

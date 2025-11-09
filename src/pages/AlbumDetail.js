@@ -98,15 +98,15 @@ const AlbumDetail = () => {
     const addAlbumToList = async () => {
         const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
 
+        // Get artist names as array for consistent storage
+        const artistNames = album.artists.map(artist => artist.name);
+
         await setDoc(userAlbumRef, {
             spotifyId: albumId,
             name: album.name,
             image: album.images?.[0]?.url || './media/default-album.jpg',
             release_date: album.release_date,
-            artists: album.artists.map(artist => ({
-                id: artist.id,
-                name: artist.name
-            })),
+            artists: artistNames, // Store as array of names for consistency
             genres: artistGenres, // Use the artist genres we fetched
             addedAt: new Date()
         });
@@ -178,13 +178,25 @@ const AlbumDetail = () => {
 
             await runTransaction(db, async (transaction) => {
                 const albumSnap = await transaction.get(globalAlbumRef);
-                const albumData = albumSnap.exists() ? albumSnap.data() : {
+                
+                // Get artist names properly formatted
+                const artistNames = album.artists.map(artist => artist.name);
+                
+                // ALWAYS include fresh artist and genre data - FIX FOR MISSING DATA
+                const albumData = albumSnap.exists() ? {
+                    ...albumSnap.data(),
+                    // Force update with current data to fix missing fields
+                    artists: artistNames, // Ensure artists are stored as array of names
+                    genres: artistGenres, // Ensure genres are included
+                    name: album.name,
+                    image: album.images?.[0]?.url || './media/default-album.jpg'
+                } : {
                     totalScore: 0,
                     numberOfRatings: 0,
                     averageScore: 0,
                     name: album.name,
                     image: album.images?.[0]?.url || './media/default-album.jpg',
-                    artists: album.artists.map(artist => artist.name),
+                    artists: artistNames, // Store as array of names for easier processing
                     genres: artistGenres // Make sure genres are included
                 };
 
