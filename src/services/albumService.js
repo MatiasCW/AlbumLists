@@ -23,3 +23,30 @@ export const listenToTop100Albums = (callback) => {
     return () => {};
   }
 };
+
+export const getAlbumRanking = async (albumId) => {
+  try {
+    // Get all albums sorted by average score
+    const albumsRef = collection(db, 'albums');
+    const q = query(albumsRef, orderBy('averageScore', 'desc'));
+    const querySnapshot = await getDocs(q);
+    
+    const albums = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Find the current album's rank
+    const currentAlbumIndex = albums.findIndex(album => album.id === albumId);
+    const rank = currentAlbumIndex + 1; // +1 because array is 0-indexed
+    
+    return {
+      rank: rank,
+      totalAlbums: albums.length,
+      averageScore: albums[currentAlbumIndex]?.averageScore || 0
+    };
+  } catch (error) {
+    console.error('Error getting album ranking:', error);
+    return null;
+  }
+};

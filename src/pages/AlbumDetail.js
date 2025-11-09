@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks } from '../services/spotify';
+import { getAlbumRanking } from '../services/albumService'; // You'll need to create this function
 
 const AlbumDetail = () => {
   const [searchParams] = useSearchParams();
@@ -8,11 +9,13 @@ const AlbumDetail = () => {
   const [album, setAlbum] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [globalRanking, setGlobalRanking] = useState(null);
   const albumId = searchParams.get('albumId');
 
   useEffect(() => {
     if (albumId) {
       loadAlbumData(albumId);
+      loadAlbumRanking(albumId);
     }
   }, [albumId]);
 
@@ -27,6 +30,15 @@ const AlbumDetail = () => {
       console.error('Error loading album data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAlbumRanking = async (albumId) => {
+    try {
+      const ranking = await getAlbumRanking(albumId);
+      setGlobalRanking(ranking);
+    } catch (error) {
+      console.error('Error loading album ranking:', error);
     }
   };
 
@@ -47,6 +59,13 @@ const AlbumDetail = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const getRankingSuffix = (rank) => {
+    if (rank === 1) return 'st';
+    if (rank === 2) return 'nd';
+    if (rank === 3) return 'rd';
+    return 'th';
   };
 
   if (loading) {
@@ -101,7 +120,9 @@ const AlbumDetail = () => {
               {/* Album Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                 <div className="text-center bg-blue-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-blue-600">4.2</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {globalRanking?.averageScore?.toFixed(1) || '0.0'}
+                  </div>
                   <div className="text-sm text-blue-800 font-medium">Average Rating</div>
                 </div>
                 <div className="text-center bg-green-50 rounded-lg p-4">
@@ -115,8 +136,18 @@ const AlbumDetail = () => {
                   <div className="text-sm text-purple-800 font-medium">Released</div>
                 </div>
                 <div className="text-center bg-orange-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-orange-600">{album.popularity || 'N/A'}</div>
-                  <div className="text-sm text-orange-800 font-medium">Popularity</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {globalRanking ? `#${globalRanking.rank}` : 'N/A'}
+                  </div>
+                  <div className="text-sm text-orange-800 font-medium">
+                    Global Ranking
+                    {globalRanking && (
+                      <div className="text-xs mt-1">
+                        {globalRanking.rank}
+                        {getRankingSuffix(globalRanking.rank)} out of {globalRanking.totalAlbums}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
