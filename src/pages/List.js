@@ -33,7 +33,7 @@ const List = () => {
     try {
       const albumsRef = collection(db, 'users', userId, 'albums');
       const querySnapshot = await getDocs(albumsRef);
-      
+
       let albumsList = querySnapshot.docs.map(docSnap => ({
         id: docSnap.id,
         ...docSnap.data()
@@ -58,7 +58,7 @@ const List = () => {
         const userData = userDoc.data();
         const bgColor = userData.backgroundColor || '#ffffff';
         const fColor = userData.fontColor || '#000000';
-        
+
         setBackgroundColor(bgColor);
         setFontColor(fColor);
         applyColors(bgColor, fColor);
@@ -82,14 +82,14 @@ const List = () => {
     if (mainElement && bgColor) {
       mainElement.style.backgroundColor = bgColor;
     }
-    
+
     // Only apply font color to elements within the main content
     if (fColor) {
       const listPageElements = document.querySelectorAll('main *');
       listPageElements.forEach(element => {
         // Skip buttons, inputs, selects, and modal elements
-        if (!element.closest('.modal') && 
-            !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
+        if (!element.closest('.modal') &&
+          !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
           element.style.color = fColor;
         }
       });
@@ -108,8 +108,8 @@ const List = () => {
       // Apply font color only to list page content
       const listPageElements = document.querySelectorAll('main *');
       listPageElements.forEach(element => {
-        if (!element.closest('.modal') && 
-            !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
+        if (!element.closest('.modal') &&
+          !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
           element.style.color = color;
         }
       });
@@ -128,16 +128,16 @@ const List = () => {
 
   const handleScoreChange = async (albumId, newScore) => {
     if (!user) return;
-    
+
     const selectedScore = newScore === '-' ? null : Number(newScore);
     const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
-    
+
     try {
       const userAlbumSnap = await getDoc(userAlbumRef);
       if (!userAlbumSnap.exists()) return;
 
       const spotifyId = userAlbumSnap.data().spotifyId;
-      
+
       await updateDoc(userAlbumRef, { score: selectedScore });
 
       const globalAlbumRef = doc(db, 'albums', spotifyId);
@@ -198,12 +198,12 @@ const List = () => {
 
   const handleRemoveAlbum = async (albumId) => {
     if (!user) return;
-    
+
     if (window.confirm("Are you sure you want to remove this album?")) {
       try {
         const userAlbumRef = doc(db, 'users', user.uid, 'albums', albumId);
         const userAlbumSnap = await getDoc(userAlbumRef);
-        
+
         if (!userAlbumSnap.exists()) return;
 
         const spotifyId = userAlbumSnap.data().spotifyId;
@@ -254,31 +254,32 @@ const List = () => {
   const isOwner = !searchParams.get('uid') || user?.uid === searchParams.get('uid');
 
   return (
-    <main className="pt-32 min-h-screen px-4" style={{ backgroundColor: 'inherit' }}>
+    <main className="pt-32 min-h-screen px-4 pb-8" style={{ backgroundColor: 'inherit' }}>
       <div className="max-w-6xl mx-auto">
         {isOwner && (
-          <button 
+          <button
             className="bg-gray-500 text-white px-6 py-3 rounded-lg mb-6 hover:bg-gray-600 transition-colors"
             onClick={() => setShowColorModal(true)}
           >
             Style
           </button>
         )}
-        
+
+
         {/* Color Modal */}
         {showColorModal && (
           <div className="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="modal-content bg-white rounded-xl p-6 max-w-md w-full mx-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Choose Colors</h2>
-                <button 
+                <button
                   className="close text-2xl hover:text-gray-700"
                   onClick={() => setShowColorModal(false)}
                 >
                   &times;
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label htmlFor="backgroundColorPicker" className="block mb-2 font-medium">
@@ -292,7 +293,7 @@ const List = () => {
                     className="w-full h-10 cursor-pointer"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="fontColorPicker" className="block mb-2 font-medium">
                     Font Color:
@@ -317,7 +318,7 @@ const List = () => {
                 <th className="px-6 py-4 text-left font-semibold">Rank</th>
                 <th className="px-6 py-4 text-left font-semibold">Cover</th>
                 <th className="px-6 py-4 text-left font-semibold">Album Name</th>
-                <th 
+                <th
                   className="px-6 py-4 text-left font-semibold cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : sortOrder === 'asc' ? 'default' : 'desc')}
                 >
@@ -332,15 +333,15 @@ const List = () => {
                 <tr key={album.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium">{index + 1}</td>
                   <td className="px-6 py-4">
-                    <img 
-                      src={album.image} 
-                      alt={album.name} 
+                    <img
+                      src={album.image}
+                      alt={album.name}
                       className="w-20 h-20 rounded-lg object-cover shadow-md cursor-pointer"
                       onClick={() => handleAlbumNameClick(album.spotifyId)}
                     />
                   </td>
                   <td className="px-6 py-4">
-                    <span 
+                    <span
                       className="font-semibold text-gray-800 hover:text-blue-600 cursor-pointer transition-colors"
                       onClick={() => handleAlbumNameClick(album.spotifyId)}
                     >
@@ -349,7 +350,7 @@ const List = () => {
                   </td>
                   <td className="px-6 py-4">
                     {isOwner ? (
-                      <select 
+                      <select
                         className="score-dropdown"
                         value={album.score || '-'}
                         onChange={(e) => handleScoreChange(album.id, e.target.value)}
@@ -365,7 +366,7 @@ const List = () => {
                   <td className="px-6 py-4 text-gray-600">{album.release_date}</td>
                   <td className="px-6 py-4">
                     {isOwner && (
-                      <button 
+                      <button
                         className="remove-btn"
                         onClick={() => handleRemoveAlbum(album.id)}
                       >
@@ -377,7 +378,7 @@ const List = () => {
               ))}
             </tbody>
           </table>
-          
+
           {albums.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               No albums saved yet.
