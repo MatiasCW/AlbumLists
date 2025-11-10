@@ -10,8 +10,8 @@ const Rankings = () => {
 
   useEffect(() => {
     const unsubscribe = listenToTop100Albums((albums) => {
-      // Use SIMPLE artist-based detection - no API calls
-      const { englishAlbums, spanishAlbums } = separateAlbumsByArtist(albums);
+      // BINARY CLASSIFICATION: Spanish or Not Spanish
+      const { englishAlbums, spanishAlbums } = separateAlbumsBinary(albums);
       setTopAlbums(englishAlbums);
       setTopSpanishAlbums(spanishAlbums);
     });
@@ -19,63 +19,50 @@ const Rankings = () => {
     return unsubscribe;
   }, []);
 
-  // SIMPLE and RELIABLE: Separate by known Spanish artists only
-  const separateAlbumsByArtist = (albums) => {
+  // SIMPLE BINARY CLASSIFICATION: Has Spanish genres = Spanish, Else = English
+  const separateAlbumsBinary = (albums) => {
     const spanishAlbums = [];
     const englishAlbums = [];
     
-    // Comprehensive list of Spanish/Latin artists
-    const spanishArtists = new Set([
-      'bad bunny', 'anuel aa', 'j balvin', 'ozuna', 'daddy yankee', 
-      'shakira', 'enrique iglesias', 'ricky martin', 'maluma', 'karol g', 
-      'rosalía', 'becky g', 'nicky jam', 'wisin', 'yandel', 'don omar', 
-      'pitbull', 'marc anthony', 'romeo santos', 'prince royce', 'juanes', 
-      'maná', 'chayanne', 'luis fonsi', 'thalia', 'paulina rubio', 
-      'alejandro fernandez', 'vicente fernandez', 'carlos vives', 'fonseca', 
-      'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
-      'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme',
-      'myke towers', 'arcángel', 'farruko', 'zion', 'lennox', 'tito el bambino',
-      'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
-      'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
-      'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
-      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky',
-      'jhayco', 'jhay cortez', 'myke towers', 'alex rose', 'casper magico',
-      'nengo flow', 'de la ghetto', 'zion & lennox'
-    ]);
+    // DEFINITIVE Spanish/Latin genres
+    const spanishGenres = [
+      'latin', 'reggaeton', 'trap latino', 'urbano latino', 'latin urban', 
+      'bachata', 'salsa', 'merengue', 'flamenco', 'ranchera', 'cumbia', 
+      'tango', 'mexican', 'tejano', 'latin pop', 'urbano', 'corrido', 
+      'banda', 'norteño', 'mariachi', 'vallenato', 'bolero', 'rumba', 
+      'guaracha', 'mambo', 'son cubano', 'latin rock', 'latin alternative', 
+      'latin jazz'
+    ];
 
     albums.forEach(album => {
-      let artistNames = '';
+      // Check if album has any Spanish genres
+      const albumGenres = album.genres || album.spotifyGenres || [];
       
-      // Extract artist names from album data
-      if (album.artists) {
-        if (Array.isArray(album.artists)) {
-          artistNames = album.artists.map(artist => 
-            typeof artist === 'string' ? artist.toLowerCase() : artist.name?.toLowerCase() || ''
-          ).join(' ');
-        } else {
-          artistNames = album.artists.toLowerCase();
-        }
+      let hasSpanishGenre = false;
+      
+      if (Array.isArray(albumGenres) && albumGenres.length > 0) {
+        // Check if any genre matches Spanish genres
+        hasSpanishGenre = albumGenres.some(genre => 
+          spanishGenres.some(spanishGenre => 
+            genre.toLowerCase().includes(spanishGenre)
+          )
+        );
       }
       
-      // Also check mainArtistName if available
-      if (album.mainArtistName) {
-        artistNames += ' ' + album.mainArtistName.toLowerCase();
-      }
-
-      // Check if any Spanish artist is in the artist names
-      let isSpanish = false;
-      for (const spanishArtist of spanishArtists) {
-        if (artistNames.includes(spanishArtist)) {
-          isSpanish = true;
-          break;
-        }
-      }
-
-      if (isSpanish) {
+      // BINARY DECISION: Has Spanish genre = Spanish, Else = English
+      if (hasSpanishGenre) {
         spanishAlbums.push(album);
       } else {
         englishAlbums.push(album);
       }
+    });
+
+    console.log('Spanish albums found:', spanishAlbums.length);
+    console.log('English albums found:', englishAlbums.length);
+    
+    // Log Spanish albums for debugging
+    spanishAlbums.forEach(album => {
+      console.log('SPANISH ALBUM:', album.name, 'Genres:', album.genres || album.spotifyGenres);
     });
 
     return {
@@ -88,24 +75,6 @@ const Rankings = () => {
     if (album.id) {
       navigate(`/album?albumId=${album.id}`);
     }
-  };
-
-  // Function to manually fix album classification (for testing)
-  const manuallyClassifyAlbum = (album) => {
-    const artistNames = album.artists ? 
-      (Array.isArray(album.artists) ? 
-        album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
-        album.artists) 
-      : 'Unknown';
-    
-    const hasSpanishGenres = album.genres && Array.isArray(album.genres) && 
-      album.genres.some(g => g.toLowerCase().includes('latin') || g.toLowerCase().includes('reggaeton'));
-    
-    return {
-      artistNames,
-      hasSpanishGenres,
-      genres: album.genres || 'No genres'
-    };
   };
 
   return (
@@ -147,43 +116,44 @@ const Rankings = () => {
               </div>
             ) : (
               <ul className="space-y-4">
-                {topAlbums.map((album, index) => {
-                  const classification = manuallyClassifyAlbum(album);
-                  return (
-                    <li 
-                      key={album.id} 
-                      className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-amber-200"
-                      onClick={() => handleAlbumClick(album)}
-                    >
-                      <div className="album-item flex items-center space-x-6">
-                        <img 
-                          src={album.image} 
-                          alt={album.name} 
-                          className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
-                        />
-                        <div className="album-details flex-grow">
-                          <strong className="text-2xl text-gray-800 block mb-2">
-                            {index + 1}. {album.name}
-                          </strong>
-                          <span className="text-lg text-gray-600 font-semibold">
-                            Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                          </span>
+                {topAlbums.map((album, index) => (
+                  <li 
+                    key={album.id} 
+                    className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-amber-200"
+                    onClick={() => handleAlbumClick(album)}
+                  >
+                    <div className="album-item flex items-center space-x-6">
+                      <img 
+                        src={album.image} 
+                        alt={album.name} 
+                        className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
+                      />
+                      <div className="album-details flex-grow">
+                        <strong className="text-2xl text-gray-800 block mb-2">
+                          {index + 1}. {album.name}
+                        </strong>
+                        <span className="text-lg text-gray-600 font-semibold">
+                          Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                        </span>
+                        {album.artists && (
                           <div className="text-md text-gray-500 mt-1">
-                            by {classification.artistNames}
+                            by {Array.isArray(album.artists) ? 
+                              album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
+                              album.artists}
                           </div>
-                          {album.genres && album.genres.length > 0 && (
-                            <div className="text-sm text-amber-600 mt-1">
-                              Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-400 mt-1">
-                            Classification: {classification.hasSpanishGenres ? 'SPANISH (but in English list)' : 'ENGLISH'}
+                        )}
+                        {album.genres && album.genres.length > 0 && (
+                          <div className="text-sm text-amber-600 mt-1">
+                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
                           </div>
+                        )}
+                        <div className="text-xs text-green-600 mt-1 font-semibold">
+                          ✓ CLASSIFIED AS: ENGLISH/INTERNATIONAL
                         </div>
                       </div>
-                    </li>
-                  );
-                })}
+                    </div>
+                  </li>
+                ))}
               </ul>
             )
           ) : (
@@ -193,43 +163,44 @@ const Rankings = () => {
               </div>
             ) : (
               <ul className="space-y-4">
-                {topSpanishAlbums.map((album, index) => {
-                  const classification = manuallyClassifyAlbum(album);
-                  return (
-                    <li 
-                      key={album.id} 
-                      className="bg-blue-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-blue-200"
-                      onClick={() => handleAlbumClick(album)}
-                    >
-                      <div className="album-item flex items-center space-x-6">
-                        <img 
-                          src={album.image} 
-                          alt={album.name} 
-                          className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
-                        />
-                        <div className="album-details flex-grow">
-                          <strong className="text-2xl text-gray-800 block mb-2">
-                            {index + 1}. {album.name}
-                          </strong>
-                          <span className="text-lg text-gray-600 font-semibold">
-                            Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                          </span>
+                {topSpanishAlbums.map((album, index) => (
+                  <li 
+                    key={album.id} 
+                    className="bg-blue-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-blue-200"
+                    onClick={() => handleAlbumClick(album)}
+                  >
+                    <div className="album-item flex items-center space-x-6">
+                      <img 
+                        src={album.image} 
+                        alt={album.name} 
+                        className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
+                      />
+                      <div className="album-details flex-grow">
+                        <strong className="text-2xl text-gray-800 block mb-2">
+                          {index + 1}. {album.name}
+                        </strong>
+                        <span className="text-lg text-gray-600 font-semibold">
+                          Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                        </span>
+                        {album.artists && (
                           <div className="text-md text-gray-500 mt-1">
-                            by {classification.artistNames}
+                            by {Array.isArray(album.artists) ? 
+                              album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
+                              album.artists}
                           </div>
-                          {album.genres && album.genres.length > 0 && (
-                            <div className="text-sm text-blue-600 mt-1">
-                              Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-400 mt-1">
-                            Classification: SPANISH ({classification.hasSpanishGenres ? 'by genres' : 'by artist name'})
+                        )}
+                        {album.genres && album.genres.length > 0 && (
+                          <div className="text-sm text-blue-600 mt-1">
+                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
                           </div>
+                        )}
+                        <div className="text-xs text-green-600 mt-1 font-semibold">
+                          ✓ CLASSIFIED AS: SPANISH/LATIN
                         </div>
                       </div>
-                    </li>
-                  );
-                })}
+                    </div>
+                  </li>
+                ))}
               </ul>
             )
           )}
