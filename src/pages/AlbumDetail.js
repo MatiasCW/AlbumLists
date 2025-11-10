@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks, fetchArtistDetails } from '../services/spotify';
-import { getAlbumRanking, ensureAlbumGenres } from '../services/albumService';
+import { getAlbumRanking } from '../services/albumService';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../services/firebase';
 import { doc, getDoc, setDoc, deleteDoc, runTransaction } from 'firebase/firestore';
-
 
 const AlbumDetail = () => {
     const [searchParams] = useSearchParams();
@@ -41,16 +40,63 @@ const AlbumDetail = () => {
             if (albumData.artists && albumData.artists.length > 0) {
                 const mainArtistData = await fetchArtistDetails(albumData.artists[0].id);
                 setMainArtist(mainArtistData);
-                setArtistGenres(mainArtistData.genres || []);
-
-                // Cache artist genres for ranking system
-                localStorage.setItem(`artist_${albumData.artists[0].id}_genres`, JSON.stringify(mainArtistData.genres));
-                localStorage.setItem(`artist_${albumData.artists[0].id}_name`, mainArtistData.name);
+                const genres = mainArtistData.genres || [];
+                setArtistGenres(genres);
+                
+                console.log('=== LOADED ARTIST GENRES ===');
+                console.log('Artist:', mainArtistData.name);
+                console.log('Genres:', genres);
+                
+                // IMMEDIATELY update Firestore with genres
+                await updateFirestoreWithGenres(id, albumData, genres, mainArtistData);
             }
         } catch (error) {
             console.error('Error loading album data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // NEW FUNCTION: Immediately update Firestore with genre data
+    const updateFirestoreWithGenres = async (albumId, albumData, genres, mainArtistData) => {
+        try {
+            const globalAlbumRef = doc(db, 'albums', albumId);
+            const globalAlbumSnap = await getDoc(globalAlbumRef);
+            
+            const artistNames = albumData.artists.map(artist => artist.name);
+            const artistIds = albumData.artists.map(artist => artist.id);
+            const mainArtistId = albumData.artists[0]?.id;
+
+            const albumUpdateData = {
+                name: albumData.name,
+                image: albumData.images?.[0]?.url || './media/default-album.jpg',
+                artists: artistNames,
+                artistIds: artistIds,
+                mainArtistId: mainArtistId,
+                mainArtistName: artistNames[0],
+                genres: genres,
+                spotifyGenres: genres,
+                release_date: albumData.release_date,
+                lastGenreUpdate: new Date()
+            };
+
+            if (globalAlbumSnap.exists()) {
+                // Update existing album
+                await setDoc(globalAlbumRef, albumUpdateData, { merge: true });
+                console.log('Updated Firestore with genres for existing album');
+            } else {
+                // Create new album entry
+                await setDoc(globalAlbumRef, {
+                    ...albumUpdateData,
+                    totalScore: 0,
+                    numberOfRatings: 0,
+                    averageScore: 0,
+                    createdAt: new Date()
+                });
+                console.log('Created Firestore entry with genres for new album');
+            }
+        } catch (error) {
+            console.error('Error updating Firestore with genres:', error);
         }
     };
 
@@ -120,47 +166,13 @@ const AlbumDetail = () => {
             mainArtistId: mainArtistId,
             mainArtistName: artistNames[0],
             genres: artistGenres,
-            spotifyGenres: artistGenres, // Store the actual Spotify genres
+            spotifyGenres: artistGenres,
             addedAt: new Date(),
             score: null
         });
 
-        // Also update the global albums collection with proper genre data
-        const globalAlbumRef = doc(db, 'albums', albumId);
-        const globalAlbumSnap = await getDoc(globalAlbumRef);
-
-        if (!globalAlbumSnap.exists()) {
-            await setDoc(globalAlbumRef, {
-                name: album.name,
-                image: album.images?.[0]?.url || './media/default-album.jpg',
-                artists: artistNames,
-                artistIds: artistIds,
-                mainArtistId: mainArtistId,
-                mainArtistName: artistNames[0],
-                genres: artistGenres,
-                spotifyGenres: artistGenres,
-                release_date: album.release_date,
-                totalScore: 0,
-                numberOfRatings: 0,
-                averageScore: 0,
-                createdAt: new Date()
-            });
-        } else {
-            // Update existing global album with genre data if missing
-            const existingData = globalAlbumSnap.data();
-            await setDoc(globalAlbumRef, {
-                ...existingData,
-                genres: artistGenres,
-                spotifyGenres: artistGenres,
-                artists: artistNames,
-                artistIds: artistIds,
-                mainArtistId: mainArtistId,
-                mainArtistName: artistNames[0]
-            }, { merge: true });
-        }
-
-        // ENSURE GENRES ARE PROPERLY UPDATED FOR RANKINGS
-        await ensureAlbumGenres(albumId, { genres: artistGenres });
+        // Ensure global album has the latest genre data
+        await updateFirestoreWithGenres(albumId, album, artistGenres, mainArtist);
 
         setIsInList(true);
     };
@@ -229,7 +241,7 @@ const AlbumDetail = () => {
 
             await runTransaction(db, async (transaction) => {
                 const albumSnap = await transaction.get(globalAlbumRef);
-
+                
                 // Get artist data properly formatted
                 const artistNames = album.artists.map(artist => artist.name);
                 const artistIds = album.artists.map(artist => artist.id);
@@ -247,7 +259,8 @@ const AlbumDetail = () => {
                     spotifyGenres: artistGenres,
                     name: album.name,
                     image: album.images?.[0]?.url || './media/default-album.jpg',
-                    release_date: album.release_date
+                    release_date: album.release_date,
+                    lastGenreUpdate: new Date()
                 } : {
                     totalScore: 0,
                     numberOfRatings: 0,
@@ -261,7 +274,8 @@ const AlbumDetail = () => {
                     genres: artistGenres,
                     spotifyGenres: artistGenres,
                     release_date: album.release_date,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    lastGenreUpdate: new Date()
                 };
 
                 let totalScore = Number(albumData.totalScore) || 0;
