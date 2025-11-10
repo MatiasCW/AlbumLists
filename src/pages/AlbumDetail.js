@@ -41,7 +41,7 @@ const AlbumDetail = () => {
                 const mainArtistData = await fetchArtistDetails(albumData.artists[0].id);
                 setMainArtist(mainArtistData);
                 setArtistGenres(mainArtistData.genres || []);
-                
+
                 // Cache artist genres for ranking system
                 localStorage.setItem(`artist_${albumData.artists[0].id}_genres`, JSON.stringify(mainArtistData.genres));
                 localStorage.setItem(`artist_${albumData.artists[0].id}_name`, mainArtistData.name);
@@ -127,7 +127,7 @@ const AlbumDetail = () => {
         // Also update the global albums collection with proper genre data
         const globalAlbumRef = doc(db, 'albums', albumId);
         const globalAlbumSnap = await getDoc(globalAlbumRef);
-        
+
         if (!globalAlbumSnap.exists()) {
             await setDoc(globalAlbumRef, {
                 name: album.name,
@@ -157,6 +157,9 @@ const AlbumDetail = () => {
                 mainArtistName: artistNames[0]
             }, { merge: true });
         }
+
+        // ENSURE GENRES ARE PROPERLY UPDATED FOR RANKINGS
+        await ensureAlbumGenres(albumId, { genres: artistGenres });
 
         setIsInList(true);
     };
@@ -225,7 +228,7 @@ const AlbumDetail = () => {
 
             await runTransaction(db, async (transaction) => {
                 const albumSnap = await transaction.get(globalAlbumRef);
-                
+
                 // Get artist data properly formatted
                 const artistNames = album.artists.map(artist => artist.name);
                 const artistIds = album.artists.map(artist => artist.id);

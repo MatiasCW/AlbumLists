@@ -15,6 +15,29 @@ import {
   serverTimestamp 
 } from './firebase';
 
+// Helper function to ensure album has proper genre data
+export const ensureAlbumGenres = async (albumId, albumData) => {
+  try {
+    const albumRef = doc(db, 'albums', albumId);
+    const albumSnap = await getDoc(albumRef);
+    
+    if (albumSnap.exists()) {
+      const existingData = albumSnap.data();
+      // If genres are missing, try to update them
+      if (!existingData.genres || existingData.genres.length === 0) {
+        await updateDoc(albumRef, {
+          genres: albumData.genres || [],
+          spotifyGenres: albumData.genres || [],
+          lastUpdated: new Date()
+        });
+        console.log('Updated genres for album:', albumId);
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring album genres:', error);
+  }
+};
+
 export const listenToTop100Albums = (callback) => {
   const albumsRef = collection(db, 'albums');
   const q = query(albumsRef, orderBy('averageScore', 'desc'));
