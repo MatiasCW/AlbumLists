@@ -100,18 +100,6 @@ const AlbumDetail = () => {
 
         // Get artist names as array for consistent storage
         const artistNames = album.artists.map(artist => artist.name);
-        
-        // Ensure we have the latest artist genres
-        let finalGenres = artistGenres;
-        if (finalGenres.length === 0 && album.artists && album.artists.length > 0) {
-            try {
-                const mainArtist = await fetchArtistDetails(album.artists[0].id);
-                finalGenres = mainArtist.genres || [];
-                setArtistGenres(finalGenres);
-            } catch (error) {
-                console.error('Error fetching artist genres:', error);
-            }
-        }
 
         await setDoc(userAlbumRef, {
             spotifyId: albumId,
@@ -119,7 +107,7 @@ const AlbumDetail = () => {
             image: album.images?.[0]?.url || './media/default-album.jpg',
             release_date: album.release_date,
             artists: artistNames, // Store as array of names for consistency
-            genres: finalGenres, // Use the artist genres we fetched
+            genres: artistGenres, // Use the artist genres we fetched
             addedAt: new Date()
         });
 
@@ -194,24 +182,12 @@ const AlbumDetail = () => {
                 // Get artist names properly formatted
                 const artistNames = album.artists.map(artist => artist.name);
                 
-                // Get fresh artist genres if we don't have them
-                let currentGenres = artistGenres;
-                if (currentGenres.length === 0 && album.artists && album.artists.length > 0) {
-                    try {
-                        const mainArtist = await fetchArtistDetails(album.artists[0].id);
-                        currentGenres = mainArtist.genres || [];
-                        setArtistGenres(currentGenres);
-                    } catch (error) {
-                        console.error('Error fetching artist genres in transaction:', error);
-                    }
-                }
-
                 // ALWAYS include fresh artist and genre data - FIX FOR MISSING DATA
                 const albumData = albumSnap.exists() ? {
                     ...albumSnap.data(),
                     // Force update with current data to fix missing fields
                     artists: artistNames, // Ensure artists are stored as array of names
-                    genres: currentGenres, // Ensure genres are included
+                    genres: artistGenres, // Ensure genres are included
                     name: album.name,
                     image: album.images?.[0]?.url || './media/default-album.jpg'
                 } : {
@@ -221,7 +197,7 @@ const AlbumDetail = () => {
                     name: album.name,
                     image: album.images?.[0]?.url || './media/default-album.jpg',
                     artists: artistNames, // Store as array of names for easier processing
-                    genres: currentGenres // Make sure genres are included
+                    genres: artistGenres // Make sure genres are included
                 };
 
                 let totalScore = Number(albumData.totalScore) || 0;

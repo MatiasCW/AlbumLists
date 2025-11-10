@@ -25,7 +25,7 @@ const AlbumCard = ({ album }) => {
         {album.name}
       </div>
       <div className="text-yellow-500 text-base font-bold flex items-center justify-center space-x-1">
-        <span>⭐</span>
+        <span>⭐</span> 
         <span>{album.averageScore?.toFixed(1) || '0.0'}</span>
       </div>
     </div>
