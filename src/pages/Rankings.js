@@ -6,158 +6,33 @@ import { fetchArtistDetails } from '../services/spotify';
 const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
   const [topSpanishAlbums, setTopSpanishAlbums] = useState([]);
-  const [activeTab, setActiveTab] = useState('albums'); 
-  const [artistGenresMap, setArtistGenresMap] = useState({});
+  const [activeTab, setActiveTab] = useState('albums');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = listenToTop100Albums((albums) => {
-      // Separate albums into two exclusive lists
-      const { englishAlbums, spanishAlbums } = separateAlbumsByLanguage(albums);
-      setTopAlbums(englishAlbums);
-      setTopSpanishAlbums(spanishAlbums);
-      
-      // Load artist genres for all albums
-      loadArtistGenres(albums);
+    const unsubscribe = listenToTop100Albums(async (albums) => {
+      // Load genres and separate albums
+      const separatedAlbums = await separateAlbumsByLanguage(albums);
+      setTopAlbums(separatedAlbums.englishAlbums);
+      setTopSpanishAlbums(separatedAlbums.spanishAlbums);
     });
 
     return unsubscribe;
   }, []);
 
-  // Load artist genres for better language detection
-  const loadArtistGenres = async (albums) => {
-    try {
-      const genresMap = {};
-      const artistPromises = [];
-
-      // Get unique artist IDs from all albums
-      albums.forEach(album => {
-        if (album.artists && album.artists.length > 0) {
-          // Handle both string and object artist formats
-          const mainArtist = Array.isArray(album.artists) 
-            ? (typeof album.artists[0] === 'string' ? { name: album.artists[0] } : album.artists[0])
-            : { name: album.artists };
-          
-          // We'll use the artist name as key since we don't always have ID
-          const artistKey = mainArtist.name;
-          if (artistKey && !genresMap[artistKey]) {
-            // For now, we'll use a known artists approach since we can't always fetch from Spotify
-            genresMap[artistKey] = getGenresForKnownArtist(mainArtist.name);
-          }
-        }
-      });
-
-      setArtistGenresMap(genresMap);
-    } catch (error) {
-      console.error('Error loading artist genres:', error);
-    }
-  };
-
-  // Enhanced known Spanish/Latin artists detection
-  const getGenresForKnownArtist = (artistName) => {
-    if (!artistName) return [];
-    
-    const lowerName = artistName.toLowerCase();
-    
-    // Comprehensive list of Spanish/Latin artists
-    const spanishArtists = {
-      'bad bunny': ['reggaeton', 'trap latino', 'urbano latino', 'latin'],
-      'anuel aa': ['reggaeton', 'trap latino', 'latin urban'],
-      'j balvin': ['reggaeton', 'latin pop'],
-      'ozuna': ['reggaeton', 'latin urban'],
-      'daddy yankee': ['reggaeton', 'latin'],
-      'shakira': ['latin pop', 'pop rock'],
-      'enrique iglesias': ['latin pop', 'pop'],
-      'ricky martin': ['latin pop', 'pop'],
-      'maluma': ['reggaeton', 'latin pop'],
-      'karol g': ['reggaeton', 'latin pop'],
-      'rosalía': ['flamenco', 'r&b', 'latin pop'],
-      'becky g': ['reggaeton', 'latin pop'],
-      'nicky jam': ['reggaeton', 'latin'],
-      'wisin': ['reggaeton', 'latin'],
-      'yandel': ['reggaeton', 'latin'],
-      'don omar': ['reggaeton', 'latin'],
-      'pitbull': ['reggaeton', 'hip hop', 'pop'],
-      'marc anthony': ['salsa', 'latin pop'],
-      'romeo santos': ['bachata', 'latin pop'],
-      'prince royce': ['bachata', 'latin pop'],
-      'juanes': ['latin rock', 'pop rock'],
-      'maná': ['latin rock', 'pop rock'],
-      'chayanne': ['latin pop', 'pop'],
-      'luis fonsi': ['latin pop', 'pop'],
-      'thalia': ['latin pop', 'pop'],
-      'paulina rubio': ['latin pop', 'pop'],
-      'alejandro fernandez': ['ranchera', 'latin pop'],
-      'vicente fernandez': ['ranchera', 'mariachi'],
-      'carlos vives': ['vallenato', 'latin pop'],
-      'fonseca': ['vallenato', 'latin pop'],
-      'jesse & joy': ['latin pop', 'pop'],
-      'reik': ['latin pop', 'pop'],
-      'camila': ['latin pop', 'pop rock'],
-      'sin bandera': ['latin pop', 'pop'],
-      'la arrolladora': ['norteño', 'regional mexican'],
-      'calibre 50': ['norteño', 'regional mexican'],
-      'gerardo ortiz': ['norteño', 'regional mexican'],
-      'christian nodal': ['mariachi', 'regional mexican'],
-      'grupo firme': ['norteño', 'regional mexican'],
-      'myke towers': ['reggaeton', 'trap latino'],
-      'arcángel': ['reggaeton', 'latin urban'],
-      'farruko': ['reggaeton', 'latin urban'],
-      'zion & lennox': ['reggaeton', 'latin urban'],
-      'tito el bambino': ['reggaeton', 'latin urban'],
-      'plan b': ['reggaeton', 'latin urban'],
-      'tego calderon': ['reggaeton', 'latin urban'],
-      'hector el father': ['reggaeton', 'latin urban'],
-      'sech': ['reggaeton', 'latin urban'],
-      'rauw alejandro': ['reggaeton', 'latin urban'],
-      'c. tangana': ['flamenco', 'latin pop'],
-      'aitana': ['latin pop', 'pop'],
-      'dani martín': ['latin pop', 'pop'],
-      'pablo alborán': ['latin pop', 'pop'],
-      'alejandro sanz': ['latin pop', 'flamenco'],
-      'emmanuel': ['latin pop', 'balada'],
-      'feid': ['reggaeton', 'latin urban'],
-      'manuel turizo': ['reggaeton', 'latin pop'],
-      'camilo': ['latin pop', 'pop'],
-      'natti natasha': ['reggaeton', 'latin pop'],
-      'lunay': ['reggaeton', 'latin urban'],
-      'lenny tavárez': ['reggaeton', 'latin urban'],
-      'dalex': ['reggaeton', 'latin urban'],
-      'justin quiles': ['reggaeton', 'latin urban'],
-      'mau y ricky': ['latin pop', 'pop']
-    };
-
-    // Find matching artist
-    for (const [artist, genres] of Object.entries(spanishArtists)) {
-      if (lowerName.includes(artist)) {
-        return genres;
-      }
-    }
-
-    return [];
-  };
-
   // Function to separate albums into exclusive English and Spanish lists
-  const separateAlbumsByLanguage = (albums) => {
+  const separateAlbumsByLanguage = async (albums) => {
     const spanishAlbums = [];
     const englishAlbums = [];
     
-    // First pass: identify all Spanish albums
-    const spanishAlbumIds = new Set();
-    
-    albums.forEach(album => {
-      if (isSpanishAlbum(album)) {
+    // Process each album to determine language
+    for (const album of albums) {
+      if (await isSpanishAlbum(album)) {
         spanishAlbums.push(album);
-        spanishAlbumIds.add(album.id);
-      }
-    });
-    
-    // Second pass: add only non-Spanish albums to English list
-    albums.forEach(album => {
-      if (!spanishAlbumIds.has(album.id)) {
+      } else {
         englishAlbums.push(album);
       }
-    });
+    }
     
     // Take top 100 for each category
     return {
@@ -166,26 +41,77 @@ const Rankings = () => {
     };
   };
 
-  // Improved Spanish album detection based on ARTIST genres
-  const isSpanishAlbum = (album) => {
+  // Improved Spanish album detection based on ACTUAL ARTIST GENRES
+  const isSpanishAlbum = async (album) => {
     if (!album) return false;
 
-    // Get main artist name
-    let mainArtistName = '';
-    if (album.artists) {
-      if (Array.isArray(album.artists)) {
-        mainArtistName = typeof album.artists[0] === 'string' 
-          ? album.artists[0] 
-          : album.artists[0]?.name || '';
-      } else {
-        mainArtistName = album.artists;
+    try {
+      // Try to get genres from the album data first
+      if (album.genres && album.genres.length > 0) {
+        const hasSpanishGenre = checkForSpanishGenres(album.genres);
+        if (hasSpanishGenre) return true;
       }
-    }
 
-    // Check if we have genres for this artist
-    const artistGenres = artistGenresMap[mainArtistName] || [];
-    
-    // Spanish/Latin music genres
+      // If no genres in album data, try to get from artist
+      if (album.mainArtistId) {
+        // Try to fetch artist genres from localStorage cache first
+        const cachedGenres = localStorage.getItem(`artist_${album.mainArtistId}_genres`);
+        if (cachedGenres) {
+          const genres = JSON.parse(cachedGenres);
+          if (checkForSpanishGenres(genres)) return true;
+        }
+        
+        // If not cached, try to fetch from Spotify (this might be rate limited)
+        try {
+          const artistData = await fetchArtistDetails(album.mainArtistId);
+          if (artistData.genres && checkForSpanishGenres(artistData.genres)) {
+            // Cache the genres for future use
+            localStorage.setItem(`artist_${album.mainArtistId}_genres`, JSON.stringify(artistData.genres));
+            return true;
+          }
+        } catch (error) {
+          console.log('Could not fetch artist details:', error);
+        }
+      }
+
+      // Fallback: check artist name against known Spanish artists
+      if (album.artists) {
+        const artistNames = Array.isArray(album.artists) 
+          ? album.artists.map(a => typeof a === 'string' ? a : a.name).join(' ').toLowerCase()
+          : album.artists.toLowerCase();
+        
+        const knownSpanishArtists = [
+          'bad bunny', 'anuel', 'anuel aa', 'j balvin', 'ozuna', 'daddy yankee', 
+          'shakira', 'enrique iglesias', 'ricky martin', 'maluma', 'karol g', 
+          'rosalía', 'becky g', 'nicky jam', 'wisin', 'yandel', 'don omar', 
+          'pitbull', 'marc anthony', 'romeo santos', 'prince royce', 'juanes', 
+          'maná', 'chayanne', 'luis fonsi', 'thalia', 'paulina rubio', 
+          'alejandro fernandez', 'vicente fernandez', 'carlos vives', 'fonseca', 
+          'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
+          'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme',
+          'myke towers', 'arcángel', 'farruko', 'zion & lennox', 'tito el bambino',
+          'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
+          'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
+          'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
+          'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
+        ];
+
+        if (knownSpanishArtists.some(artist => artistNames.includes(artist))) {
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error checking if album is Spanish:', error);
+      return false;
+    }
+  };
+
+  // Helper function to check for Spanish genres
+  const checkForSpanishGenres = (genres) => {
+    if (!genres || !Array.isArray(genres)) return false;
+
     const spanishGenres = [
       'latin', 'reggaeton', 'trap latino', 'urbano latino', 'latin urban', 
       'bachata', 'salsa', 'merengue', 'flamenco', 'ranchera', 'cumbia', 
@@ -195,37 +121,11 @@ const Rankings = () => {
       'latin jazz', 'trap latino', 'urbano latino'
     ];
 
-    // Check if any of the artist's genres match Spanish genres
-    const hasSpanishGenre = artistGenres.some(genre => 
+    return genres.some(genre => 
       spanishGenres.some(spanishGenre => 
         genre.toLowerCase().includes(spanishGenre)
       )
     );
-
-    // Enhanced known Spanish artists list for fallback
-    const knownSpanishArtists = [
-      'bad bunny', 'anuel', 'anuel aa', 'j balvin', 'ozuna', 'daddy yankee', 
-      'shakira', 'enrique iglesias', 'ricky martin', 'maluma', 'karol g', 
-      'rosalía', 'becky g', 'nicky jam', 'wisin', 'yandel', 'don omar', 
-      'pitbull', 'marc anthony', 'romeo santos', 'prince royce', 'juanes', 
-      'maná', 'chayanne', 'luis fonsi', 'thalia', 'paulina rubio', 
-      'alejandro fernandez', 'vicente fernandez', 'carlos vives', 'fonseca', 
-      'jesse & joy', 'reik', 'camila', 'sin bandera', 'la arrolladora',
-      'calibre 50', 'gerardo ortiz', 'christian nodal', 'grupo firme',
-      'myke towers', 'arcángel', 'farruko', 'zion & lennox', 'tito el bambino',
-      'plan b', 'tego calderon', 'hector el father', 'sech', 'rauw alejandro',
-      'c. tangana', 'aitana', 'dani martín', 'pablo alborán', 'alejandro sanz',
-      'emmanuel', 'feid', 'manuel turizo', 'camilo', 'natti natasha',
-      'lunay', 'lenny tavárez', 'dalex', 'justin quiles', 'mau y ricky'
-    ];
-
-    // Check if artist is a known Spanish artist
-    const isKnownSpanishArtist = knownSpanishArtists.some(artist => 
-      mainArtistName.toLowerCase().includes(artist)
-    );
-
-    // QUALIFY as Spanish if artist has Spanish genres OR is a known Spanish artist
-    return hasSpanishGenre || isKnownSpanishArtist;
   };
 
   const handleAlbumClick = (album) => {
@@ -299,10 +199,11 @@ const Rankings = () => {
                               album.artists}
                           </div>
                         )}
-                        {/* Show detected language indicators */}
-                        <div className="text-sm text-amber-600 mt-1">
-                          Language: English/International
-                        </div>
+                        {album.genres && album.genres.length > 0 && (
+                          <div className="text-sm text-amber-600 mt-1">
+                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </li>
@@ -342,10 +243,11 @@ const Rankings = () => {
                               album.artists}
                           </div>
                         )}
-                        {/* Show detected Spanish indicators */}
-                        <div className="text-sm text-blue-600 mt-1">
-                          Language: Spanish/Latin
-                        </div>
+                        {album.genres && album.genres.length > 0 && (
+                          <div className="text-sm text-blue-600 mt-1">
+                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </li>

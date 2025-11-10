@@ -17,6 +17,7 @@ const AlbumDetail = () => {
     const [isInList, setIsInList] = useState(false);
     const [userScore, setUserScore] = useState(null);
     const [artistGenres, setArtistGenres] = useState([]);
+    const [mainArtist, setMainArtist] = useState(null);
     const albumId = searchParams.get('albumId');
 
     useEffect(() => {
@@ -37,8 +38,13 @@ const AlbumDetail = () => {
 
             // Load artist genres from the main artist
             if (albumData.artists && albumData.artists.length > 0) {
-                const mainArtist = await fetchArtistDetails(albumData.artists[0].id);
-                setArtistGenres(mainArtist.genres || []);
+                const mainArtistData = await fetchArtistDetails(albumData.artists[0].id);
+                setMainArtist(mainArtistData);
+                setArtistGenres(mainArtistData.genres || []);
+                
+                // Cache artist genres for ranking system
+                localStorage.setItem(`artist_${albumData.artists[0].id}_genres`, JSON.stringify(mainArtistData.genres));
+                localStorage.setItem(`artist_${albumData.artists[0].id}_name`, mainArtistData.name);
             }
         } catch (error) {
             console.error('Error loading album data:', error);
@@ -100,16 +106,57 @@ const AlbumDetail = () => {
 
         // Get artist names as array for consistent storage
         const artistNames = album.artists.map(artist => artist.name);
+        const artistIds = album.artists.map(artist => artist.id);
+        const mainArtistId = album.artists[0]?.id;
 
         await setDoc(userAlbumRef, {
             spotifyId: albumId,
             name: album.name,
             image: album.images?.[0]?.url || './media/default-album.jpg',
             release_date: album.release_date,
-            artists: artistNames, // Store as array of names for consistency
-            genres: artistGenres, // Use the artist genres we fetched
-            addedAt: new Date()
+            artists: artistNames,
+            artistIds: artistIds,
+            mainArtistId: mainArtistId,
+            mainArtistName: artistNames[0],
+            genres: artistGenres,
+            spotifyGenres: artistGenres, // Store the actual Spotify genres
+            addedAt: new Date(),
+            score: null
         });
+
+        // Also update the global albums collection with proper genre data
+        const globalAlbumRef = doc(db, 'albums', albumId);
+        const globalAlbumSnap = await getDoc(globalAlbumRef);
+        
+        if (!globalAlbumSnap.exists()) {
+            await setDoc(globalAlbumRef, {
+                name: album.name,
+                image: album.images?.[0]?.url || './media/default-album.jpg',
+                artists: artistNames,
+                artistIds: artistIds,
+                mainArtistId: mainArtistId,
+                mainArtistName: artistNames[0],
+                genres: artistGenres,
+                spotifyGenres: artistGenres,
+                release_date: album.release_date,
+                totalScore: 0,
+                numberOfRatings: 0,
+                averageScore: 0,
+                createdAt: new Date()
+            });
+        } else {
+            // Update existing global album with genre data if missing
+            const existingData = globalAlbumSnap.data();
+            await setDoc(globalAlbumRef, {
+                ...existingData,
+                genres: artistGenres,
+                spotifyGenres: artistGenres,
+                artists: artistNames,
+                artistIds: artistIds,
+                mainArtistId: mainArtistId,
+                mainArtistName: artistNames[0]
+            }, { merge: true });
+        }
 
         setIsInList(true);
     };
@@ -179,25 +226,38 @@ const AlbumDetail = () => {
             await runTransaction(db, async (transaction) => {
                 const albumSnap = await transaction.get(globalAlbumRef);
                 
-                // Get artist names properly formatted
+                // Get artist data properly formatted
                 const artistNames = album.artists.map(artist => artist.name);
-                
-                // ALWAYS include fresh artist and genre data - FIX FOR MISSING DATA
+                const artistIds = album.artists.map(artist => artist.id);
+                const mainArtistId = album.artists[0]?.id;
+
+                // Ensure all genre and artist data is included
                 const albumData = albumSnap.exists() ? {
                     ...albumSnap.data(),
-                    // Force update with current data to fix missing fields
-                    artists: artistNames, // Ensure artists are stored as array of names
-                    genres: artistGenres, // Ensure genres are included
+                    // Force update with current data to ensure genres are included
+                    artists: artistNames,
+                    artistIds: artistIds,
+                    mainArtistId: mainArtistId,
+                    mainArtistName: artistNames[0],
+                    genres: artistGenres,
+                    spotifyGenres: artistGenres,
                     name: album.name,
-                    image: album.images?.[0]?.url || './media/default-album.jpg'
+                    image: album.images?.[0]?.url || './media/default-album.jpg',
+                    release_date: album.release_date
                 } : {
                     totalScore: 0,
                     numberOfRatings: 0,
                     averageScore: 0,
                     name: album.name,
                     image: album.images?.[0]?.url || './media/default-album.jpg',
-                    artists: artistNames, // Store as array of names for easier processing
-                    genres: artistGenres // Make sure genres are included
+                    artists: artistNames,
+                    artistIds: artistIds,
+                    mainArtistId: mainArtistId,
+                    mainArtistName: artistNames[0],
+                    genres: artistGenres,
+                    spotifyGenres: artistGenres,
+                    release_date: album.release_date,
+                    createdAt: new Date()
                 };
 
                 let totalScore = Number(albumData.totalScore) || 0;
@@ -388,17 +448,36 @@ const AlbumDetail = () => {
                                 {artistGenres.length > 0 && (
                                     <div className="flex items-start">
                                         <strong className="w-32">Genres:</strong>
-                                        <span className="capitalize">{artistGenres.join(', ')}</span>
+                                        <div>
+                                            <span className="capitalize">{artistGenres.join(', ')}</span>
+                                            <div className="text-xs text-green-600 mt-1">
+                                                ✓ These genres will be used for Spanish/English classification
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {mainArtist && mainArtist.popularity !== undefined && (
+                                    <div className="flex items-center">
+                                        <strong className="w-32">Artist Popularity:</strong>
+                                        <div className="flex items-center space-x-2">
+                                            <span>{mainArtist.popularity}%</span>
+                                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                                                <div
+                                                    className="bg-green-500 h-2 rounded-full"
+                                                    style={{ width: `${mainArtist.popularity}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                                 {album.popularity !== undefined && (
                                     <div className="flex items-center">
-                                        <strong className="w-32">Popularity:</strong>
+                                        <strong className="w-32">Album Popularity:</strong>
                                         <div className="flex items-center space-x-2">
                                             <span>{album.popularity}%</span>
                                             <div className="w-32 bg-gray-200 rounded-full h-2">
                                                 <div
-                                                    className="bg-green-500 h-2 rounded-full"
+                                                    className="bg-blue-500 h-2 rounded-full"
                                                     style={{ width: `${album.popularity}%` }}
                                                 ></div>
                                             </div>
