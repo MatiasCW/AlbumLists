@@ -1,5 +1,3 @@
-[file name]: Rankings.js
-[file content begin]
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listenToTop100Albums } from '../services/albumService';
@@ -8,7 +6,7 @@ import { fetchArtistDetails } from '../services/spotify';
 const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
   const [topSpanishAlbums, setTopSpanishAlbums] = useState([]);
-  const [activeTab, setActiveTab] = useState('albums'); // 'albums' or 'spanish'
+  const [activeTab, setActiveTab] = useState('albums'); 
   const [artistGenresMap, setArtistGenresMap] = useState({});
   const navigate = useNavigate();
 
