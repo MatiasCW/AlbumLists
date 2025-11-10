@@ -132,15 +132,6 @@ const Rankings = () => {
     console.log('Spanish albums found:', spanishAlbums.length);
     console.log('English albums found:', englishAlbums.length);
     
-    // Log classification details
-    spanishAlbums.forEach(album => {
-      console.log('🇪🇸 SPANISH:', album.name, '- Genres:', album.genres || album.spotifyGenres);
-    });
-    
-    englishAlbums.forEach(album => {
-      console.log('🇺🇸 ENGLISH:', album.name, '- Genres:', album.genres || album.spotifyGenres || 'No genres');
-    });
-
     return {
       englishAlbums: englishAlbums.slice(0, 100),
       spanishAlbums: spanishAlbums.slice(0, 100)
@@ -224,19 +215,6 @@ const Rankings = () => {
                               album.artists}
                           </div>
                         )}
-                        {album.genres && album.genres.length > 0 && (
-                          <div className="text-sm text-amber-600 mt-1">
-                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
-                          </div>
-                        )}
-                        {(!album.genres || album.genres.length === 0) && (
-                          <div className="text-sm text-gray-400 mt-1">
-                            No genre data available
-                          </div>
-                        )}
-                        <div className="text-xs text-green-600 mt-1 font-semibold">
-                          ✓ CLASSIFIED AS: ENGLISH/INTERNATIONAL
-                        </div>
                       </div>
                     </div>
                   </li>
@@ -276,14 +254,6 @@ const Rankings = () => {
                               album.artists}
                           </div>
                         )}
-                        {album.genres && album.genres.length > 0 && (
-                          <div className="text-sm text-blue-600 mt-1">
-                            Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
-                          </div>
-                        )}
-                        <div className="text-xs text-green-600 mt-1 font-semibold">
-                          ✓ CLASSIFIED AS: SPANISH/LATIN
-                        </div>
                       </div>
                     </div>
                   </li>

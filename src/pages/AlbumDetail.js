@@ -42,11 +42,11 @@ const AlbumDetail = () => {
                 setMainArtist(mainArtistData);
                 const genres = mainArtistData.genres || [];
                 setArtistGenres(genres);
-                
+
                 console.log('=== LOADED ARTIST GENRES ===');
                 console.log('Artist:', mainArtistData.name);
                 console.log('Genres:', genres);
-                
+
                 // IMMEDIATELY update Firestore with genres
                 await updateFirestoreWithGenres(id, albumData, genres, mainArtistData);
             }
@@ -62,7 +62,7 @@ const AlbumDetail = () => {
         try {
             const globalAlbumRef = doc(db, 'albums', albumId);
             const globalAlbumSnap = await getDoc(globalAlbumRef);
-            
+
             const artistNames = albumData.artists.map(artist => artist.name);
             const artistIds = albumData.artists.map(artist => artist.id);
             const mainArtistId = albumData.artists[0]?.id;
@@ -241,7 +241,7 @@ const AlbumDetail = () => {
 
             await runTransaction(db, async (transaction) => {
                 const albumSnap = await transaction.get(globalAlbumRef);
-                
+
                 // Get artist data properly formatted
                 const artistNames = album.artists.map(artist => artist.name);
                 const artistIds = album.artists.map(artist => artist.id);
@@ -466,12 +466,7 @@ const AlbumDetail = () => {
                                 {artistGenres.length > 0 && (
                                     <div className="flex items-start">
                                         <strong className="w-32">Genres:</strong>
-                                        <div>
-                                            <span className="capitalize">{artistGenres.join(', ')}</span>
-                                            <div className="text-xs text-green-600 mt-1">
-                                                ✓ These genres will be used for Spanish/English classification
-                                            </div>
-                                        </div>
+                                        <span className="capitalize">{artistGenres.join(', ')}</span>
                                     </div>
                                 )}
                                 {mainArtist && mainArtist.popularity !== undefined && (
