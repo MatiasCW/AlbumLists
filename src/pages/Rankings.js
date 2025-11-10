@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listenToTop100Albums } from '../services/albumService';
+import { fetchAlbumDetails, fetchArtistDetails } from '../services/spotify';
+import { db } from '../services/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
@@ -9,15 +12,63 @@ const Rankings = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = listenToTop100Albums((albums) => {
+    const unsubscribe = listenToTop100Albums(async (albums) => {
+      // Update albums missing genres
+      const updatedAlbums = await updateMissingGenres(albums);
+      
       // BINARY CLASSIFICATION: Spanish or Not Spanish
-      const { englishAlbums, spanishAlbums } = separateAlbumsBinary(albums);
+      const { englishAlbums, spanishAlbums } = separateAlbumsBinary(updatedAlbums);
       setTopAlbums(englishAlbums);
       setTopSpanishAlbums(spanishAlbums);
     });
 
     return unsubscribe;
   }, []);
+
+  // NEW FUNCTION: Update albums that are missing genre data
+  const updateMissingGenres = async (albums) => {
+    const updatedAlbums = [...albums];
+    
+    for (let i = 0; i < updatedAlbums.length; i++) {
+      const album = updatedAlbums[i];
+      
+      // Check if album is missing genres
+      const hasGenres = album.genres && album.genres.length > 0;
+      const hasSpotifyGenres = album.spotifyGenres && album.spotifyGenres.length > 0;
+      
+      if (!hasGenres && !hasSpotifyGenres && album.mainArtistId) {
+        console.log('🔄 Updating missing genres for:', album.name);
+        try {
+          // Fetch artist genres from Spotify
+          const artistData = await fetchArtistDetails(album.mainArtistId);
+          const genres = artistData.genres || [];
+          
+          if (genres.length > 0) {
+            // Update Firestore
+            const globalAlbumRef = doc(db, 'albums', album.id);
+            await setDoc(globalAlbumRef, {
+              genres: genres,
+              spotifyGenres: genres,
+              lastGenreUpdate: new Date()
+            }, { merge: true });
+            
+            // Update local album data
+            updatedAlbums[i] = {
+              ...album,
+              genres: genres,
+              spotifyGenres: genres
+            };
+            
+            console.log('✅ Updated genres for', album.name, ':', genres);
+          }
+        } catch (error) {
+          console.error('❌ Error updating genres for', album.name, ':', error);
+        }
+      }
+    }
+    
+    return updatedAlbums;
+  };
 
   // SIMPLE BINARY CLASSIFICATION: Has Spanish genres = Spanish, Else = English
   const separateAlbumsBinary = (albums) => {
@@ -57,12 +108,17 @@ const Rankings = () => {
       }
     });
 
+    console.log('🎯 Classification Results:');
     console.log('Spanish albums found:', spanishAlbums.length);
     console.log('English albums found:', englishAlbums.length);
     
-    // Log Spanish albums for debugging
+    // Log classification details
     spanishAlbums.forEach(album => {
-      console.log('SPANISH ALBUM:', album.name, 'Genres:', album.genres || album.spotifyGenres);
+      console.log('🇪🇸 SPANISH:', album.name, '- Genres:', album.genres || album.spotifyGenres);
+    });
+    
+    englishAlbums.forEach(album => {
+      console.log('🇺🇸 ENGLISH:', album.name, '- Genres:', album.genres || album.spotifyGenres);
     });
 
     return {
