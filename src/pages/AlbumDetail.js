@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumDetails, fetchAlbumTracks, fetchArtistDetails } from '../services/spotify';
-import { getAlbumRanking } from '../services/albumService';
+import { getAlbumRanking, ensureAlbumGenres } from '../services/albumService';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../services/firebase';
 import { doc, getDoc, setDoc, deleteDoc, runTransaction } from 'firebase/firestore';
+
 
 const AlbumDetail = () => {
     const [searchParams] = useSearchParams();
