@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listenToTop100Albums } from '../services/albumService';
-import { fetchAlbumDetails, fetchArtistDetails } from '../services/spotify';
+import { fetchArtistDetails } from '../services/spotify';
 import { db } from '../services/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -9,12 +9,13 @@ const Rankings = () => {
   const [topAlbums, setTopAlbums] = useState([]);
   const [topSpanishAlbums, setTopSpanishAlbums] = useState([]);
   const [activeTab, setActiveTab] = useState('albums');
+  const [isUpdatingGenres, setIsUpdatingGenres] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = listenToTop100Albums(async (albums) => {
-      // Update albums missing genres
-      const updatedAlbums = await updateMissingGenres(albums);
+      // Update albums missing genres with rate limiting
+      const updatedAlbums = await updateMissingGenresWithDelay(albums);
       
       // BINARY CLASSIFICATION: Spanish or Not Spanish
       const { englishAlbums, spanishAlbums } = separateAlbumsBinary(updatedAlbums);
@@ -25,9 +26,11 @@ const Rankings = () => {
     return unsubscribe;
   }, []);
 
-  // NEW FUNCTION: Update albums that are missing genre data
-  const updateMissingGenres = async (albums) => {
+  // NEW: Update genres with delays to avoid rate limiting
+  const updateMissingGenresWithDelay = async (albums) => {
+    setIsUpdatingGenres(true);
     const updatedAlbums = [...albums];
+    let updatedCount = 0;
     
     for (let i = 0; i < updatedAlbums.length; i++) {
       const album = updatedAlbums[i];
@@ -37,8 +40,14 @@ const Rankings = () => {
       const hasSpotifyGenres = album.spotifyGenres && album.spotifyGenres.length > 0;
       
       if (!hasGenres && !hasSpotifyGenres && album.mainArtistId) {
-        console.log('🔄 Updating missing genres for:', album.name);
+        console.log(`🔄 [${i+1}/${albums.length}] Updating genres for:`, album.name);
+        
         try {
+          // Add delay between requests to avoid rate limiting
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+          }
+          
           // Fetch artist genres from Spotify
           const artistData = await fetchArtistDetails(album.mainArtistId);
           const genres = artistData.genres || [];
@@ -59,14 +68,25 @@ const Rankings = () => {
               spotifyGenres: genres
             };
             
+            updatedCount++;
             console.log('✅ Updated genres for', album.name, ':', genres);
+          } else {
+            console.log('⚠️ No genres found for', album.name);
           }
         } catch (error) {
           console.error('❌ Error updating genres for', album.name, ':', error);
+          
+          // If it's a rate limit error, wait longer
+          if (error.message.includes('429') || error.message.includes('rate limit')) {
+            console.log('⏳ Rate limit hit, waiting 2 seconds...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
         }
       }
     }
     
+    console.log(`🎯 Genre update complete: ${updatedCount} albums updated`);
+    setIsUpdatingGenres(false);
     return updatedAlbums;
   };
 
@@ -118,7 +138,7 @@ const Rankings = () => {
     });
     
     englishAlbums.forEach(album => {
-      console.log('🇺🇸 ENGLISH:', album.name, '- Genres:', album.genres || album.spotifyGenres);
+      console.log('🇺🇸 ENGLISH:', album.name, '- Genres:', album.genres || album.spotifyGenres || 'No genres');
     });
 
     return {
@@ -161,6 +181,12 @@ const Rankings = () => {
             </button>
           </div>
 
+          {isUpdatingGenres && (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded mb-4">
+              <p className="text-sm">🔄 Updating genre information for albums... This may take a moment.</p>
+            </div>
+          )}
+
           <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center font-pacifico">
             {activeTab === 'albums' ? 'Top 100 Albums' : 'Top 100 Spanish Albums'}
           </h2>
@@ -201,6 +227,11 @@ const Rankings = () => {
                         {album.genres && album.genres.length > 0 && (
                           <div className="text-sm text-amber-600 mt-1">
                             Genres: {Array.isArray(album.genres) ? album.genres.join(', ') : album.genres}
+                          </div>
+                        )}
+                        {(!album.genres || album.genres.length === 0) && (
+                          <div className="text-sm text-gray-400 mt-1">
+                            No genre data available
                           </div>
                         )}
                         <div className="text-xs text-green-600 mt-1 font-semibold">
