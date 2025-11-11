@@ -40,12 +40,17 @@ const AlbumSearchResult = ({ album }) => {
     try {
       const userAlbumRef = doc(db, 'users', user.uid, 'albums', album.id);
       
+      const artists = album.artists.map(artist => ({
+        id: artist.id,
+        name: artist.name
+      }));
+
       await setDoc(userAlbumRef, {
         spotifyId: album.id,
         name: album.name,
         image: album.images?.[0]?.url || './media/default-album.jpg',
         release_date: album.release_date,
-        artists: album.artists.map(artist => artist.name),
+        artists: artists,
         addedAt: new Date()
       });
 

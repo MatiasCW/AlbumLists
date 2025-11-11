@@ -22,11 +22,6 @@ const List = () => {
         loadUserColors(uid);
       }
     }
-
-    return () => {
-      document.body.style.backgroundColor = '';
-      resetTextColors();
-    };
   }, [uid, sortOrder, user]);
 
   const fetchAlbums = async (userId) => {
@@ -68,26 +63,15 @@ const List = () => {
     }
   };
 
-  // NEW: Reset text colors when leaving the page
-  const resetTextColors = () => {
-    const allElements = document.querySelectorAll('body, body *');
-    allElements.forEach(element => {
-      element.style.color = '';
-    });
-  };
-
   const applyColors = (bgColor, fColor) => {
-    // Only apply background color to the main content area, not the entire body
     const mainElement = document.querySelector('main');
     if (mainElement && bgColor) {
       mainElement.style.backgroundColor = bgColor;
     }
 
-    // Only apply font color to elements within the main content
     if (fColor) {
       const listPageElements = document.querySelectorAll('main *');
       listPageElements.forEach(element => {
-        // Skip buttons, inputs, selects, and modal elements
         if (!element.closest('.modal') &&
           !['BUTTON', 'INPUT', 'SELECT', 'OPTION'].includes(element.tagName)) {
           element.style.color = fColor;
@@ -105,7 +89,6 @@ const List = () => {
       }
     } else {
       setFontColor(color);
-      // Apply font color only to list page content
       const listPageElements = document.querySelectorAll('main *');
       listPageElements.forEach(element => {
         if (!element.closest('.modal') &&
@@ -246,7 +229,6 @@ const List = () => {
     }
   };
 
-  // NEW: Handle album name click to navigate to album detail page
   const handleAlbumNameClick = (albumId) => {
     navigate(`/album?albumId=${albumId}`);
   };
@@ -264,7 +246,6 @@ const List = () => {
             Style
           </button>
         )}
-
 
         {/* Color Modal */}
         {showColorModal && (
@@ -347,6 +328,11 @@ const List = () => {
                     >
                       {album.name}
                     </span>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {Array.isArray(album.artists) 
+                        ? album.artists.map(artist => typeof artist === 'string' ? artist : artist.name).join(', ')
+                        : album.artists}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     {isOwner ? (

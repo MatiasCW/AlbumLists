@@ -26,7 +26,7 @@ const Rankings = () => {
     return unsubscribe;
   }, []);
 
-  // NEW: Update genres with delays to avoid rate limiting
+  // Update genres with delays to avoid rate limiting
   const updateMissingGenresWithDelay = async (albums) => {
     setIsUpdatingGenres(true);
     const updatedAlbums = [...albums];
@@ -37,9 +37,8 @@ const Rankings = () => {
       
       // Check if album is missing genres
       const hasGenres = album.genres && album.genres.length > 0;
-      const hasSpotifyGenres = album.spotifyGenres && album.spotifyGenres.length > 0;
       
-      if (!hasGenres && !hasSpotifyGenres && album.mainArtistId) {
+      if (!hasGenres && album.mainArtistId) {
         console.log(`🔄 [${i+1}/${albums.length}] Updating genres for:`, album.name);
         
         try {
@@ -57,15 +56,13 @@ const Rankings = () => {
             const globalAlbumRef = doc(db, 'albums', album.id);
             await setDoc(globalAlbumRef, {
               genres: genres,
-              spotifyGenres: genres,
               lastGenreUpdate: new Date()
             }, { merge: true });
             
             // Update local album data
             updatedAlbums[i] = {
               ...album,
-              genres: genres,
-              spotifyGenres: genres
+              genres: genres
             };
             
             updatedCount++;
@@ -107,7 +104,7 @@ const Rankings = () => {
 
     albums.forEach(album => {
       // Check if album has any Spanish genres
-      const albumGenres = album.genres || album.spotifyGenres || [];
+      const albumGenres = album.genres || [];
       
       let hasSpanishGenre = false;
       

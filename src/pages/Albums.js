@@ -13,7 +13,7 @@ const Albums = () => {
   const [albums, setAlbums] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
   const [albumRatings, setAlbumRatings] = useState({});
-  const [artistGenres, setArtistGenres] = useState([]); // ADD THIS LINE
+  const [artistGenres, setArtistGenres] = useState([]);
   const artistId = searchParams.get('artistId');
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const Albums = () => {
       const artistAlbums = await fetchArtistAlbums(id);
       setArtist(artistData);
       setAlbums(artistAlbums);
-      setArtistGenres(artistData.genres || []); // ADD THIS LINE
+      setArtistGenres(artistData.genres || []);
 
       // Load ratings for all albums
       loadAlbumRatings(artistAlbums);
@@ -76,7 +76,7 @@ const Albums = () => {
           artistId: artistId,
           name: artist.name,
           image: artist.images?.[0]?.url || './media/default.jpg',
-          genres: artistGenres // ADD THIS LINE - store genres with favorite artist
+          genres: artistGenres
         });
         setIsFavorited(true);
       }
@@ -136,10 +136,8 @@ const Albums = () => {
                 <AlbumCard 
                   album={{
                     ...album,
-                    // Pass the averageScore to AlbumCard so it displays the star rating
                     averageScore: hasRating ? rating.averageScore : 0,
-                    // Pass genres to AlbumCard so they can be used when adding to list
-                    genres: artistGenres // ADD THIS LINE
+                    genres: artistGenres
                   }} 
                 />
 
@@ -164,4 +162,4 @@ const Albums = () => {
   );
 };
 
-export default Albums;  
+export default Albums;
