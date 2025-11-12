@@ -233,6 +233,30 @@ const List = () => {
     navigate(`/album?albumId=${albumId}`);
   };
 
+  const handleArtistClick = (artistId, e) => {
+    e.stopPropagation(); // Prevent album navigation when clicking artist
+    if (artistId) {
+      navigate(`/albums?artistId=${artistId}`);
+    }
+  };
+
+  // Helper function to get artist ID - handles both string and object formats
+  const getArtistId = (artist, index) => {
+    if (typeof artist === 'object' && artist.id) {
+      return artist.id;
+    }
+    // If no ID available, use index as fallback (though links won't work)
+    return `artist-${index}`;
+  };
+
+  // Helper function to get artist name
+  const getArtistName = (artist) => {
+    if (typeof artist === 'object' && artist.name) {
+      return artist.name;
+    }
+    return artist;
+  };
+
   const isOwner = !searchParams.get('uid') || user?.uid === searchParams.get('uid');
 
   return (
@@ -305,6 +329,7 @@ const List = () => {
                 >
                   Score {sortOrder === 'desc' ? '↓' : sortOrder === 'asc' ? '↑' : ''}
                 </th>
+                <th className="px-6 py-4 text-left font-semibold">Artist</th>
                 <th className="px-6 py-4 text-left font-semibold">Release Date</th>
                 {isOwner && <th className="px-6 py-4 text-left font-semibold">Actions</th>}
               </tr>
@@ -328,11 +353,6 @@ const List = () => {
                     >
                       {album.name}
                     </span>
-                    <div className="text-sm text-gray-600 mt-1">
-                      {Array.isArray(album.artists) 
-                        ? album.artists.map(artist => typeof artist === 'string' ? artist : artist.name).join(', ')
-                        : album.artists}
-                    </div>
                   </td>
                   <td className="px-6 py-4">
                     {isOwner ? (
@@ -348,6 +368,30 @@ const List = () => {
                     ) : (
                       album.score !== null ? album.score : '-'
                     )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col space-y-1">
+                      {Array.isArray(album.artists) && album.artists.map((artist, artistIndex) => {
+                        const artistId = getArtistId(artist, artistIndex);
+                        const artistName = getArtistName(artist);
+                        const hasValidId = artistId && !artistId.startsWith('artist-');
+                        
+                        return (
+                          <span
+                            key={artistIndex}
+                            className={`text-sm ${
+                              hasValidId 
+                                ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline' 
+                                : 'text-gray-600'
+                            } transition-colors`}
+                            onClick={(e) => hasValidId && handleArtistClick(artistId, e)}
+                            title={hasValidId ? `View ${artistName}'s page` : 'Artist page unavailable'}
+                          >
+                            {artistName}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-gray-600">{album.release_date}</td>
                   <td className="px-6 py-4">
