@@ -239,27 +239,24 @@ const List = () => {
       navigate(`/albums?artistId=${artistId}`);
     } else {
       console.log(`No valid artist ID for: ${artistName}`);
-      // Optional: Show a user-friendly message
-      alert(`Artist page not available for ${artistName}`);
     }
   };
 
-  // Improved helper function to get artist ID
+  // Helper function to get artist ID
   const getArtistId = (artist, index) => {
-    if (typeof artist === 'object') {
-      // Try multiple possible ID fields
-      return artist.id || artist.spotifyId || artist.artistId || `unknown`;
+    if (typeof artist === 'object' && artist.id) {
+      return artist.id;
     }
-    // If it's just a string, we can't get an ID
-    return `unknown`;
+    // If no ID available, use index as fallback (though links won't work)
+    return `artist-${index}`;
   };
 
   // Helper function to get artist name
   const getArtistName = (artist) => {
-    if (typeof artist === 'object') {
-      return artist.name || 'Unknown Artist';
+    if (typeof artist === 'object' && artist.name) {
+      return artist.name;
     }
-    return artist || 'Unknown Artist';
+    return artist;
   };
 
   const isOwner = !searchParams.get('uid') || user?.uid === searchParams.get('uid');
@@ -379,18 +376,15 @@ const List = () => {
                       {Array.isArray(album.artists) && album.artists.map((artist, artistIndex) => {
                         const artistId = getArtistId(artist, artistIndex);
                         const artistName = getArtistName(artist);
-                        const hasValidId = artistId && artistId !== 'unknown';
+                        const hasValidId = artistId && !artistId.startsWith('artist-');
                         
                         return (
                           <React.Fragment key={artistIndex}>
                             <span
-                              className={`text-sm ${
-                                hasValidId 
-                                  ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline transition-colors' 
-                                  : 'text-gray-600 cursor-default'
+                              className={`font-semibold text-gray-800 hover:text-blue-600 transition-colors ${
+                                hasValidId ? 'cursor-pointer' : 'cursor-default'
                               }`}
                               onClick={() => hasValidId && handleArtistClick(artistId, artistName)}
-                              title={hasValidId ? `View ${artistName}'s page` : 'Artist page unavailable'}
                             >
                               {artistName}
                             </span>
