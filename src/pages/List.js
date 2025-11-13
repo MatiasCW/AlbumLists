@@ -233,9 +233,12 @@ const List = () => {
     navigate(`/album?albumId=${albumId}`);
   };
 
-  const handleArtistClick = (artistId) => {
+  const handleArtistClick = (artistId, artistName) => {
+    // Only navigate if we have a valid artist ID that's not our fallback
     if (artistId && !artistId.startsWith('artist-')) {
       navigate(`/albums?artistId=${artistId}`);
+    } else {
+      console.log(`No valid artist ID for: ${artistName}`);
     }
   };
 
@@ -369,25 +372,27 @@ const List = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-col space-y-1">
+                    <div className="flex items-center space-x-2 flex-wrap">
                       {Array.isArray(album.artists) && album.artists.map((artist, artistIndex) => {
                         const artistId = getArtistId(artist, artistIndex);
                         const artistName = getArtistName(artist);
                         const hasValidId = artistId && !artistId.startsWith('artist-');
                         
                         return (
-                          <span
-                            key={artistIndex}
-                            className={`text-sm ${
-                              hasValidId 
-                                ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline transition-colors' 
-                                : 'text-gray-600'
-                            }`}
-                            onClick={() => handleArtistClick(artistId)}
-                            title={hasValidId ? `View ${artistName}'s page` : 'Artist page unavailable'}
-                          >
-                            {artistName}
-                          </span>
+                          <React.Fragment key={artistIndex}>
+                            <span
+                              className={`text-sm ${
+                                hasValidId 
+                                  ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline transition-colors' 
+                                  : 'text-gray-600 cursor-default'
+                              }`}
+                              onClick={() => handleArtistClick(artistId, artistName)}
+                              title={hasValidId ? `View ${artistName}'s page` : 'Artist page unavailable'}
+                            >
+                              {artistName}
+                            </span>
+                            {artistIndex < album.artists.length - 1 && <span className="text-gray-400">•</span>}
+                          </React.Fragment>
                         );
                       })}
                     </div>
