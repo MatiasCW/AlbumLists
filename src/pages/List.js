@@ -7,22 +7,13 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, getDoc, runTransaction 
 const List = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, userData } = useAuth();
+  const { user } = useAuth(); 
   const [albums, setAlbums] = useState([]);
   const [sortOrder, setSortOrder] = useState('default');
   const [showColorModal, setShowColorModal] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [fontColor, setFontColor] = useState('#000000');
   const uid = searchParams.get('uid') || user?.uid;
-
-  useEffect(() => {
-    if (uid) {
-      fetchAlbums(uid);
-      if (user?.uid === uid) {
-        loadUserColors(uid);
-      }
-    }
-  }, [uid, sortOrder, user]);
 
   const fetchAlbums = async (userId) => {
     try {
@@ -62,6 +53,15 @@ const List = () => {
       console.error("Error loading user colors:", error);
     }
   };
+
+  useEffect(() => {
+    if (uid) {
+      fetchAlbums(uid);
+      if (user?.uid === uid) {
+        loadUserColors(uid);
+      }
+    }
+  }, [uid, sortOrder, user]); 
 
   const applyColors = (bgColor, fColor) => {
     const mainElement = document.querySelector('main');
@@ -233,9 +233,8 @@ const List = () => {
     navigate(`/album?albumId=${albumId}`);
   };
 
-  const handleArtistClick = (artistId, e) => {
-    e.stopPropagation(); // Prevent album navigation when clicking artist
-    if (artistId) {
+  const handleArtistClick = (artistId) => {
+    if (artistId && !artistId.startsWith('artist-')) {
       navigate(`/albums?artistId=${artistId}`);
     }
   };
@@ -381,10 +380,10 @@ const List = () => {
                             key={artistIndex}
                             className={`text-sm ${
                               hasValidId 
-                                ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline' 
+                                ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline transition-colors' 
                                 : 'text-gray-600'
-                            } transition-colors`}
-                            onClick={(e) => hasValidId && handleArtistClick(artistId, e)}
+                            }`}
+                            onClick={() => handleArtistClick(artistId)}
                             title={hasValidId ? `View ${artistName}'s page` : 'Artist page unavailable'}
                           >
                             {artistName}
