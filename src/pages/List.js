@@ -234,29 +234,32 @@ const List = () => {
   };
 
   const handleArtistClick = (artistId, artistName) => {
-    // Only navigate if we have a valid artist ID that's not our fallback
-    if (artistId && !artistId.startsWith('artist-')) {
+    // Only navigate if we have a valid artist ID
+    if (artistId && artistId !== 'unknown') {
       navigate(`/albums?artistId=${artistId}`);
     } else {
       console.log(`No valid artist ID for: ${artistName}`);
+      // Optional: Show a user-friendly message
+      alert(`Artist page not available for ${artistName}`);
     }
   };
 
-  // Helper function to get artist ID - handles both string and object formats
+  // Improved helper function to get artist ID
   const getArtistId = (artist, index) => {
-    if (typeof artist === 'object' && artist.id) {
-      return artist.id;
+    if (typeof artist === 'object') {
+      // Try multiple possible ID fields
+      return artist.id || artist.spotifyId || artist.artistId || `unknown`;
     }
-    // If no ID available, use index as fallback (though links won't work)
-    return `artist-${index}`;
+    // If it's just a string, we can't get an ID
+    return `unknown`;
   };
 
   // Helper function to get artist name
   const getArtistName = (artist) => {
-    if (typeof artist === 'object' && artist.name) {
-      return artist.name;
+    if (typeof artist === 'object') {
+      return artist.name || 'Unknown Artist';
     }
-    return artist;
+    return artist || 'Unknown Artist';
   };
 
   const isOwner = !searchParams.get('uid') || user?.uid === searchParams.get('uid');
@@ -376,7 +379,7 @@ const List = () => {
                       {Array.isArray(album.artists) && album.artists.map((artist, artistIndex) => {
                         const artistId = getArtistId(artist, artistIndex);
                         const artistName = getArtistName(artist);
-                        const hasValidId = artistId && !artistId.startsWith('artist-');
+                        const hasValidId = artistId && artistId !== 'unknown';
                         
                         return (
                           <React.Fragment key={artistIndex}>
@@ -386,7 +389,7 @@ const List = () => {
                                   ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline transition-colors' 
                                   : 'text-gray-600 cursor-default'
                               }`}
-                              onClick={() => handleArtistClick(artistId, artistName)}
+                              onClick={() => hasValidId && handleArtistClick(artistId, artistName)}
                               title={hasValidId ? `View ${artistName}'s page` : 'Artist page unavailable'}
                             >
                               {artistName}
