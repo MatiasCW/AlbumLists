@@ -192,27 +192,29 @@ const Rankings = () => {
                     className="bg-amber-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-amber-200"
                     onClick={() => handleAlbumClick(album)}
                   >
-                    <div className="album-item flex items-center space-x-6">
-                      <img 
-                        src={album.image} 
-                        alt={album.name} 
-                        className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
-                      />
-                      <div className="album-details flex-grow">
-                        <strong className="text-2xl text-gray-800 block mb-2">
-                          {index + 1}. {album.name}
-                        </strong>
-                        <span className="text-lg text-gray-600 font-semibold">
-                          Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                        </span>
-                        {album.artists && (
-                          <div className="text-md text-gray-500 mt-1">
-                            by {Array.isArray(album.artists) ? 
-                              album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
-                              album.artists}
-                          </div>
-                        )}
+                    <div className="album-item flex items-center justify-between">
+                      <div className="flex items-center space-x-6">
+                        <img 
+                          src={album.image} 
+                          alt={album.name} 
+                          className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
+                        />
+                        <div className="album-details">
+                          <strong className="text-2xl text-gray-800 block mb-2">
+                            {index + 1}. {album.name}
+                          </strong>
+                          {album.artists && (
+                            <div className="text-md text-gray-500 mt-1">
+                              by {Array.isArray(album.artists) ? 
+                                album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
+                                album.artists}
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <span className="text-lg text-gray-600 font-semibold">
+                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                      </span>
                     </div>
                   </li>
                 ))}
@@ -231,27 +233,29 @@ const Rankings = () => {
                     className="bg-blue-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow cursor-pointer hover:bg-blue-200"
                     onClick={() => handleAlbumClick(album)}
                   >
-                    <div className="album-item flex items-center space-x-6">
-                      <img 
-                        src={album.image} 
-                        alt={album.name} 
-                        className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
-                      />
-                      <div className="album-details flex-grow">
-                        <strong className="text-2xl text-gray-800 block mb-2">
-                          {index + 1}. {album.name}
-                        </strong>
-                        <span className="text-lg text-gray-600 font-semibold">
-                          Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                        </span>
-                        {album.artists && (
-                          <div className="text-md text-gray-500 mt-1">
-                            by {Array.isArray(album.artists) ? 
-                              album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
-                              album.artists}
-                          </div>
-                        )}
+                    <div className="album-item flex items-center justify-between">
+                      <div className="flex items-center space-x-6">
+                        <img 
+                          src={album.image} 
+                          alt={album.name} 
+                          className="w-24 h-24 rounded-lg object-cover shadow-md flex-shrink-0"
+                        />
+                        <div className="album-details">
+                          <strong className="text-2xl text-gray-800 block mb-2">
+                            {index + 1}. {album.name}
+                          </strong>
+                          {album.artists && (
+                            <div className="text-md text-gray-500 mt-1">
+                              by {Array.isArray(album.artists) ? 
+                                album.artists.map(a => typeof a === 'string' ? a : a.name).join(', ') : 
+                                album.artists}
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <span className="text-lg text-gray-600 font-semibold">
+                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
+                      </span>
                     </div>
                   </li>
                 ))}
