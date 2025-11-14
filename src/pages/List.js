@@ -333,6 +333,7 @@ const List = () => {
                 </th>
                 <th className="px-6 py-4 text-left font-semibold">Artist</th>
                 <th className="px-6 py-4 text-left font-semibold">Release Date</th>
+                <th className="px-6 py-4 text-left font-semibold">Average Score</th>
                 {isOwner && <th className="px-6 py-4 text-left font-semibold">Actions</th>}
               </tr>
             </thead>
@@ -395,6 +396,7 @@ const List = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-600">{album.release_date}</td>
+                  <td className="px-6 py-4 text-gray-600">{album.averageScore || '-'}</td>
                   <td className="px-6 py-4">
                     {isOwner && (
                       <button
