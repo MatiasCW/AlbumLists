@@ -212,9 +212,12 @@ const Rankings = () => {
                           )}
                         </div>
                       </div>
-                      <span className="text-lg text-gray-600 font-semibold">
-                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                      </span>
+                      {/* Updated Score Box */}
+                      <div className="score-box bg-white px-4 py-3 rounded-lg shadow-md border-2 border-amber-300 min-w-20 text-center">
+                        <span className="text-2xl font-bold text-gray-800">
+                          {album.averageScore?.toFixed(1) || '0.0'}
+                        </span>
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -253,9 +256,12 @@ const Rankings = () => {
                           )}
                         </div>
                       </div>
-                      <span className="text-lg text-gray-600 font-semibold">
-                        Average Score: {album.averageScore?.toFixed(1) || '0.0'}
-                      </span>
+                      {/* Updated Score Box */}
+                      <div className="score-box bg-white px-4 py-3 rounded-lg shadow-md border-2 border-blue-300 min-w-20 text-center">
+                        <span className="text-2xl font-bold text-gray-800">
+                          {album.averageScore?.toFixed(1) || '0.0'}
+                        </span>
+                      </div>
                     </div>
                   </li>
                 ))}
